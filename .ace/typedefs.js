@@ -376,7 +376,7 @@ import * as enums from './enums.js'
  * @property { AceQueryAverageAsProp } [ avgAsProp ]
  * @property { AceQueryMinAmountAsProp } [ minAmtAsProp ]
  * @property { AceQueryMaxAmountAsProp } [ maxAmtAsProp ]
- * @property { AceQueryDerivedProp } [ newProps ]
+ * @property { AceQueryNewPropsProp } [ newProps ]
  * @property { AceQueryPropAdjacentToResponse } [ propAdjToRes ]
  * @property { AceQueryFindGroup } [ findByOr ]
  * @property { AceQueryFindGroup } [ findByAnd ]
@@ -417,7 +417,7 @@ import * as enums from './enums.js'
  * @property { AceQueryAverageAsProp } [ avgAsProp ]
  * @property { AceQueryMinAmountAsProp } [ minAmtAsProp ]
  * @property { AceQueryMaxAmountAsProp } [ maxAmtAsProp ]
- * @property { AceQueryDerivedProp } [ newProps ]
+ * @property { AceQueryNewPropsProp } [ newProps ]
  * @property { AceQueryPropAdjacentToResponse } [ propAdjToRes ]
  * @property { AceQueryFindGroup } [ findByOr ]
  * @property { AceQueryFindGroup } [ findByAnd ]
@@ -531,9 +531,9 @@ import * as enums from './enums.js'
  * @property { string } computeProp - Find the largest numerical value of each node's **computeProp** in the response
  * @property { string } newProp - Find the largest numerical value of each node's **computeProp** in the response and then add this value as the **newProp** to each node in the response
  *
- * @typedef { { [propName: string]: AceQueryDerivedGroup } } AceQueryDerivedProp
- * @typedef { { add: AceQueryDerivedGroupItem[], subtract?: never, multiply?: never, divide?: never } | { subtract: AceQueryDerivedGroupItem[], add?: never, multiply?: never, divide?: never } | { multiply: AceQueryDerivedGroupItem[], add?: never, subtract?: never, divide?: never } | { divide: AceQueryDerivedGroupItem[], add?: never, subtract?: never, multiply?: never } } AceQueryDerivedGroup
- * @typedef { number | string | AceQueryProp | AceQueryDerivedGroup } AceQueryDerivedGroupItem
+ * @typedef { { [propName: string]: AceQueryNewPropsGroup } } AceQueryNewPropsProp
+ * @typedef { { add: AceQueryNewPropsGroupItem[], subtract?: never, multiply?: never, divide?: never } | { subtract: AceQueryNewPropsGroupItem[], add?: never, multiply?: never, divide?: never } | { multiply: AceQueryNewPropsGroupItem[], add?: never, subtract?: never, divide?: never } | { divide: AceQueryNewPropsGroupItem[], add?: never, subtract?: never, multiply?: never } } AceQueryNewPropsGroup
+ * @typedef { number | string | AceQueryProp | AceQueryNewPropsGroup } AceQueryNewPropsGroupItem
 */  
 
 

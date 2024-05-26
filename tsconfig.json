@@ -6,7 +6,7 @@
     "src/ace/mutate/mutateSchema.js",
 
     "src/ace/query/doQueryOptions.js",
-    "src/ace/query/getDerivedValue.js",
+    "src/ace/query/getNewProps.js",
     "src/ace/query/getDetailedResValue.js",
     "src/ace/query/getRelationshipNode.js",
     "src/ace/query/query.js",
@@ -35,7 +35,7 @@
     "src/enums/aceDo.js",
     "src/enums/dataTypes.js",
     "src/enums/jwkTypes.js",
-    "src/enums/queryDerivedSymbol.js",
+    "src/enums/queryNewPropsSymbol.js",
     "src/enums/queryOptions.js",
     "src/enums/queryWhereGroupSymbol.js",
     "src/enums/queryWhereSymbol.js",

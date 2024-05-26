@@ -54,8 +54,8 @@ export const jwkTypes = {
 }
 
 
-/** @typedef { 'add' | 'subtract' | 'multiply' | 'divide' } queryDerivedSymbol */
-export const queryDerivedSymbol = {
+/** @typedef { 'add' | 'subtract' | 'multiply' | 'divide' } queryNewPropsSymbol */
+export const queryNewPropsSymbol = {
   add: /** @type { 'add' } */ ('add'),
   subtract: /** @type { 'subtract' } */ ('subtract'),
   multiply: /** @type { 'multiply' } */ ('multiply'),

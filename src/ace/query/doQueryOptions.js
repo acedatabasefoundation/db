@@ -1,6 +1,6 @@
 import { td, enums } from '#ace'
 import { queryWhere } from './queryWhere.js'
-import { getDerivedValue } from './getDerivedValue.js'
+import { getNewProps } from './getNewProps.js'
 import { getRelationshipNode } from './getRelationshipNode.js'
 import { DEFAULT_QUERY_OPTIONS_FLOW, POST_QUERY_OPTIONS_FLOW } from '../../util/variables.js'
 
@@ -235,11 +235,11 @@ function doNewProps ($o, res, detailedResValueSection) {
     if (newPropKeys.length) {
       for (let i = 0; i < res.original[detailedResValueSection.resKey].length; i++) { // looping graph nodes
         for (const prop of newPropKeys) {
-          const derivedGroup = /** @type { td.AceQueryDerivedGroup } */ ($o.newProps[prop])
-          const derivedValue = getDerivedValue(detailedResValueSection, res.original[detailedResValueSection.resKey][i], derivedGroup)
+          const newPropsGroup = /** @type { td.AceQueryNewPropsGroup } */ ($o.newProps[prop])
+          const newPropsValue = getNewProps(detailedResValueSection, res.original[detailedResValueSection.resKey][i], newPropsGroup)
 
-          res.original[detailedResValueSection.resKey][i][prop] = derivedValue
-          if (!detailedResValueSection.resHide || !detailedResValueSection.resHide.has(detailedResValueSection.resKey)) res.now[detailedResValueSection.resKey][i][prop] = derivedValue
+          res.original[detailedResValueSection.resKey][i][prop] = newPropsValue
+          if (!detailedResValueSection.resHide || !detailedResValueSection.resHide.has(detailedResValueSection.resKey)) res.now[detailedResValueSection.resKey][i][prop] = newPropsValue
         }
       }
     }

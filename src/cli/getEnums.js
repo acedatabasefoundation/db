@@ -1,7 +1,7 @@
 import { aceDo } from '../enums/aceDo.js'
 import { dataTypes } from '../enums/dataTypes.js'
 import { jwkTypes } from '../enums/jwkTypes.js'
-import { queryDerivedSymbol } from '../enums/queryDerivedSymbol.js'
+import { queryNewPropsSymbol } from '../enums/queryNewPropsSymbol.js'
 import { queryOptions, postQueryOptions } from '../enums/queryOptions.js'
 import { queryWhereGroupSymbol } from '../enums/queryWhereGroupSymbol.js'
 import { queryWhereSymbol } from '../enums/queryWhereSymbol.js'
@@ -21,7 +21,7 @@ function setEnumsMap () {
   enumsMap.set('aceDo', aceDo)
   enumsMap.set('dataTypes', dataTypes)
   enumsMap.set('jwkTypes', jwkTypes)
-  enumsMap.set('queryDerivedSymbol', queryDerivedSymbol)
+  enumsMap.set('queryNewPropsSymbol', queryNewPropsSymbol)
   enumsMap.set('queryOptions', queryOptions)
   enumsMap.set('postQueryOptions', postQueryOptions)
   enumsMap.set('queryWhereGroupSymbol', queryWhereGroupSymbol)

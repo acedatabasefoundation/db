@@ -13,7 +13,7 @@ esbuild.build({ // // https://esbuild.github.io/api/
     './tsc/src/ace/mutate/mutateSchema.js',
 
     './tsc/src/ace/query/doQueryOptions.js',
-    './tsc/src/ace/query/getDerivedValue.js',
+    './tsc/src/ace/query/getNewProps.js',
     './tsc/src/ace/query/getDetailedResValue.js',
     './tsc/src/ace/query/getRelationshipNode.js',
     './tsc/src/ace/query/query.js',
@@ -41,7 +41,7 @@ esbuild.build({ // // https://esbuild.github.io/api/
     './tsc/src/enums/aceDo.js',
     './tsc/src/enums/dataTypes.js',
     './tsc/src/enums/jwkTypes.js',
-    './tsc/src/enums/queryDerivedSymbol.js',
+    './tsc/src/enums/queryNewPropsSymbol.js',
     './tsc/src/enums/queryOptions.js',
     './tsc/src/enums/queryWhereGroupSymbol.js',
     './tsc/src/enums/queryWhereSymbol.js',
