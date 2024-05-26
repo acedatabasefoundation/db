@@ -1,0 +1,39 @@
+{
+  "name": "@ace/db",
+  "version": "0.0.1",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "tsc/src/index.d.ts",
+  "author": "https://github.com/acedatabasefoundation",
+  "description": "The Ace Graph Database Mission, is to create, maintain and enhance, the Best database for JavaScript developers!",
+  "imports": {
+    "#ace": "./.ace/index.js"
+  },
+  "bin": {
+    "ace": "dist/cli/cli.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.11",
+    "esbuild": "^0.21.1",
+    "typescript": "^5.4.5"
+  },
+  "keywords": [
+    "ace",
+    "graph",
+    "database",
+    "db",
+    "node"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/acedatabasefoundation/db.git"
+  },
+  "bugs": {
+    "url": "https://github.com/acedatabasefoundation/db/issues"
+  },
+  "scripts": {
+    "build": "bash ./build.sh",
+    "npmCloud": "pnpm build && pnpm publish --access public ."
+  }
+}

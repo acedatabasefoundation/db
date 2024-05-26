@@ -1,0 +1,87 @@
+{
+  "files": [ // all src files (including index.js) (not including .test.js)
+    "src/ace/mutate/mutate.js",
+    "src/ace/mutate/mutateNode.js",
+    "src/ace/mutate/mutateRelationship.js",
+    "src/ace/mutate/mutateSchema.js",
+
+    "src/ace/query/doQueryOptions.js",
+    "src/ace/query/getDerivedValue.js",
+    "src/ace/query/getDetailedResValue.js",
+    "src/ace/query/getRelationshipNode.js",
+    "src/ace/query/query.js",
+    "src/ace/query/queryWhere.js",
+
+    "src/ace/ace.js",
+    "src/ace/enumIdToGraphId.js",
+    "src/ace/file.js",
+    "src/ace/getGraphId.js",
+    "src/ace/storage.js",
+    "src/ace/validateMustBeDefined.js",
+    "src/ace/validateSchema.js",
+    "src/ace/wal.js",
+
+    "src/cli/cli.js",
+    "src/cli/cliTypes.js",
+    "src/cli/getEnums.js",
+    "src/cli/getHelp.js",
+    "src/cli/getIndex.js",
+    "src/cli/getTsConfig.js",
+    "src/cli/getTypedefs.js",
+    "src/cli/getVersion.js",
+    "src/cli/logJWKs.js",
+
+    "src/enums/aceDo.js",
+    "src/enums/dataTypes.js",
+    "src/enums/schemaIs.js",
+    "src/enums/jwkTypes.js",
+    "src/enums/queryDerivedSymbol.js",
+    "src/enums/queryOptions.js",
+    "src/enums/queryWhereGroupSymbol.js",
+    "src/enums/queryWhereSymbol.js",
+    "src/enums/schemaHas.js",
+    "src/enums/schemaIs.js",
+    "src/enums/sortHow.js",
+    "src/enums/txnActions.js",
+    "src/enums/txnSteps.js",
+    "src/enums/writeActions.js",
+
+    "src/memory/memory.js",
+    "src/memory/memoryInitialize.js",
+
+    "src/objects/AceError.js",
+    "src/objects/SchemaDataStructures.js",
+    "src/objects/Txn.js",
+
+    "src/security/createJWKs.js",
+    "src/security/crypt.js",
+    "src/security/getRandomBase64.js",
+    "src/security/hash.js",
+    "src/security/transmute.js",
+
+    "src/util/isObjectPopulated.js",
+    "src/util/variables.js",
+
+    "src/index.js"
+  ],
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "declaration": true,
+    "strict": true,
+    "outDir": "tsc",
+    "declarationMap": true,
+    "module": "NodeNext", // use ESNext if .svelte components in /src
+    "target": "ES2017",
+    "rootDir": ".",
+    "paths": {
+      "#ace": [
+        "../.ace/index.js"
+      ]
+    }
+  }
+}
