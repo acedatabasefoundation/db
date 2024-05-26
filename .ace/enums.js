@@ -63,7 +63,7 @@ export const queryDerivedSymbol = {
 }
 
 
-/** @typedef { 'countAsProp' | 'sumAsProp' | 'avgAsProp' | 'minAmtAsProp' | 'maxAmtAsProp' | 'newProps' | 'propAdjToRes' | 'findByOr' | 'findByAnd' | 'findByDefined' | 'findByUndefined' | 'findByPropValue' | 'findByPropProp' | 'findByPropRes' | 'filterByOr' | 'filterByAnd' | 'filterByDefined' | 'filterByUndefined' | 'filterByPropValue' | 'filterByPropProp' | 'filterByPropRes' | 'sort' | 'limit' } queryOptions */
+/** @typedef { 'countAsProp' | 'sumAsProp' | 'avgAsProp' | 'minAmtAsProp' | 'maxAmtAsProp' | 'newProps' | 'propAdjToRes' | 'findByOr' | 'findByAnd' | 'findByDefined' | 'findByUndefined' | 'findByPropValue' | 'findByPropProp' | 'findByPropRes' | 'filterByOr' | 'filterByAnd' | 'filterByDefined' | 'filterByUndefined' | 'filterByPropValue' | 'filterByPropProp' | 'filterByPropRes' | 'sort' | 'countAdjToRes' | 'limit' } queryOptions */
 export const queryOptions = {
   countAsProp: /** @type { 'countAsProp' } */ ('countAsProp'),
   sumAsProp: /** @type { 'sumAsProp' } */ ('sumAsProp'),
@@ -87,6 +87,7 @@ export const queryOptions = {
   filterByPropProp: /** @type { 'filterByPropProp' } */ ('filterByPropProp'),
   filterByPropRes: /** @type { 'filterByPropRes' } */ ('filterByPropRes'),
   sort: /** @type { 'sort' } */ ('sort'),
+  countAdjToRes: /** @type { 'countAdjToRes' } */ ('countAdjToRes'),
   limit: /** @type { 'limit' } */ ('limit'),
 }
 

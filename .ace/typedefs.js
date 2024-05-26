@@ -335,6 +335,8 @@ import * as enums from './enums.js'
  * 
  * @typedef { '*' | '**' | '***' } AceQueryStars
  * 
+ * @typedef { Set<string> | null } AceQueryResHide
+ * 
  * @typedef { object } AceQueryRequestItemDetailedResValueSection
  * @property { string } reqResKey
  * @property { string } resKey
@@ -391,6 +393,7 @@ import * as enums from './enums.js'
  * @property { AceQueryWherePropProp } [ filterByPropProp ]
  * @property { AceQueryWherePropRes } [ filterByPropRes ]
  * @property { AceQueryLimit } [ limit ]
+ * @property { string } [ countAdjToRes ] - Prop name that will be adjacent to this array in the response and hold the length of this array in the response
  * @property { string[] } [ resHide ] - Array of props you'd love to hide in the response
  * @property { AceQueryPropAsResponse } [ propAsRes ]
  * @property { boolean } [ countAsRes ] - Display the count of results as the response
@@ -431,6 +434,7 @@ import * as enums from './enums.js'
  * @property { AceQueryWherePropProp } [ filterByPropProp ]
  * @property { AceQueryWherePropRes } [ filterByPropRes ]
  * @property { AceQueryLimit } [ limit ]
+ * @property { string } [ countAdjToRes ] - Prop name that will be adjacent to this array in the response and hold the length of this array in the response
  * @property { string[] } [ resHide ] - Array of props you'd love to hide in the response
  * @property { AceQueryPropAsResponse } [ propAsRes ]
  * @property { boolean } [ countAsRes ] - Display the count of results as the response
@@ -541,6 +545,5 @@ import * as enums from './enums.js'
 
 /** AcePromise
  * 
- * @typedef { (value: void) => void } AcePromiseResolve
  * @typedef { (reason?: any) => void  } AcePromiseReject
  */

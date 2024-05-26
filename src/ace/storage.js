@@ -1,6 +1,5 @@
 import { enums } from '#ace'
 import { memory } from '../memory/memory.js'
-import { memoryInitialize } from '../memory/memoryInitialize.js'
 
 
 /**

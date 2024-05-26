@@ -192,11 +192,6 @@ async function addPropsToResponse (detailedResValueSection, res, item, jwks, iRe
     const relationshipPropsMap = (item.relationship && memory.txn.schemaDataStructures.relationshipPropsMap) ? memory.txn.schemaDataStructures.relationshipPropsMap.get(detailedResValueSection.relationship || '') : undefined
 
     for (const reqResKey in detailedResValueSection.resValue) { // loop a section of query.x object
-      if (reqResKey === '_id') {
-        console.log('reqResKey', reqResKey)
-        console.log('item', item)
-        console.log('graphRelationshipProps', graphRelationshipProps)
-      }
       const resValueItemValue = detailedResValueSection.resValue[reqResKey]
 
       /** @type { { schemaNodeProp?: td.AceSchemaProp | td.AceSchemaForwardRelationshipProp | td.AceSchemaReverseRelationshipProp | td.AceSchemaBidirectionalRelationshipProp, schemaRelationshipProp?: td.AceSchemaRelationshipProp } } - If graphItemType is node, add node info to this object  */
@@ -207,7 +202,7 @@ async function addPropsToResponse (detailedResValueSection, res, item, jwks, iRe
         parentNodeOptions.schemaRelationshipProp = (detailedResValueSection.relationship) ? memory.txn.schema?.relationships?.[detailedResValueSection.relationship]?.props?.[reqResKey] : undefined
       }
 
-      if (!detailedResValueSection.resHide || !detailedResValueSection.resHide?.has(reqResKey)) {
+      if (reqResKey !== '$o' && (!detailedResValueSection.resHide || !detailedResValueSection.resHide?.has(reqResKey))) {
         if (typeof resOriginalItem[reqResKey] !== 'undefined') { // the graph item has the prop we are looking for
           if (resValueItemValue === true) resNowItem[reqResKey] = resOriginalItem[reqResKey] // they just want this value in the response
           else if (resValueItemValue?.alias) { // they want this value in the response but using an alias
@@ -223,7 +218,7 @@ async function addPropsToResponse (detailedResValueSection, res, item, jwks, iRe
         } else if (parentNodeOptions.schemaNodeProp?.is === 'ForwardRelationshipProp' || parentNodeOptions.schemaNodeProp?.is === 'ReverseRelationshipProp' || parentNodeOptions.schemaNodeProp?.is === 'BidirectionalRelationshipProp') { // this prop is defined @ schema.nodes and is a SchemaRelationshipProp
           const relationshipIds = graphItem[getRelationshipProp(parentNodeOptions.schemaNodeProp.options.relationship)]
           await addRelationshipPropsToResponse(id, relationshipIds, parentNodeOptions.schemaNodeProp, reqResKey, resValueItemValue, detailedResValueSection, resNowItem, resOriginalItem, jwks, iReq)
-        } else if (item.relationship && reqResKey !== '$o' && relationshipPropsMap) {
+        } else if (item.relationship && relationshipPropsMap) {
           const r = relationshipPropsMap.get(reqResKey)
           const schemaNodeProp = r?.propValue
           const relationshipDetailedResValueSection = getDetailedResValueSectionByParent(resValueItemValue, reqResKey, detailedResValueSection)  
@@ -233,7 +228,6 @@ async function addPropsToResponse (detailedResValueSection, res, item, jwks, iRe
             await addNodesToResponse(relationshipDetailedResValueSection, { now: resNowItem, original: resOriginalItem }, ids, false, jwks, iReq, [ resOriginalItem, resOriginalItem ])
           } else {
             let relationshipId
-            console.log('resOriginalItem', resOriginalItem)
             if (schemaNodeProp?.is === 'ForwardRelationshipProp') relationshipId = resOriginalItem.b
             else if (schemaNodeProp?.is === 'ReverseRelationshipProp') relationshipId = resOriginalItem.a
 
@@ -244,8 +238,6 @@ async function addPropsToResponse (detailedResValueSection, res, item, jwks, iRe
               if (resOriginalItem[relationshipDetailedResValueSection.resKey]?.length) resOriginalItem[relationshipDetailedResValueSection.resKey] = resOriginalItem[relationshipDetailedResValueSection.resKey][0]
             }
           }
-        } else {
-          console.log('hmm')
         }
       }
     }

@@ -45,6 +45,7 @@ export const DEFAULT_QUERY_OPTIONS_FLOW = [ // configurable
   'filterByPropRes',
 
   'sort', // IF sort schema index is not defined for the sort prop then we manually sort
+  'countAdjToRes',
   'limit',
 ]
 

@@ -2,12 +2,12 @@
 
 
 ## 🙏 Our Mission
-* Create, maintain and enhance the Best database for JavaScript Developers!
+Create, maintain and enhance, the Best database for JavaScript Developers!
 
 
 ## Why Ace?
 * A graph consists of nodes (neurons) and relationships (synapses)
-* So a graph is a natural data storage technique
+* So following the example of our brain, a graph is a natural data storage technique
 * Ace is an open source graph database, that unites the following lovely features, from impressive database leaders:
     * [Redis](https://redis.io/): Fast memory storage
     * [SQLite](https://www.sqlite.org/): No latency between application server & database
@@ -64,6 +64,7 @@
     * [New Props](#new-props)
     * [Response Hide](#response-hide)
 1. Mutations
+    * [Insert](#inset)
     * [Update](#update)
     * [Upsert](#upsert)
     * [Delete](#delete)

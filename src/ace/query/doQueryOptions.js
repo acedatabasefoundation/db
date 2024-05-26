@@ -14,27 +14,29 @@ import { DEFAULT_QUERY_OPTIONS_FLOW, POST_QUERY_OPTIONS_FLOW } from '../../util/
  */
 export async function doQueryOptions (detailedResValueSection, res, isUsingSortIndex, jwks) {
   if (detailedResValueSection.resValue?.$o) {
+    const $o = detailedResValueSection.resValue.$o
+
     /** @type { boolean } Set to true when ...AsRes is used */
     let hasValueAsResponse = false
 
     /** @type { Set<string> } If we have completed an option put it in done */
     const doneOptions = new Set()
 
-    if (detailedResValueSection.resValue?.$o.flow) { // do in requested flow order
-      for (const option of detailedResValueSection.resValue?.$o.flow) {
-        hasValueAsResponse = await doOption(option, hasValueAsResponse, doneOptions, detailedResValueSection, res, isUsingSortIndex, jwks)
+    if ($o.flow) { // do in requested flow order
+      for (const option of $o.flow) {
+        hasValueAsResponse = await doOption(option, hasValueAsResponse, doneOptions, detailedResValueSection, $o, res, isUsingSortIndex, jwks)
       }
     }
 
     for (const option of DEFAULT_QUERY_OPTIONS_FLOW) { // do in default flow order
-      hasValueAsResponse = await doOption(option, hasValueAsResponse, doneOptions, detailedResValueSection, res, isUsingSortIndex, jwks)
+      hasValueAsResponse = await doOption(option, hasValueAsResponse, doneOptions, detailedResValueSection, $o, res, isUsingSortIndex, jwks)
     }
 
     for (const option of POST_QUERY_OPTIONS_FLOW) { // do post flow order
-      hasValueAsResponse = await doOption(option, hasValueAsResponse, doneOptions, detailedResValueSection, res, isUsingSortIndex, jwks)
+      hasValueAsResponse = await doOption(option, hasValueAsResponse, doneOptions, detailedResValueSection, $o, res, isUsingSortIndex, jwks)
     }
 
-    if (hasValueAsResponse || detailedResValueSection.schemaHas === 'one' || detailedResValueSection.resValue?.$o?.limit?.count === 1 || detailedResValueSection.resValue?.$o?.findById || detailedResValueSection.resValue?.$o?.findBy_Id || detailedResValueSection.resValue?.$o?.findByUnique || detailedResValueSection.resValue?.$o?.findByOr || detailedResValueSection.resValue?.$o?.findByAnd || detailedResValueSection.resValue?.$o?.findByDefined || detailedResValueSection.resValue?.$o?.findByUndefined || detailedResValueSection.resValue?.$o?.findByPropValue || detailedResValueSection.resValue?.$o?.findByPropProp || detailedResValueSection.resValue?.$o?.findByPropRes) {
+    if (hasValueAsResponse || detailedResValueSection.schemaHas === 'one' || $o.limit?.count === 1 || $o.findById || $o.findBy_Id || $o.findByUnique || $o.findByOr || $o.findByAnd || $o.findByDefined || $o.findByUndefined || $o.findByPropValue || $o.findByPropProp || $o.findByPropRes) {
       res.now[detailedResValueSection.resKey] = typeof res.now[detailedResValueSection.resKey]?.[0] === 'undefined' ? null : res.now[detailedResValueSection.resKey][0]
       res.original[detailedResValueSection.resKey] = typeof res.original[detailedResValueSection.resKey]?.[0] === 'undefined' ? null : res.original[detailedResValueSection.resKey][0]
     }
@@ -48,13 +50,14 @@ export async function doQueryOptions (detailedResValueSection, res, isUsingSortI
  * @param { boolean } hasValueAsResponse
  * @param { Set<string> } doneOptions
  * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
+ * @param { td.AceQueryRequestItemNodeOptions } $o 
  * @param { td.AceFnFullResponse } res 
  * @param { boolean } isUsingSortIndex 
  * @param { td.AceFnCryptoJWKs } jwks 
  * @returns { Promise<boolean> }
  */
-async function doOption (option, hasValueAsResponse, doneOptions, detailedResValueSection, res, isUsingSortIndex, jwks) {
-  if (!hasValueAsResponse && !doneOptions.has(option) && detailedResValueSection.resValue?.$o?.[/** @type { keyof td.AceQueryRequestItemNodeOptions } */(option)]) {
+async function doOption (option, hasValueAsResponse, doneOptions, detailedResValueSection, $o, res, isUsingSortIndex, jwks) {
+  if (!hasValueAsResponse && !doneOptions.has(option) && $o[/** @type { keyof td.AceQueryRequestItemNodeOptions } */(option)]) {
     switch (option) {
       case enums.queryOptions.findByOr:
       case enums.queryOptions.findByAnd:
@@ -74,79 +77,83 @@ async function doOption (option, hasValueAsResponse, doneOptions, detailedResVal
         break
 
       case enums.queryOptions.limit:
-        doLimit(detailedResValueSection, res)
+        doLimit($o, res, detailedResValueSection.resKey)
         break
 
       case enums.queryOptions.sort:
-        doSort(detailedResValueSection, res, isUsingSortIndex)
+        doSort($o, res, detailedResValueSection.resKey, isUsingSortIndex)
         break
 
       case enums.queryOptions.newProps:
-        doNewProps(detailedResValueSection, res)
+        doNewProps($o, res, detailedResValueSection)
         break
 
       case enums.queryOptions.sumAsProp:
-        doSumAsProp(detailedResValueSection, res)
+        doSumAsProp($o, res, detailedResValueSection.resKey, detailedResValueSection.resHide)
         break
 
       case enums.queryOptions.avgAsProp:
-        doAvgAsProp(detailedResValueSection, res)
+        doAvgAsProp($o, res, detailedResValueSection.resKey, detailedResValueSection.resHide)
         break
 
       case enums.postQueryOptions.avgAsRes:
         hasValueAsResponse = true
-        doAvgAsRes(detailedResValueSection, res)
+        doAvgAsRes($o, res, detailedResValueSection.resKey)
         break
 
       case enums.queryOptions.minAmtAsProp:
-        doMinAmtAsProp(detailedResValueSection, res)
+        doMinAmtAsProp($o, res, detailedResValueSection.resKey, detailedResValueSection.resHide)
         break
 
       case enums.postQueryOptions.minAmtAsRes:
         hasValueAsResponse = true
-        doMinAmtAsRes(detailedResValueSection, res)
+        doMinAmtAsRes($o, res, detailedResValueSection.resKey)
         break
 
       case enums.postQueryOptions.minNodeAsRes:
         hasValueAsResponse = true
-        doMinNodeAsRes(detailedResValueSection, res)
+        doMinNodeAsRes($o, res, detailedResValueSection.resKey)
         break
 
       case enums.queryOptions.maxAmtAsProp:
-        doMaxAmtAsProp(detailedResValueSection, res)
+        doMaxAmtAsProp($o, res, detailedResValueSection.resKey, detailedResValueSection.resHide)
         break
 
       case enums.postQueryOptions.maxAmtAsRes:
         hasValueAsResponse = true
-        doMaxAmtAsRes(detailedResValueSection, res)
+        doMaxAmtAsRes($o, res, detailedResValueSection.resKey)
         break
 
       case enums.postQueryOptions.maxNodeAsRes:
         hasValueAsResponse = true
-        doMaxNodeAsRes(detailedResValueSection, res)
+        doMaxNodeAsRes($o, res, detailedResValueSection.resKey)
         break
 
       case enums.queryOptions.countAsProp:
-        doCountAsProp(detailedResValueSection, res)
+        doCountAsProp($o, res, detailedResValueSection.resKey, detailedResValueSection.resHide)
+        break
+
+      case enums.queryOptions.countAdjToRes:
+        doCountAdjToRes($o, res, detailedResValueSection.resKey)
         break
 
       case enums.postQueryOptions.countAsRes:
         hasValueAsResponse = true
-        doCountAsRes(detailedResValueSection, res)
+        doCountAsRes($o, res, detailedResValueSection.resKey)
         break
 
       case enums.postQueryOptions.propAsRes:
         hasValueAsResponse = true
-        doPropAsRes(detailedResValueSection, res)
+        doPropAsRes($o, res, detailedResValueSection)
         break
 
       case enums.postQueryOptions.sumAsRes:
         hasValueAsResponse = true
-        doSumAsRes(detailedResValueSection, res)
+        doSumAsRes($o, res, detailedResValueSection.resKey, detailedResValueSection.resHide)
         break
 
       case enums.queryOptions.propAdjToRes:
-        doPropAdjacentToRes(detailedResValueSection, res)
+        doPropAdjacentToRes($o, res, detailedResValueSection)
         break
     }
   }
@@ -158,43 +165,43 @@ async function doOption (option, hasValueAsResponse, doneOptions, detailedResVal
 
 
 /**
- * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
+ * @param { td.AceQueryRequestItemNodeOptions } $o 
  * @param { td.AceFnFullResponse } res 
+ * @param { string } resKey 
  * @returns { void }
  */
-function doLimit (detailedResValueSection, res) {
-  if (detailedResValueSection.resValue?.$o?.limit) {
-    const limit = detailedResValueSection.resValue?.$o.limit
-
-    if (limit.skip && limit.count) {
-      res.now[detailedResValueSection.resKey] = res.now[detailedResValueSection.resKey].slice(limit.skip, limit.skip + limit.count)
-      res.original[detailedResValueSection.resKey] = res.original[detailedResValueSection.resKey].slice(limit.skip, limit.skip + limit.count)
-    } else if (limit.skip) {
-      res.now[detailedResValueSection.resKey] = res.now[detailedResValueSection.resKey].slice(limit.skip)
-      res.original[detailedResValueSection.resKey] = res.original[detailedResValueSection.resKey].slice(limit.skip)
-    } else if (limit.count) {
-      res.now[detailedResValueSection.resKey] = res.now[detailedResValueSection.resKey].slice(0, limit.count)
-      res.original[detailedResValueSection.resKey] = res.original[detailedResValueSection.resKey].slice(0, limit.count)
+function doLimit ($o, res, resKey) {
+  if ($o.limit) {
+    if ($o.limit.skip && $o.limit.count) {
+      res.now[resKey] = res.now[resKey].slice($o.limit.skip, $o.limit.skip + $o.limit.count)
+      res.original[resKey] = res.original[resKey].slice($o.limit.skip, $o.limit.skip + $o.limit.count)
+    } else if ($o.limit.skip) {
+      res.now[resKey] = res.now[resKey].slice($o.limit.skip)
+      res.original[resKey] = res.original[resKey].slice($o.limit.skip)
+    } else if ($o.limit.count) {
+      res.now[resKey] = res.now[resKey].slice(0, $o.limit.count)
+      res.original[resKey] = res.original[resKey].slice(0, $o.limit.count)
     }
   }
 }
 
 
 /**
- * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
+ * @param { td.AceQueryRequestItemNodeOptions } $o 
  * @param { td.AceFnFullResponse } res 
+ * @param { string } resKey 
  * @param { boolean } isUsingSortIndex 
  * @returns { void }
  */
-function doSort (detailedResValueSection, res, isUsingSortIndex) {
-  if (!isUsingSortIndex && detailedResValueSection.resValue?.$o?.sort) { // IF not using a sorted index array => sort items
+function doSort ($o, res, resKey, isUsingSortIndex) {
+  if (!isUsingSortIndex && $o.sort) { // IF not using a sorted index array => sort items
     const combined = []
-    const sort = detailedResValueSection.resValue?.$o.sort
+    const sort = $o.sort
 
-    for (let i = 0; i < res.original[detailedResValueSection.resKey].length; i++) {
+    for (let i = 0; i < res.original[resKey].length; i++) {
       combined.push({
-        now: res.now[detailedResValueSection.resKey][i],
-        original: res.original[detailedResValueSection.resKey][i],
+        now: res.now[resKey][i],
+        original: res.original[resKey][i],
       })
     }
 
@@ -209,28 +216,31 @@ function doSort (detailedResValueSection, res, isUsingSortIndex) {
       return rSort
     })
 
-    res.now[detailedResValueSection.resKey] = combined.map((value) => value.now)
-    res.original[detailedResValueSection.resKey] = combined.map((value) => value.original)
+    res.now[resKey] = combined.map((value) => value.now)
+    res.original[resKey] = combined.map((value) => value.original)
   }
 }
 
 
 /**
- * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
+ * @param { td.AceQueryRequestItemNodeOptions } $o 
  * @param { td.AceFnFullResponse } res 
+ * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
  * @returns { void }
  */
-function doNewProps (detailedResValueSection, res) {
-  const newPropKeys = Object.keys(detailedResValueSection.resValue?.$o?.newProps || {})
+function doNewProps ($o, res, detailedResValueSection) {
+  if ($o.newProps) {
+    const newPropKeys = Object.keys($o.newProps)
 
-  if (newPropKeys.length) {
-    for (let i = 0; i < res.original[detailedResValueSection.resKey].length; i++) { // looping graph nodes
-      for (const prop of newPropKeys) {
-        const derivedGroup = /** @type { td.AceQueryDerivedGroup } */ (detailedResValueSection.resValue?.$o?.newProps?.[prop])
-        const derivedValue = getDerivedValue(detailedResValueSection, res.original[detailedResValueSection.resKey][i], derivedGroup)
+    if (newPropKeys.length) {
+      for (let i = 0; i < res.original[detailedResValueSection.resKey].length; i++) { // looping graph nodes
+        for (const prop of newPropKeys) {
+          const derivedGroup = /** @type { td.AceQueryDerivedGroup } */ ($o.newProps[prop])
+          const derivedValue = getDerivedValue(detailedResValueSection, res.original[detailedResValueSection.resKey][i], derivedGroup)
 
-        res.original[detailedResValueSection.resKey][i][prop] = derivedValue
-        if (!detailedResValueSection.resHide || !detailedResValueSection.resHide.has(detailedResValueSection.resKey)) res.now[detailedResValueSection.resKey][i][prop] = derivedValue
+          res.original[detailedResValueSection.resKey][i][prop] = derivedValue
+          if (!detailedResValueSection.resHide || !detailedResValueSection.resHide.has(detailedResValueSection.resKey)) res.now[detailedResValueSection.resKey][i][prop] = derivedValue
+        }
       }
     }
   }
@@ -238,108 +248,114 @@ function doNewProps (detailedResValueSection, res) {
 
 
 /**
- * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
+ * @param { td.AceQueryRequestItemNodeOptions } $o 
  * @param { td.AceFnFullResponse } res 
+ * @param { string } resKey 
+ * @param { td.AceQueryResHide } resHide
  * @returns { void }
  */
-function doSumAsProp (detailedResValueSection, res) {
-  if (detailedResValueSection.resValue?.$o?.sumAsProp) {
+function doSumAsProp ($o, res, resKey, resHide) {
+  if ($o.sumAsProp) {
     let sum = 0
-    const sumAsProp = detailedResValueSection.resValue?.$o.sumAsProp
+    const sumAsProp = $o.sumAsProp
 
-    for (let arrayItem of res.original[detailedResValueSection.resKey]) {
+    for (let arrayItem of res.original[resKey]) {
       sum += arrayItem[sumAsProp.computeProp]
     }
 
-    for (let i = 0; i < res.original[detailedResValueSection.resKey].length; i++) {
-      res.original[detailedResValueSection.resKey][i][sumAsProp.newProp] = sum
-      if (!detailedResValueSection.resHide || !detailedResValueSection.resHide.has(detailedResValueSection.resKey)) res.now[detailedResValueSection.resKey][i][sumAsProp.newProp] = sum
+    for (let i = 0; i < res.original[resKey].length; i++) {
+      res.original[resKey][i][sumAsProp.newProp] = sum
+      if (!resHide || !resHide.has(resKey)) res.now[resKey][i][sumAsProp.newProp] = sum
     }
   }
 }
 
 
 /**
- * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
+ * @param { td.AceQueryRequestItemNodeOptions } $o 
  * @param { td.AceFnFullResponse } res 
+ * @param { string } resKey 
+ * @param { td.AceQueryResHide } resHide
  * @returns { void }
  */
-function doSumAsRes (detailedResValueSection, res) {
-  if (detailedResValueSection.resValue?.$o?.sumAsRes) {
+function doSumAsRes ($o, res, resKey, resHide) {
+  if ($o.sumAsRes) {
     let sum = 0
-    const sumAsRes = detailedResValueSection.resValue?.$o.sumAsRes
 
-    for (let arrayItem of res.original[detailedResValueSection.resKey]) {
-      sum += arrayItem[sumAsRes]
+    for (let arrayItem of res.original[resKey]) {
+      sum += arrayItem[$o.sumAsRes]
     }
 
-    res.original[detailedResValueSection.resKey] = [sum]
-    if (!detailedResValueSection.resHide || !detailedResValueSection.resHide.has(detailedResValueSection.resKey)) res.now[detailedResValueSection.resKey] = [ sum ]
+    res.original[resKey] = [sum]
+    if (!resHide || !resHide.has(resKey)) res.now[resKey] = [ sum ]
   }
 }
 
 
 /**
- * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
+ * @param { td.AceQueryRequestItemNodeOptions } $o 
  * @param { td.AceFnFullResponse } res 
+ * @param { string } resKey 
+ * @param { td.AceQueryResHide } resHide
  * @returns { void }
  */
-function doAvgAsProp (detailedResValueSection, res) {
-  if (detailedResValueSection.resValue?.$o?.avgAsProp) {
+function doAvgAsProp ($o, res, resKey, resHide) {
+  if ($o.avgAsProp) {
     let sum = 0
 
-    const avgAsProp = detailedResValueSection.resValue?.$o.avgAsProp
-    const original = res.original[detailedResValueSection.resKey]
+    const original = res.original[resKey]
 
     for (let arrayItem of original) {
-      sum += arrayItem[avgAsProp.computeProp]
+      sum += arrayItem[$o.avgAsProp.computeProp]
     }
 
     const average = original.length ? sum / original.length : 0
 
     for (let i = 0; i < original.length; i++) {
-      original[i][avgAsProp.newProp] = average
-      if (!detailedResValueSection.resHide || !detailedResValueSection.resHide.has(detailedResValueSection.resKey)) res.now[detailedResValueSection.resKey][i][avgAsProp.newProp] = average
+      original[i][$o.avgAsProp.newProp] = average
+      if (!resHide || !resHide.has(resKey)) res.now[resKey][i][$o.avgAsProp.newProp] = average
     }
   }
 }
 
 
 /**
- * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
+ * @param { td.AceQueryRequestItemNodeOptions } $o 
  * @param { td.AceFnFullResponse } res 
+ * @param { string } resKey 
  * @returns { void }
  */
-function doAvgAsRes (detailedResValueSection, res) {
-  if (detailedResValueSection.resValue?.$o?.avgAsRes) {
+function doAvgAsRes ($o, res, resKey) {
+  if ($o.avgAsRes) {
     let sum = 0
 
-    const avgAsRes = detailedResValueSection.resValue?.$o.avgAsRes
-    const original = res.original[detailedResValueSection.resKey]
+    const original = res.original[resKey]
 
     for (let arrayItem of original) {
-      sum += arrayItem[avgAsRes]
+      sum += arrayItem[$o.avgAsRes]
     }
 
     const average = original.length ? sum / original.length : 0
 
-    res.now[detailedResValueSection.resKey] = [average]
-    res.original[detailedResValueSection.resKey] = [average]
+    res.now[resKey] = [ average ]
+    res.original[resKey] = [ average ]
   }
 }
 
 
 /**
- * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
+ * @param { td.AceQueryRequestItemNodeOptions } $o 
  * @param { td.AceFnFullResponse } res 
+ * @param { string } resKey 
+ * @param { td.AceQueryResHide } resHide
  * @returns { void }
  */
-function doMinAmtAsProp (detailedResValueSection, res) {
-  if (detailedResValueSection.resValue?.$o?.minAmtAsProp) {
+function doMinAmtAsProp ($o, res, resKey, resHide) {
+  if ($o.minAmtAsProp) {
     let amount = 0
 
-    const minAmtAsProp = detailedResValueSection.resValue?.$o.minAmtAsProp
-    const original = res.original[detailedResValueSection.resKey]
+    const minAmtAsProp = $o.minAmtAsProp
+    const original = res.original[resKey]
 
     for (let arrayItem of original) {
       if (!amount || arrayItem[minAmtAsProp.computeProp] < amount) amount = arrayItem[minAmtAsProp.computeProp]
@@ -347,192 +363,199 @@ function doMinAmtAsProp (detailedResValueSection, res) {
 
     for (let i = 0; i < original.length; i++) {
       original[i][minAmtAsProp.newProp] = amount
-      if (!detailedResValueSection.resHide || !detailedResValueSection.resHide.has(detailedResValueSection.resKey)) res.now[detailedResValueSection.resKey][i][minAmtAsProp.newProp] = amount
+      if (!resHide || !resHide.has(resKey)) res.now[resKey][i][minAmtAsProp.newProp] = amount
     }
   }
 }
 
 
 /**
- * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
+ * @param { td.AceQueryRequestItemNodeOptions } $o 
  * @param { td.AceFnFullResponse } res 
+ * @param { string } resKey 
  * @returns { void }
  */
-function doMinAmtAsRes (detailedResValueSection, res) {
-  if (detailedResValueSection.resValue?.$o?.minAmtAsRes) {
+function doMinAmtAsRes ($o, res, resKey) {
+  if ($o.minAmtAsRes) {
     let amount = 0
 
-    const minAmtAsRes = detailedResValueSection.resValue?.$o.minAmtAsRes
-    const original = res.original[detailedResValueSection.resKey]
+    const original = res.original[resKey]
 
     for (let arrayItem of original) {
-      if (!amount || arrayItem[minAmtAsRes] < amount) amount = arrayItem[minAmtAsRes]
+      if (!amount || arrayItem[$o.minAmtAsRes] < amount) amount = arrayItem[$o.minAmtAsRes]
     }
 
-    res.now[detailedResValueSection.resKey] = [amount]
-    res.original[detailedResValueSection.resKey] = [amount]
+    res.now[resKey] = [amount]
+    res.original[resKey] = [amount]
   }
 }
 
 
 /**
- * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
+ * @param { td.AceQueryRequestItemNodeOptions } $o 
  * @param { td.AceFnFullResponse } res 
+ * @param { string } resKey 
  * @returns { void }
  */
-function doMinNodeAsRes (detailedResValueSection, res) {
-  if (detailedResValueSection.resValue?.$o?.minNodeAsRes) {
+function doMinNodeAsRes ($o, res, resKey) {
+  if ($o.minNodeAsRes) {
     let node = null
     let amount = 0
 
-    const minNodeAsRes = detailedResValueSection.resValue?.$o.minNodeAsRes
-    const original = res.original[detailedResValueSection.resKey]
+    const original = res.original[resKey]
 
     for (let i = 0; i < original.length; i++) {
-      if (!node || original[i][minNodeAsRes] < amount) {
-        amount = original[i][minNodeAsRes]
-        node = res.now[detailedResValueSection.resKey][i]
+      if (!node || original[i][$o.minNodeAsRes] < amount) {
+        amount = original[i][$o.minNodeAsRes]
+        node = res.now[resKey][i]
       }
     }
 
-    res.now[detailedResValueSection.resKey] = [node]
-    res.original[detailedResValueSection.resKey] = [node]
+    res.now[resKey] = [ node ]
+    res.original[resKey] = [ node ]
   }
 }
 
 
 /**
- * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
+ * @param { td.AceQueryRequestItemNodeOptions } $o 
  * @param { td.AceFnFullResponse } res 
+ * @param { string } resKey 
  * @returns { void }
  */
-function doMaxNodeAsRes (detailedResValueSection, res) {
-  if (detailedResValueSection.resValue?.$o?.maxNodeAsRes) {
+function doMaxNodeAsRes ($o, res, resKey) {
+  if ($o.maxNodeAsRes) {
     let node = null
     let amount = 0
 
-    const maxNodeAsRes = detailedResValueSection.resValue?.$o.maxNodeAsRes
-    const original = res.original[detailedResValueSection.resKey]
+    const original = res.original[resKey]
 
     for (let i = 0; i < original.length; i++) {
-      if (!node || original[i][maxNodeAsRes] > amount) {
-        amount = original[i][maxNodeAsRes]
-        node = res.now[detailedResValueSection.resKey][i]
+      if (!node || original[i][$o.maxNodeAsRes] > amount) {
+        amount = original[i][$o.maxNodeAsRes]
+        node = res.now[resKey][i]
       }
     }
 
-    res.now[detailedResValueSection.resKey] = [node]
-    res.original[detailedResValueSection.resKey] = [node]
+    res.now[resKey] = [ node ]
+    res.original[resKey] = [ node] 
   }
 }
 
 
 /**
- * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
+ * @param { td.AceQueryRequestItemNodeOptions } $o 
  * @param { td.AceFnFullResponse } res 
+ * @param { string } resKey 
+ * @param { td.AceQueryResHide } resHide
  * @returns { void }
  */
-function doMaxAmtAsProp (detailedResValueSection, res) {
-  if (detailedResValueSection.resValue?.$o?.maxAmtAsProp) {
+function doMaxAmtAsProp ($o, res, resKey, resHide) {
+  if ($o.maxAmtAsProp) {
     let amount = 0
 
-    const maxAmtAsProp = detailedResValueSection.resValue?.$o?.maxAmtAsProp
-    const original = res.original[detailedResValueSection.resKey]
+    const original = res.original[resKey]
 
     for (let arrayItem of original) {
-      if (!amount || arrayItem[maxAmtAsProp.computeProp] > amount) amount = arrayItem[maxAmtAsProp.computeProp]
+      if (!amount || arrayItem[$o.maxAmtAsProp.computeProp] > amount) amount = arrayItem[$o.maxAmtAsProp.computeProp]
     }
 
     for (let i = 0; i < original.length; i++) {
-      original[i][maxAmtAsProp.newProp] = amount
-      if (!detailedResValueSection.resHide || !detailedResValueSection.resHide.has(detailedResValueSection.resKey)) res.now[detailedResValueSection.resKey][i][maxAmtAsProp.newProp] = amount
+      original[i][$o.maxAmtAsProp.newProp] = amount
+      if (!resHide || !resHide.has(resKey)) res.now[resKey][i][$o.maxAmtAsProp.newProp] = amount
     }
   }
 }
 
 
 /**
- * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
+ * @param { td.AceQueryRequestItemNodeOptions } $o 
  * @param { td.AceFnFullResponse } res 
+ * @param { string } resKey 
  * @returns { void }
  */
-function doMaxAmtAsRes (detailedResValueSection, res) {
-  if (detailedResValueSection.resValue?.$o?.maxAmtAsRes) {
+function doMaxAmtAsRes ($o, res, resKey) {
+  if ($o.maxAmtAsRes) {
     let amount = 0
 
-    const maxAmtAsRes = detailedResValueSection.resValue?.$o.maxAmtAsRes
-    const original = res.original[detailedResValueSection.resKey]
+    const original = res.original[resKey]
 
     for (let arrayItem of original) {
-      if (!amount || arrayItem[maxAmtAsRes] > amount) amount = arrayItem[maxAmtAsRes]
+      if (!amount || arrayItem[$o.maxAmtAsRes] > amount) amount = arrayItem[$o.maxAmtAsRes]
     }
 
-    res.now[detailedResValueSection.resKey] = [amount]
-    res.original[detailedResValueSection.resKey] = [amount]
+    res.now[resKey] = [amount]
+    res.original[resKey] = [amount]
   }
 }
 
 
 /**
- * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
+ * @param { td.AceQueryRequestItemNodeOptions } $o 
  * @param { td.AceFnFullResponse } res 
+ * @param { string } resKey 
+ * @param { td.AceQueryResHide } resHide
  * @returns { void }
  */
-function doCountAsProp (detailedResValueSection, res) {
-  if (detailedResValueSection.resValue?.$o?.countAsProp) {
-    const count = getCount(detailedResValueSection, res)
-    const countAsProp = detailedResValueSection.resValue?.$o.countAsProp
+function doCountAsProp ($o, res, resKey, resHide) {
+  if ($o.countAsProp) {
+    const count = res.original[resKey].length
 
     for (let i = 0; i < count; i++) {
-      res.original[detailedResValueSection.resKey][i][countAsProp] = count
-      if (!detailedResValueSection.resHide || !detailedResValueSection.resHide.has(countAsProp)) res.now[detailedResValueSection.resKey][i][countAsProp] = count
+      res.original[resKey][i][$o.countAsProp] = count
+      if (!resHide || !resHide.has($o.countAsProp)) res.now[resKey][i][$o.countAsProp] = count
     }
   }
 }
 
 
 /**
- * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
+ * @param { td.AceQueryRequestItemNodeOptions } $o 
  * @param { td.AceFnFullResponse } res 
+ * @param { string } resKey 
  * @returns { void }
  */
-function doCountAsRes (detailedResValueSection, res) {
-  if (detailedResValueSection.resValue?.$o?.countAsRes) {
-    const count = getCount(detailedResValueSection, res)
+function doCountAdjToRes ($o, res, resKey) {
+  if ($o.countAdjToRes) {
+    const count = res.original[resKey].length
 
-    res.now[detailedResValueSection.resKey] = [count]
-    res.original[detailedResValueSection.resKey] = [count]
+    res.original[$o.countAdjToRes] = count
+    res.now[$o.countAdjToRes] = count
   }
 }
 
 
-
 /**
- * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
+ * @param { td.AceQueryRequestItemNodeOptions } $o 
  * @param { td.AceFnFullResponse } res 
- * @returns { number }
+ * @param { string } resKey 
+ * @returns { void }
  */
-function getCount (detailedResValueSection, res) {
-  return res.original[detailedResValueSection.resKey].length
+function doCountAsRes ($o, res, resKey) {
+  if ($o.countAsRes) {
+    const count = res.original[resKey].length
+
+    res.now[resKey] = [count]
+    res.original[resKey] = [count]
+  }
 }
 
 
 /**
- * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
+ * @param { td.AceQueryRequestItemNodeOptions } $o 
  * @param { td.AceFnFullResponse } res 
+ * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
  * @returns { void }
  */
-function doPropAsRes (detailedResValueSection, res) {
-  if (detailedResValueSection.resValue?.$o?.propAsRes) {
+function doPropAsRes ($o, res, detailedResValueSection) {
+  if ($o.propAsRes) {
     let value
     let original = res.original[detailedResValueSection.resKey]
 
-    const propAsRes = detailedResValueSection.resValue?.$o.propAsRes
-
-    if (!propAsRes.relationships?.length) value = original?.[0]?.[propAsRes.prop]
+    if (!$o.propAsRes.relationships?.length) value = original?.[0]?.[$o.propAsRes.prop]
     else {
-      const rRelationshipNode = getRelationshipNode(detailedResValueSection, original[0], propAsRes.relationships)
-      value = rRelationshipNode?.node?.[propAsRes.prop]
+      const rRelationshipNode = getRelationshipNode(detailedResValueSection, original[0], $o.propAsRes.relationships)
+      value = rRelationshipNode?.node?.[$o.propAsRes.prop]
     }
 
     if (typeof value !== 'undefined') {
@@ -544,26 +567,25 @@ function doPropAsRes (detailedResValueSection, res) {
 
 
 /**
- * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
+ * @param { td.AceQueryRequestItemNodeOptions } $o 
  * @param { td.AceFnFullResponse } res 
+ * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
  * @returns { void }
  */
-function doPropAdjacentToRes (detailedResValueSection, res) {
-  if (detailedResValueSection.resValue?.$o?.propAdjToRes) {
+function doPropAdjacentToRes ($o, res, detailedResValueSection) {
+  if ($o.propAdjToRes) {
     let value
     let original = res.original[detailedResValueSection.resKey]
 
-    const propAdjToRes = detailedResValueSection.resValue?.$o.propAdjToRes
-
-    if (!propAdjToRes.relationships?.length) value = original?.[0]?.[propAdjToRes.sourceProp]
+    if (!$o.propAdjToRes.relationships?.length) value = original?.[0]?.[$o.propAdjToRes.sourceProp]
     else {
-      const rRelationshipNode = getRelationshipNode(detailedResValueSection, original[0], propAdjToRes.relationships)
-      value = rRelationshipNode?.node?.[propAdjToRes.sourceProp]
+      const rRelationshipNode = getRelationshipNode(detailedResValueSection, original[0], $o.propAdjToRes.relationships)
+      value = rRelationshipNode?.node?.[$o.propAdjToRes.sourceProp]
     }
 
     if (typeof value !== 'undefined') {
-      res.now[propAdjToRes.adjacentProp] = value
-      res.original[propAdjToRes.adjacentProp] = value
+      res.now[$o.propAdjToRes.adjacentProp] = value
+      res.original[$o.propAdjToRes.adjacentProp] = value
     }
   }
 }
