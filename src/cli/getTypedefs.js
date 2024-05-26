@@ -61,6 +61,7 @@ ${ typedefs.Nodes}${typedefs.Relationships }/** AceGraph
  * 
  * @typedef { object } AceTxn
  * @property { string } [ id ]
+ * @property { NodeJS.Timeout } [ timeoutId ]
  * @property { enums.txnSteps } step
  * @property { AceSchema | null } schema
  * @property { AceTxnSchemaDataStructures } schemaDataStructures
@@ -91,7 +92,7 @@ ${ typedefs.Nodes}${typedefs.Relationships }/** AceGraph
  *
  * @typedef { string } AceFnOptionsWhere
  *
- * @typedef { AceFnOptionsTxnStart | AceFnOptionsTxnComplete | AceFnOptionsTxnCancel } AceFnOptionsTxn
+ * @typedef { AceFnOptionsTxnStart | AceFnOptionsTxnComplete | AceFnOptionsTxnCancel | AceFnOptionsTxnContinue } AceFnOptionsTxn
  * 
  * @typedef { object } AceFnOptionsTxnStart
  * @property { typeof enums.txnActions.start } action
@@ -104,6 +105,10 @@ ${ typedefs.Nodes}${typedefs.Relationships }/** AceGraph
  * @typedef { object } AceFnOptionsTxnCancel
  * @property { typeof enums.txnActions.cancel } action
  * @property { string } id
+ *
+ * @typedef { object } AceFnOptionsTxnContinue
+ * @property { string } id
+ * @property { never } [ action ]
  *
  * @typedef { object } AceFnRequestItemMemoryInitialize
  * @property { typeof enums.aceDo.MemoryInitialize } do

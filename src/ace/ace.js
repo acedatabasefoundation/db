@@ -52,17 +52,18 @@ export async function ace (options) {
  * @returns { Promise<void> }
  */
 async function approachReqGateway (resolve, reject, options) {
-  if (memory.txn.step === 'notStarted' || options.txn?.id === memory.txn.id) await enterReqGateway(resolve, options)
+  if (memory.txn.step === 'gestate' || options.txn?.id === memory.txn.id) await enterReqGateway(resolve, reject, options) // IF no txn is in progress OR this request has a txnId that matches the txn in progress
   else memory.queue.push({ resolve, reject, options })
 }
 
 
 /**
  * @param { (res: td.AceFnResponse) => void } resolve 
+ * @param { (res: td.AceFnResponse) => void } reject 
  * @param { td.AceFnOptions } options 
  * @returns { Promise<void> }
  */
-async function enterReqGateway (resolve, options) {
+async function enterReqGateway (resolve, reject, options) {
   /** @type { td.AceFnFullResponse } - Nodes with all properties will be in original, nodes with requested properties from `query.x` will be in now. */
   const res = { now: {}, original: {} }
 
@@ -71,10 +72,12 @@ async function enterReqGateway (resolve, options) {
   if (options.txn?.action === 'cancel') await cancelTxn(res, resolve)
   else if (!options.what) throw AceError('aceFn__missingWhat', 'Please ensure options.what is not falsy. The only time options.what may be falsy is if options.txn.action is "cancel".', { options })
   else {
+    setTxnTimer(reject)
+    setTxnStep(options)
+
     /** @type { td.AceFnRequestItem[] } */
     const req =  Array.isArray(options.what) ? options.what : [ options.what ]
 
-    setTxnStep(options)
     setHasUpdates(req)
 
     /** @type { td.AceFnCryptoJWKs } */
@@ -132,12 +135,24 @@ async function cancelTxn (res, resolve) {
 
 
 /**
+ * @param { td.AcePromiseReject } reject 
+ */
+function setTxnTimer (reject) {
+  if (memory.txn.id && !memory.txn.timeoutId) {
+    memory.txn.timeoutId = setTimeout(async () => {
+      await doneReqGateway({ e: `Please ensure each transaction takes a maximum of 21 seconds to resolve, this limit was reached for the transaction id ${ memory.txn.id }` }, { reject })
+    }, 21_000)
+  }
+}
+
+
+/**
  * @param { td.AceFnOptions } options 
  * @returns { void }
  */
 function setTxnStep (options) {
   switch (memory.txn.step) {
-    case 'notStarted':
+    case 'gestate':
       if (options.txn?.action === 'start') memory.txn.step = 'reqNotLastOne'
       else if (options.txn?.action === 'complete') memory.txn.step = 'reqLastOne'
       else if (options.txn?.id) memory.txn.step = 'reqNotLastOne'
@@ -423,6 +438,8 @@ async function doneReqGateway (item, fn) {
   }
 
   if (fn.reject || memory.txn.step === 'reqLastOne' || item.res?.now?.$ace?.txnCancelled) { // IF last request in txn
+    if (memory.txn.timeoutId) clearTimeout(memory.txn.timeoutId)
+
     memory.txn = Txn()
 
     if (memory.queue.length) {

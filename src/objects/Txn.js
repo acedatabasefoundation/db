@@ -8,7 +8,7 @@ export function Txn () {
     writeStr: '',
     schema: null,
     hasUpdates: false,
-    step: 'notStarted',
+    step: 'gestate',
     writeMap: new Map(),
     sortIndexMap: new Map(),
     wasEmptyRequested: false,

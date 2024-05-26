@@ -165,9 +165,9 @@ export const txnActions = {
 }
 
 
-/** @typedef { 'notStarted' | 'reqNotLastOne' | 'waiting' | 'reqLastOne' } txnSteps */
+/** @typedef { 'gestate' | 'reqNotLastOne' | 'waiting' | 'reqLastOne' } txnSteps */
 export const txnSteps = {
-  notStarted: /** @type { 'notStarted' } */ ('notStarted'),
+  gestate: /** @type { 'gestate' } */ ('gestate'),
   reqNotLastOne: /** @type { 'reqNotLastOne' } */ ('reqNotLastOne'),
   waiting: /** @type { 'waiting' } */ ('waiting'),
   reqLastOne: /** @type { 'reqLastOne' } */ ('reqLastOne'),

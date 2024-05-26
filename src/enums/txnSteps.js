@@ -1,5 +1,5 @@
 export const txnSteps = new Set([
-  'notStarted',
+  'gestate',
   'reqNotLastOne',
   'waiting',
   'reqLastOne',

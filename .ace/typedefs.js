@@ -50,6 +50,7 @@ import * as enums from './enums.js'
  * 
  * @typedef { object } AceTxn
  * @property { string } [ id ]
+ * @property { NodeJS.Timeout } [ timeoutId ]
  * @property { enums.txnSteps } step
  * @property { AceSchema | null } schema
  * @property { AceTxnSchemaDataStructures } schemaDataStructures
@@ -80,7 +81,7 @@ import * as enums from './enums.js'
  *
  * @typedef { string } AceFnOptionsWhere
  *
- * @typedef { AceFnOptionsTxnStart | AceFnOptionsTxnComplete | AceFnOptionsTxnCancel } AceFnOptionsTxn
+ * @typedef { AceFnOptionsTxnStart | AceFnOptionsTxnComplete | AceFnOptionsTxnCancel | AceFnOptionsTxnContinue } AceFnOptionsTxn
  * 
  * @typedef { object } AceFnOptionsTxnStart
  * @property { typeof enums.txnActions.start } action
@@ -93,6 +94,10 @@ import * as enums from './enums.js'
  * @typedef { object } AceFnOptionsTxnCancel
  * @property { typeof enums.txnActions.cancel } action
  * @property { string } id
+ *
+ * @typedef { object } AceFnOptionsTxnContinue
+ * @property { string } id
+ * @property { never } [ action ]
  *
  * @typedef { object } AceFnRequestItemMemoryInitialize
  * @property { typeof enums.aceDo.MemoryInitialize } do
