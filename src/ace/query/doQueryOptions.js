@@ -499,7 +499,7 @@ function doMaxAmtAsRes ($o, res, resKey) {
  */
 function doCountAsProp ($o, res, resKey, resHide) {
   if ($o.countAsProp) {
-    const count = res.original[resKey].length
+    const count = getCount(res, resKey)
 
     for (let i = 0; i < count; i++) {
       res.original[resKey][i][$o.countAsProp] = count
@@ -517,7 +517,7 @@ function doCountAsProp ($o, res, resKey, resHide) {
  */
 function doCountAdjToRes ($o, res, resKey) {
   if ($o.countAdjToRes) {
-    const count = res.original[resKey].length
+    const count = getCount(res, resKey)
 
     res.original[$o.countAdjToRes] = count
     res.now[$o.countAdjToRes] = count
@@ -533,11 +533,21 @@ function doCountAdjToRes ($o, res, resKey) {
  */
 function doCountAsRes ($o, res, resKey) {
   if ($o.countAsRes) {
-    const count = res.original[resKey].length
+    const count = getCount(res, resKey)
 
     res.now[resKey] = [count]
     res.original[resKey] = [count]
   }
+}
+
+
+/**
+ * @param { td.AceFnFullResponse } res 
+ * @param { string } resKey 
+ * @returns { number }
+ */
+function getCount (res, resKey) {
+  return res.original[resKey]?.length || 0
 }
 
 

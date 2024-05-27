@@ -128,7 +128,6 @@ async function addNodesToResponse (detailedResValueSection, res, ids, isUsingSor
   const graphNodes = await getMany(ids)
 
   for (let i = 0; i < ids.length; i++) {
-    const a = graphRelationshipProps?.[i]
     await addPropsToResponse(detailedResValueSection, res, { node: graphNodes.get(ids[i]) }, jwks, iReq, graphRelationshipProps?.[i])
   }
 

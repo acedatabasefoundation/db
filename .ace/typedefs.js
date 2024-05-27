@@ -63,11 +63,17 @@ import * as enums from './enums.js'
  * @property { Map<string, { propName: string, newIds: (string | number)[] }> } sortIndexMap - If we add a node and prop and that node+prop has a sort index, put the newly created nodes in here
  * 
  * @typedef { object } AceTxnSchemaDataStructures
+ * @property { Map<string, AceTxnSchemaDataStructuresDefaultItem[]> } defaults
  * @property { Map<string, Set<string>> } cascade
  * @property { Map<string, Set<string>> } nodeRelationshipPropsMap
  * @property { Map<string, string> } nodeNamePlusRelationshipNameToNodePropNameMap
  * @property { Map<string, Map<string, { propNode: string, propValue: AceSchemaForwardRelationshipProp | AceSchemaReverseRelationshipProp | AceSchemaBidirectionalRelationshipProp }>> } relationshipPropsMap
  * @property { Map<string, Map<string, (AceSchemaProp | AceSchemaRelationshipProp | AceSchemaForwardRelationshipProp | AceSchemaReverseRelationshipProp | AceSchemaBidirectionalRelationshipProp)>> } mustPropsMap
+ *
+ * @typedef { object } AceTxnSchemaDataStructuresDefaultItem
+ * @property { string } prop
+ * @property { any } [ value ]
+ * @property { 'setIsoNow' } [ action ]
  */
 
 
@@ -164,6 +170,7 @@ import * as enums from './enums.js'
  * @property { boolean } [ sortIndex ] - Should Ace maintain a sort index for this property. The index will be an array of all this node's id's in the order they are when all these node's are sorted by this property.
  * @property { boolean } [ uniqueIndex ] - Should Ace maintain a unique index for this property. This way you'll know no nodes in your graph have the same value for this property and a AceQueryFind will be faster if searching by this property.
  * @property { string } [ description ] - Custom description that Ace will add to other types, example: query / mutation types
+ * @property { any } [ default ]
  *
  * @typedef { object } AceSchemaNodeRelationshipOptions
  * @property { enums.schemaHas } has - Does this node have a max of **one** of these props or a max of **many**
@@ -172,6 +179,7 @@ import * as enums from './enums.js'
  * @property { boolean } [ mustBeDefined ] - Must each node in the graph, that aligns with this relationship, have this relationship defined
  * @property { string } [ description ] - Custom description that Ace will add to other types, example: query / mutation types
  * @property { boolean } [ cascade ] - When this schema.node is deleted, also delete the node that this prop points to
+ * @property { never } [ default ]
  *
  * @typedef { { [propName: string]: AceSchemaRelationshipProp } } AceSchemaRelationshipProps - Props for this relationship
  * 
@@ -205,7 +213,6 @@ import * as enums from './enums.js'
  * @typedef { object } AceMutateRequestItemNodeInsertHow
  * @property { string } node
  * @property { AceMutateRequestItemNodeInsertProps } props
- * @typedef { { id?: string | number, [propName: string]: any, $o?: AceMutateRequestOptions } } AceMutateRequestItemNodeInsertProps
  *
  * @typedef { object } AceMutateRequestItemRelationshipInsert
  * @property { typeof enums.aceDo.RelationshipInsert } do
@@ -213,7 +220,6 @@ import * as enums from './enums.js'
  * @typedef { object } AceMutateRequestItemRelationshipInsertHow
  * @property { string } relationship
  * @property { AceMutateRequestItemRelationshipInsertProps } props
- * @typedef { { a: string, b: string, [propName: string]: any, $o?: AceMutateRequestOptions } } AceMutateRequestItemRelationshipInsertProps
  *
  * @typedef { object } AceMutateRequestItemNodeUpdate
  * @property { typeof enums.aceDo.NodeUpdate } do
@@ -221,7 +227,6 @@ import * as enums from './enums.js'
  * @typedef { object } AceMutateRequestItemNodeUpdateHow
  * @property { string } node
  * @property { AceMutateRequestItemNodeUpdateProps } props
- * @typedef { { id: string | number, [propName: string]: any, $o?: AceMutateRequestOptions } } AceMutateRequestItemNodeUpdateProps
  *
  * @typedef { object } AceMutateRequestItemRelationshipUpdate
  * @property { typeof enums.aceDo.RelationshipUpdate } do
@@ -229,7 +234,6 @@ import * as enums from './enums.js'
  * @typedef { object } AceMutateRequestItemRelationshipUpdateHow
  * @property { string } relationship
  * @property { AceMutateRequestItemRelationshipUpdateProps } props
- * @typedef { { a: string, b: string, [propName: string]: any, $o?: AceMutateRequestOptions } } AceMutateRequestItemRelationshipUpdateProps
  *
  * @typedef { object } AceMutateRequestItemNodeUpsert
  * @property { typeof enums.aceDo.NodeUpsert } do
@@ -237,7 +241,6 @@ import * as enums from './enums.js'
  * @typedef { object } AceMutateRequestItemNodeUpsertHow
  * @property { string } node
  * @property { AceMutateRequestItemNodeUpsertProps } props
- * @typedef { { id: string | number, [propName: string]: any, $o?: AceMutateRequestOptions } } AceMutateRequestItemNodeUpsertProps
  *
  * @typedef { object } AceMutateRequestItemRelationshipUpsert
  * @property { typeof enums.aceDo.RelationshipUpsert } do
@@ -245,7 +248,6 @@ import * as enums from './enums.js'
  * @typedef { object } AceMutateRequestItemRelationshipUpsertHow
  * @property { string } relationship
  * @property { AceMutateRequestItemRelationshipUpsertProps } props
- * @typedef { { a: string, b: string, [propName: string]: any, $o?: AceMutateRequestOptions } } AceMutateRequestItemRelationshipUpsertProps
  * 
  * @typedef { AceMutateRequestItemRelationshipInsert | AceMutateRequestItemRelationshipUpdate | AceMutateRequestItemRelationshipUpsert } AceMutateRequestItemRelationshipInup
  * 
@@ -312,6 +314,14 @@ import * as enums from './enums.js'
  * @typedef { object } AceMutateRequestOptions
  * @property { string } [ privateJWK ]
  *
+ * @typedef { { id?: string | number, [propName: string]: any, $o?: AceMutateRequestOptions } } AceMutateRequestItemNodeInsertProps
+ * @typedef { { id: string | number, [propName: string]: any, $o?: AceMutateRequestOptions } } AceMutateRequestItemNodeUpdateProps
+ * @typedef { { id: string | number, [propName: string]: any, $o?: AceMutateRequestOptions } } AceMutateRequestItemNodeUpsertProps
+ *
+ * @typedef { { a: string, b: string, [propName: string]: any, $o?: AceMutateRequestOptions } } AceMutateRequestItemRelationshipInsertProps
+ * @typedef { { id: string | number, a: string, b: string, [propName: string]: any, $o?: AceMutateRequestOptions } } AceMutateRequestItemRelationshipUpdateProps
+ * @typedef { { id: string | number, a: string, b: string, [propName: string]: any, $o?: AceMutateRequestOptions } } AceMutateRequestItemRelationshipUpsertProps
+ * 
  * @typedef { AceMutateRequestItemRelationshipInsertProps | AceMutateRequestItemRelationshipUpdateProps | AceMutateRequestItemRelationshipUpsertProps } AceMutateRequestItemRelationshipInUpProps
  */
 

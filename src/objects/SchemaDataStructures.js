@@ -1,4 +1,4 @@
-import { td, enums } from '#ace'
+import { td } from '#ace'
 import { DELIMITER } from '../util/variables.js'
 
 
@@ -9,6 +9,7 @@ import { DELIMITER } from '../util/variables.js'
 export function SchemaDataStructures (schema) {
   /** @type { td.AceTxnSchemaDataStructures } */
   const schemaDataStructures = {
+    defaults: new Map(),
     cascade: new Map(),
     mustPropsMap: new Map(),
     relationshipPropsMap: new Map(),
@@ -20,8 +21,9 @@ export function SchemaDataStructures (schema) {
     for (const nodeName in schema.nodes) {
       for (const propName in schema.nodes[nodeName]) {
         const propValue = schema.nodes[nodeName][propName]
-
-        if (propValue.is !== 'Prop') {
+ 
+        if (propValue.is === 'Prop') setDefaults(schemaDataStructures, nodeName, propName, propValue) // defaults
+        else {
           schemaDataStructures.nodeNamePlusRelationshipNameToNodePropNameMap.set(nodeName + DELIMITER + propValue.options.relationship, propName)
 
           // relationshipPropsMap
@@ -45,11 +47,7 @@ export function SchemaDataStructures (schema) {
         }
 
         // mustPropsMap
-        if (propValue.options?.mustBeDefined) {
-          const map = schemaDataStructures.mustPropsMap.get(nodeName) || new Map()
-          map.set(propName, propValue)
-          schemaDataStructures.mustPropsMap.set(nodeName, map)
-        }
+        setMustPropsMap(schemaDataStructures, nodeName, propName, propValue)
       }
     }
   }
@@ -62,16 +60,45 @@ export function SchemaDataStructures (schema) {
 
       if (props) {
         for (const propName in props) {
-          // mustPropsMap
-          if (props[propName].options?.mustBeDefined) {
-            const map = schemaDataStructures.mustPropsMap.get(relationshipName) || new Map()
-            map.set(propName, props[propName])
-            schemaDataStructures.mustPropsMap.set(relationshipName, map)
-          }
+          setMustPropsMap(schemaDataStructures, relationshipName, propName, props[propName]) // mustPropsMap
+          setDefaults(schemaDataStructures, relationshipName, propName, props[propName]) // defaults
         }
       }
     }
   }
 
   return schemaDataStructures
+}
+
+
+/**
+ * @param { td.AceTxnSchemaDataStructures } schemaDataStructures 
+ * @param { string } itemName 
+ * @param { string } propName 
+ * @param { td.AceSchemaProp | td.AceSchemaRelationshipProp } propValue 
+ */
+function setDefaults (schemaDataStructures, itemName, propName, propValue) {
+  if (propValue.options?.default) {
+    const defaults = schemaDataStructures.defaults.get(itemName) || []
+
+    if (propValue.options.dataType === 'isoString' && propValue.options.default === 'now') defaults.push({ prop: propName, action: 'setIsoNow' })
+    else defaults.push({ prop: propName, value: propValue.options.default })
+
+    schemaDataStructures.defaults.set(itemName, defaults)
+  }
+}
+
+
+/**
+ * @param { td.AceTxnSchemaDataStructures } schemaDataStructures 
+ * @param { string } itemName 
+ * @param { string } propName 
+ * @param { td.AceSchemaProp | td.AceSchemaForwardRelationshipProp | td.AceSchemaReverseRelationshipProp | td.AceSchemaBidirectionalRelationshipProp | td.AceSchemaRelationshipProp } propValue 
+ */
+function setMustPropsMap (schemaDataStructures, itemName, propName, propValue) {
+  if (propValue.options?.mustBeDefined) {
+    const map = schemaDataStructures.mustPropsMap.get(itemName) || new Map()
+    map.set(propName, propValue)
+    schemaDataStructures.mustPropsMap.set(itemName, map)
+  }
 }

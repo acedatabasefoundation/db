@@ -2,12 +2,11 @@
 
 
 ## 🙏 Our Mission
-Create, maintain and enhance, the Best database for JavaScript Developers!
+Create maintain and enhance, the Best database, for JavaScript Developers!
 
 
 ## Why Ace?
-* A graph consists of nodes (neurons) and relationships (synapses)
-* So following the example of our brain, a graph is a natural data storage technique
+* A graph is a natural data storage technique that has nodes (neurons) and relationships (synapses)
 * Ace is an open source graph database, that unites the following lovely features, from impressive database leaders:
     * [Redis](https://redis.io/): Fast memory storage
     * [SQLite](https://www.sqlite.org/): No latency between application server & database
@@ -304,22 +303,25 @@ await ace({ where: './ace', what: [ ... ] }) // where = the directory, starting 
 
 
 ## Transactions
+* When a call to `ace()` starts a transaction (txn) the response will include a `txnId` as seen below
+* Use the `txnId` to continue, cancel or complete a txn
+* If a txn has been running for 21 seconds, ace will cancel it, throw a timeout error, and begin the next request in the [queue](#queue)
 ```js
 import { ace } from '@ace/db'
 
-// start transaction
-const { $ace } = await ace({ txn: { action: 'start' }, where: './ace', what: { ... } })
+// start txn
+const res = await ace({ txn: { action: 'start' }, where: './ace', what: { ... } })
 
-// continue transaction
-await ace({ txn: { id: $ace.txnId }, where: './ace', what: { ... } })
+// continue txn
+await ace({ txn: { id: res.$ace.txnId }, where: './ace', what: { ... } })
 
-// cancel transaction
-await ace({ txn: { id: $ace.txnId, action: 'cancel' }, where: './ace' })
+// cancel txn
+await ace({ txn: { id: res.$ace.txnId, action: 'cancel' }, where: './ace' })
 
-// complete transaction
-await ace({ txn: { id: $ace.txnId, action: 'complete' }, where: './ace', what: { ... } })
+// complete txn
+await ace({ txn: { id: res.$ace.txnId, action: 'complete' }, where: './ace', what: { ... } })
 
-// completing a txn after canceling it does not make sense btw, above is just to show all available options
+// completing a txn after cancelling it does not make sense btw, above is just to show all available txn options
 ```
 
 

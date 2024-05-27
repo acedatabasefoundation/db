@@ -57,6 +57,7 @@ async function populateInupNodesArray (reqItem, jwks, inupNodesArray) {
         break
     }
 
+    applyDefaults(reqItem.how.node, reqItem.how.props)
 
     if (reqItem.do === 'NodeUpdate') {
       if (!graphNode) {
@@ -161,11 +162,11 @@ async function getGraphIdAndAddToMapIds (insertId, startsWithIdPrefix) {
   /** This will be the id that is added to the graph */
   let graphId
 
-  if (typeof insertId !== 'string') throw AceError('aceFn__mutate_idInvalidType', `The id ${ insertId } is invalid because the type is not string, please include only typeof "string" for each id`, { id: insertId })
+  if (typeof insertId !== 'string') throw AceError('aceFn__mutate_idInvalidType', `The id ${ insertId } is invalid because the type is not string, please include only typeof "string" for each id`, { insertId })
 
   if (!startsWithIdPrefix) graphId = insertId
   else {
-    if (memory.txn.enumGraphIdsMap.get(insertId)) throw AceError('aceFn__mutate__duplicateId', `The id ${ insertId } is invalid because it is included as a id for multiple nodes, please do not include duplicate ids for insert`, { id: insertId })
+    if (memory.txn.enumGraphIdsMap.get(insertId)) throw AceError('aceFn__mutate__duplicateId', `Please ensure enumId's are not the same for multiple nodes. The enumId ${ insertId } is being used as the id for multiple nodes`, { enumId: insertId })
 
     graphId = await getGraphId()
     memory.txn.enumGraphIdsMap.set(insertId, graphId)
@@ -209,6 +210,8 @@ export async function inupRelationship (reqItem) {
         }
         break
     }
+
+    applyDefaults(reqItem.how.relationship, reqItem.how.props)
 
     if (reqItem.do === 'RelationshipUpdate') {
       if (!graphNode) graphNode = await getOne(reqItem.how.props._id)
@@ -257,7 +260,7 @@ function overwriteIds (props, reqItemKey) {
     const graphId = memory.txn.enumGraphIdsMap.get(reqItemValue)
 
     if (graphId) props[reqItemKey] = graphId
-    else throw AceError('aceFn__mutate__invalidId', `The id ${ reqItemValue } is invalid b/c each id, with an Ace id prefix, must be defined in a node`, { id: reqItemValue })
+    else throw AceError('aceFn__mutate__invalidId', `Please ensure each enumId that is used is defined on a node, this is not happening yet for the enumId: ${reqItemValue}`, { enumId: reqItemValue })
   }
 }
 
@@ -271,12 +274,12 @@ async function inupRelationshipPut (reqItem, schemaRelationship) {
 
   if (reqItem.do === 'RelationshipInsert') props._id = await getGraphId()
 
-  for (const relationshipPropName in reqItem.how.props) {
+  for (const relationshipPropName in props) {
     const relationshipPropValue = props[relationshipPropName]
 
     if (relationshipPropValue === ADD_NOW_DATE && schemaRelationship.props?.[relationshipPropName]?.options?.dataType === enums.dataTypes.isoString) props[relationshipPropName] = getNow() // populate now timestamp
     else if (typeof relationshipPropValue === 'string' && relationshipPropValue.startsWith(ENUM_ID_PREFIX)) {
-      overwriteIds(reqItem.how.props, relationshipPropName)
+      overwriteIds(props, relationshipPropName)
     }
   }
 
@@ -321,3 +324,23 @@ async function addRelationshipToNode (direction, reqItem, relationshipProp, prop
   }
 }
 
+
+/**
+ * @param { string } itemName 
+ * @param { td.AceMutateRequestItemNodeInsertProps | td.AceMutateRequestItemNodeUpdateProps | td.AceMutateRequestItemRelationshipInsertProps | td.AceMutateRequestItemRelationshipUpdateProps } [ props ] 
+ * @returns { void }
+ */
+function applyDefaults (itemName, props) {
+  if (props) {
+    const defaults = memory.txn.schemaDataStructures.defaults.get(itemName)
+
+    if (defaults) {
+      for (const d of defaults) {
+        if (typeof props[d.prop] === 'undefined') {
+          if (d.action === 'setIsoNow') props[d.prop] = getNow()
+          else if (typeof d.value !== 'undefined') props[d.prop] = d.value
+        }
+      }
+    }
+  }
+}
