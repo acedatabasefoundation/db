@@ -121,10 +121,11 @@ export async function nodePropDeleteData (reqItem) {
 
 
 /** 
+ * @param { td.AceFnOptions } options
  * @param { td.AceMutateRequestItemNodeDeleteDataAndDeleteFromSchema } reqItem
  * @returns { Promise<void> }
  */
-export async function nodeDeleteDataAndDeleteFromSchema (reqItem) {
+export async function nodeDeleteDataAndDeleteFromSchema (options, reqItem) {
   for (const requestNodeName of reqItem.how.nodes) {
     const nodeIdsKey = getNodeIdsKey(requestNodeName)
 
@@ -140,15 +141,16 @@ export async function nodeDeleteDataAndDeleteFromSchema (reqItem) {
     delete memory.txn.schema?.nodes[requestNodeName]
   }
 
-  schemaDeleteConclude()
+  schemaDeleteConclude(options)
 }
 
 
 /** 
+ * @param { td.AceFnOptions } options
  * @param { td.AceMutateRequestItemNodePropDeleteDataAndDeleteFromSchema } reqItem
  * @returns { Promise<void> }
  */
-export async function nodePropDeleteDataAndDeleteFromSchema (reqItem) {
+export async function nodePropDeleteDataAndDeleteFromSchema (options, reqItem) {
   for (const { node, prop } of reqItem.how.props) {
     if (!memory.txn.schema?.nodes[node]?.[prop]) throw AceError('nodePropDeleteDataAndDeleteFromSchema__invalidNodePropCombo', 'The node and the prop cannot be deleted b/c they are are not defined in your schema', { reqItem, node, prop })
     if (/** @type {*} */ (prop) === 'id') throw AceError('aceFn__nodePropDeleteDataAndDeleteFromSchema__invalidId', 'The request fails b/c reqItem.how.props may not include the prop id', { reqItem, node, prop })
@@ -171,6 +173,6 @@ export async function nodePropDeleteDataAndDeleteFromSchema (reqItem) {
     }
 
     delete memory.txn.schema.nodes[node][prop]
-    schemaDeleteConclude()
+    schemaDeleteConclude(options)
   }
 }

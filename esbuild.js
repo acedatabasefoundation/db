@@ -59,6 +59,9 @@ esbuild.build({ // // https://esbuild.github.io/api/
     './tsc/src/objects/SchemaDataStructures.js',
     './tsc/src/objects/Txn.js',
 
+    './tsc/src/schema/fromFile.js',
+    './tsc/src/schema/toFile.js',
+
     './tsc/src/security/createJWKs.js',
     './tsc/src/security/crypt.js',
     './tsc/src/security/getRandomBase64.js',

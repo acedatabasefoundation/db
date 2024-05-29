@@ -1,17 +1,20 @@
 import { td } from '#ace'
 import { bindHandle } from './wal.js'
 import { Txn } from '../objects/Txn.js'
-import { getByteAmount } from './file.js'
+import { rm, mkdir } from 'node:fs/promises'
 import { memory } from '../memory/memory.js'
+import { toFile } from '../schema/toFile.js'
+import { fromFile } from '../schema/fromFile.js'
 import { AceError } from '../objects/AceError.js'
+import { getByteAmount, getPath } from './file.js'
 import { aceDoUpdateSet } from '../enums/aceDo.js'
 import { getMany, getOne, write } from './storage.js'
-import { memoryInitialize } from '../memory/memoryInitialize.js'
 import { queryNode, queryRelationship } from './query/query.js'
 import { inupNode, inupRelationship } from './mutate/mutate.js'
+import { memoryInitialize } from '../memory/memoryInitialize.js'
 import { validateMustBeDefined } from './validateMustBeDefined.js'
 import { SchemaDataStructures } from '../objects/SchemaDataStructures.js'
-import { SCHEMA_KEY, cryptAlgorithm, importGenerateAlgorithm } from '../util/variables.js'
+import { cryptAlgorithm, importGenerateAlgorithm } from '../util/variables.js'
 import { deleteRelationshipsBy_Ids, relationshipPropDeleteData } from './mutate/mutateRelationship.js'
 import { deleteNodesByIds, nodeDeleteDataAndDeleteFromSchema, nodePropDeleteData, nodePropDeleteDataAndDeleteFromSchema } from './mutate/mutateNode.js'
 import { addToSchema, schemaUpdateNodeName, schemaUpdateNodePropName, schemaUpdateRelationshipName, schemaUpdateRelationshipPropName } from './mutate/mutateSchema.js'
@@ -86,7 +89,7 @@ async function enterReqGateway (resolve, reject, options) {
     if (options.jwks) await setJWKs(jwks, options)
     if (!memory.txn.writeMap.size && !memory.wal.map.size) await memoryInitialize(options)
 
-    await setSchema()
+    await setSchema(options)
     await deligate(req, res, jwks, options)
     await addSortIndicesToGraph()
     set$ace(res, options)
@@ -94,6 +97,7 @@ async function enterReqGateway (resolve, reject, options) {
     if (memory.txn.step === 'reqLastOne') {
       await validateMustBeDefined()
       await txnToWal(options)
+      await txnToSchemas(options)
     }
 
     await doneReqGateway({ res }, { resolve })
@@ -200,11 +204,14 @@ async function setJWKs (cryptoJWKs, options) {
 
 
 /**
+ * @param { td.AceFnOptions } options 
  * @returns { Promise<void> }
  */
-async function setSchema () {
+async function setSchema (options) {
   if (!memory.txn.schema) {
-    memory.txn.schema = await getOne(SCHEMA_KEY)
+    const { schema } = await fromFile(options)
+
+    memory.txn.schema = schema
     memory.txn.schemaDataStructures = SchemaDataStructures(memory.txn.schema)
   }
 }
@@ -284,32 +291,32 @@ async function deligate (req, res, jwks, options) {
 
 
       case 'NodeDeleteDataAndDeleteFromSchema':
-        await nodeDeleteDataAndDeleteFromSchema(/** @type { td.AceMutateRequestItemNodeDeleteDataAndDeleteFromSchema } */(req[iReq]))
+        await nodeDeleteDataAndDeleteFromSchema(options, /** @type { td.AceMutateRequestItemNodeDeleteDataAndDeleteFromSchema } */(req[iReq]))
         break
 
 
       case 'NodePropDeleteDataAndDeleteFromSchema':
-        await nodePropDeleteDataAndDeleteFromSchema(/** @type { td.AceMutateRequestItemNodePropDeleteDataAndDeleteFromSchema } */(req[iReq]))
+        await nodePropDeleteDataAndDeleteFromSchema(options, /** @type { td.AceMutateRequestItemNodePropDeleteDataAndDeleteFromSchema } */(req[iReq]))
         break
 
 
       case 'SchemaUpdateNodeName':
-        await schemaUpdateNodeName(/** @type { td.AceMutateRequestItemSchemaUpdateNodeName } */(req[iReq]))
+        await schemaUpdateNodeName(options, /** @type { td.AceMutateRequestItemSchemaUpdateNodeName } */(req[iReq]))
         break
 
 
       case 'SchemaUpdateNodePropName':
-        await schemaUpdateNodePropName(/** @type { td.AceMutateRequestItemSchemaUpdateNodePropName } */(req[iReq]))
+        await schemaUpdateNodePropName(options, /** @type { td.AceMutateRequestItemSchemaUpdateNodePropName } */(req[iReq]))
         break
 
 
       case 'SchemaUpdateRelationshipName':
-        await schemaUpdateRelationshipName(/** @type { td.AceMutateRequestItemSchemaUpdateRelationshipName } */(req[iReq]))
+        await schemaUpdateRelationshipName(options, /** @type { td.AceMutateRequestItemSchemaUpdateRelationshipName } */(req[iReq]))
         break
 
 
       case 'SchemaUpdateRelationshipPropName':
-        await schemaUpdateRelationshipPropName(/** @type { td.AceMutateRequestItemSchemaUpdateRelationshipPropName } */(req[iReq]))
+        await schemaUpdateRelationshipPropName(options, /** @type { td.AceMutateRequestItemSchemaUpdateRelationshipPropName } */(req[iReq]))
         break
     }
   }
@@ -406,6 +413,15 @@ async function txnToWal (options) {
  * @param { td.AceFnOptions } options
  * @returns { Promise<void> }
  */
+async function txnToSchemas (options) {
+  if (memory.txn.step === 'reqLastOne' && memory.txn.schemaUpdated && memory.txn.schema) await toFile(memory.txn.schema, options)
+}
+
+
+/**
+ * @param { td.AceFnOptions } options
+ * @returns { Promise<void> }
+ */
 async function empty (options) {
   memory.txn.wasEmptyRequested = true
 
@@ -421,7 +437,22 @@ async function empty (options) {
   memory.wal.miniIndex = []
 
   memory.wal.filehandle = await bindHandle(options)
-  await memory.wal.filehandle.truncate()
+
+  const path = {
+    schemas: getPath(options.where, 'schemas'),
+    graphs: getPath(options.where, 'graphs'),
+  }
+
+  await Promise.all([
+    memory.wal.filehandle.truncate(),
+    rm(path.schemas, { recursive: true, force: true }),
+    rm(path.graphs, { recursive: true, force: true }),
+  ])
+
+  await Promise.all([
+    mkdir(path.schemas),
+    mkdir(path.graphs),
+  ])
 }
 
 

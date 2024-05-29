@@ -1,4 +1,3 @@
-import fs from 'node:fs'
 import * as enums from './enums.js'
 
 
@@ -12,7 +11,7 @@ import * as enums from './enums.js'
  * @prop { AceMemoryMiniIndexItem[] } miniIndex
  * @prop { number } byteAmount
  * @prop { Map<string | number, { action: enums.writeActions, value: any }> } map
- * @prop { fs.promises.FileHandle } [ filehandle ]
+ * @prop { import('node:fs/promises').FileHandle } [ filehandle ]
  *
  * @typedef { [ string | number, number, number, number ] } AceMemoryMiniIndexItem
  */
@@ -54,6 +53,7 @@ import * as enums from './enums.js'
  * @property { enums.txnSteps } step
  * @property { AceSchema | null } schema
  * @property { AceTxnSchemaDataStructures } schemaDataStructures
+ * @property { boolean } schemaUpdated
  * @property { number } [ lastId ]
  * @property { boolean } hasUpdates
  * @property { boolean } wasEmptyRequested
@@ -127,40 +127,48 @@ import * as enums from './enums.js'
 
 /** AceSchema
  *
- * @typedef { { nodes: { [nodeName: string]: AceSchemaNodeValue }, relationships?: { [relationshipName: string]: AceSchemaRelationshipValue } } } AceSchema
+ * @typedef { { lastId: number, nodes: { [nodeName: string]: AceSchemaNodeValue & { $aceId: number } }, relationships?: { [relationshipName: string]: AceSchemaRelationshipValue & { $aceId: number } } } } AceSchema
  * @typedef { { [nodePropName: string]: AceSchemaProp | AceSchemaForwardRelationshipProp | AceSchemaReverseRelationshipProp | AceSchemaBidirectionalRelationshipProp } } AceSchemaNodeValue
  *
  * @typedef { AceSchemaRelationshipValueOneToOne | AceSchemaRelationshipValueOneToMany | AceSchemaRelationshipValueManyToMany } AceSchemaRelationshipValue
- * 
+ *
  * @typedef { object } AceSchemaRelationshipValueOneToOne
- * @property { typeof enums.schemaIs.OneToOne  } is - This is a one to one relationship
+ * @property { number } $aceId
+ * @property { typeof enums.schemaIs.OneToOne } is - This is a one to one relationship
  * @property { AceSchemaRelationshipProps  } [ props ]
- * 
+ *
  * @typedef { object } AceSchemaRelationshipValueOneToMany
+ * @property { number } $aceId
  * @property { typeof enums.schemaIs.OneToMany  } is - This is a one to many relationship
  * @property { AceSchemaRelationshipProps  } [ props ]
- * 
+ *
  * @typedef { object } AceSchemaRelationshipValueManyToMany
+ * @property { number } $aceId
  * @property { typeof enums.schemaIs.ManyToMany  } is - This is a many to many relationship
  * @property { AceSchemaRelationshipProps  } [ props ]
  *
  * @typedef { object } AceSchemaProp
+ * @property { number } $aceId
  * @property { typeof enums.schemaIs.Prop  } is - This is a standard node prop
  * @property { AceSchemaPropOptions } options
  *
  * @typedef { object } AceSchemaRelationshipProp
+ * @property { number } $aceId
  * @property { typeof enums.schemaIs.RelationshipProp } is - This is a relationship prop
  * @property { AceSchemaPropOptions } options
  *
  * @typedef { object } AceSchemaForwardRelationshipProp
+ * @property { number } $aceId
  * @property { typeof enums.schemaIs.ForwardRelationshipProp } is - A **Forward** direction node relationship prop. For example, if the relationship name is **isFollowing**, the **following** prop is the **Forward** prop and the **followers** prop is the **Reverse** prop
  * @property { AceSchemaNodeRelationshipOptions } options
  *
  * @typedef { object } AceSchemaReverseRelationshipProp
+ * @property { number } $aceId
  * @property { typeof enums.schemaIs.ReverseRelationshipProp } is - A **Reverse** direction node relationship prop. For example, if the relationship name is **isFollowing**, the **following** prop is the **Forward** prop and the **followers** prop is the **Reverse** prop
  * @property { AceSchemaNodeRelationshipOptions } options
  *
  * @typedef { object } AceSchemaBidirectionalRelationshipProp
+ * @property { number } $aceId
  * @property { typeof enums.schemaIs.BidirectionalRelationshipProp } is - A **Bidirectional** node relationship prop. Meaning there is only one prop name and it represents both directions. For example if we a relationship name of **isFriendsWith**, the **friends** prop is the **Bidirectional** prop
  * @property { AceSchemaNodeRelationshipOptions } options
  *
@@ -182,11 +190,57 @@ import * as enums from './enums.js'
  * @property { never } [ default ]
  *
  * @typedef { { [propName: string]: AceSchemaRelationshipProp } } AceSchemaRelationshipProps - Props for this relationship
- * 
+ * @typedef { { [propName: string]: AceSchemaRelationshipPropAddition } } AceSchemaRelationshipPropsAddition - Props for this relationship
+ *
  * @typedef { object } AceSchemaDirectionsMapDirection
  * @property { string } nodeName
  * @property { string } nodePropName
  * @property { typeof enums.schemaIs.ForwardRelationshipProp | typeof enums.schemaIs.ReverseRelationshipProp | typeof enums.schemaIs.BidirectionalRelationshipProp } id
+ *
+ * @typedef { { lastId?: never, nodes: { [nodeName: string]: AceSchemaNodeValueAddition & { $aceId?: never } }, relationships?: { [relationshipName: string]: AceSchemaRelationshipValueAddition & { $aceId?: never } } } } AceSchemaAddition
+ * @typedef { { [nodePropName: string]: AceSchemaPropAddition | AceSchemaForwardRelationshipPropAddition | AceSchemaReverseRelationshipPropAddition | AceSchemaBidirectionalRelationshipPropAddition } } AceSchemaNodeValueAddition
+ *
+ * @typedef { AceSchemaRelationshipValueOneToOneAddition | AceSchemaRelationshipValueOneToManyAddition | AceSchemaRelationshipValueManyToManyAddition } AceSchemaRelationshipValueAddition
+ *
+ * @typedef { object } AceSchemaRelationshipValueOneToOneAddition
+ * @property { never } [ $aceId ]
+ * @property { typeof enums.schemaIs.OneToOne } is - This is a one to one relationship
+ * @property { AceSchemaRelationshipPropsAddition  } [ props ]
+ *
+ * @typedef { object } AceSchemaRelationshipValueOneToManyAddition
+ * @property { never } [ $aceId ]
+ * @property { typeof enums.schemaIs.OneToMany  } is - This is a one to many relationship
+ * @property { AceSchemaRelationshipPropsAddition  } [ props ]
+ *
+ * @typedef { object } AceSchemaRelationshipValueManyToManyAddition
+ * @property { never } [ $aceId ]
+ * @property { typeof enums.schemaIs.ManyToMany  } is - This is a many to many relationship
+ * @property { AceSchemaRelationshipPropsAddition  } [ props ]
+ *
+ * @typedef { object } AceSchemaPropAddition
+ * @property { never } [ $aceId ]
+ * @property { typeof enums.schemaIs.Prop  } is - This is a standard node prop
+ * @property { AceSchemaPropOptions } options
+ *
+ * @typedef { object } AceSchemaRelationshipPropAddition
+ * @property { never } [ $aceId ]
+ * @property { typeof enums.schemaIs.RelationshipProp } is - This is a relationship prop
+ * @property { AceSchemaPropOptions } options
+ *
+ * @typedef { object } AceSchemaForwardRelationshipPropAddition
+ * @property { never } [ $aceId ]
+ * @property { typeof enums.schemaIs.ForwardRelationshipProp } is - A **Forward** direction node relationship prop. For example, if the relationship name is **isFollowing**, the **following** prop is the **Forward** prop and the **followers** prop is the **Reverse** prop
+ * @property { AceSchemaNodeRelationshipOptions } options
+ *
+ * @typedef { object } AceSchemaReverseRelationshipPropAddition
+ * @property { never } [ $aceId ]
+ * @property { typeof enums.schemaIs.ReverseRelationshipProp } is - A **Reverse** direction node relationship prop. For example, if the relationship name is **isFollowing**, the **following** prop is the **Forward** prop and the **followers** prop is the **Reverse** prop
+ * @property { AceSchemaNodeRelationshipOptions } options
+ *
+ * @typedef { object } AceSchemaBidirectionalRelationshipPropAddition
+ * @property { never } [ $aceId ]
+ * @property { typeof enums.schemaIs.BidirectionalRelationshipProp } is - A **Bidirectional** node relationship prop. Meaning there is only one prop name and it represents both directions. For example if we a relationship name of **isFriendsWith**, the **friends** prop is the **Bidirectional** prop
+ * @property { AceSchemaNodeRelationshipOptions } options
  */
 
 
@@ -309,7 +363,7 @@ import * as enums from './enums.js'
  *
  * @typedef { object } AceMutateRequestItemSchemaAdd
  * @property { typeof enums.aceDo.SchemaAdd } do
- * @property { AceSchema } how
+ * @property { AceSchemaAddition } how
  *
  * @typedef { object } AceMutateRequestOptions
  * @property { string } [ privateJWK ]

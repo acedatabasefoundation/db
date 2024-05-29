@@ -6,12 +6,12 @@ Create maintain and enhance, the Best database, for JavaScript Developers!
 
 
 ## Why Ace?
-* A graph is a natural data storage technique that has nodes (neurons) and relationships (synapses)
+* A graph is a natural data storage technique, that connects nodes (neurons) with relationships (synapses)
 * Ace is an open source graph database, that unites the following lovely features, from impressive database leaders:
     * [Redis](https://redis.io/): Fast memory storage
-    * [SQLite](https://www.sqlite.org/): No latency between application server & database
-    * [Prisma](https://www.prisma.io/) & [Drizzle](https://orm.drizzle.team/): Helpful schema lead intellisense
-    * [Dgraph](https://dgraph.io/): Beautiful query and mutation syntax
+    * [SQLite](https://www.sqlite.org/): No network latency between the application server & the database
+    * [Drizzle](https://orm.drizzle.team/): Helpful schema lead intellisense
+    * [Dgraph](https://dgraph.io/): Perform multiple interrelated mutations & queries in one request
     * [PlanetScale](https://planetscale.com/): Simple & powerful migrations
 
 
@@ -30,12 +30,12 @@ Create maintain and enhance, the Best database, for JavaScript Developers!
 
 ## ☁️ Getting Stated
 1. Download Ace
-    * In bash navigate to the folder where you `package.json` is
-    * Bash: `npm i @ace/db`
+    * Have an existing NodeJS application, or in bash start a new one with `npm init`
+    * In bash navigate to the folder where you `package.json` is and `npm i @ace/db`
     * This will download `v0.0.1`
     * Ace will be production recommended when we release `v1.0.0`
     * No migrations scripts are planned for any version between now and `v1.0.0`
-1. Create `ace`, `graphs` and `schemas` folder
+1. Create data folders
     * In bash navigate to the folder where you `package.json` is
     * Bash: `mkdir -p ace/schemas ace/graphs`
     * The `ace` folder will hold schema versions, graphs and your write ahead log
@@ -79,29 +79,46 @@ Create maintain and enhance, the Best database, for JavaScript Developers!
 
 
 ## Create a Facebook Graph
+1. Create the schema
 ```js
 import { ace } from '@ace/db'
 
 
-const res = await ace({
+await ace({
   where: './ace',
   what: [
+    // empty any existing items in the graph
+    { do: 'Empty' },
+
     // add nodes, relationships and props to schema
     {
       do: 'SchemaAdd',
       how: {
         nodes: {
-          User: {
-            name: { is: 'Prop', options: { dataType: 'string', mustBeDefined: true } },
-            friends: { is: 'BidirectionalRelationshipProp', options: { has: 'many', node: 'User', relationship: 'isFriendsWith' } }
+          User: 
+            name: { is: 'Prop', options: { dataType: 'string', mustBeDefined: true } }, // User prop
+            friends: { is: 'BidirectionalRelationshipProp', options: { has: 'many', node: 'User', relationship: 'isFriendsWith' } } // User prop
           },
         },
         relationships: {
           isFriendsWith: { is: 'ManyToMany' },
         }
       }
-    },
-
+    }
+  ]
+})
+```
+2. View updates in `schemas` folder
+    * Navigate to `./ace/schemas/` and view `details.json` and `1.json`
+    * Each schema alteration will create a new file in this directory with the updated schema and update the `details.json`
+2. In bash do: `ace types ./ace`
+    * This will update your types to include your updated schema
+2. Mutate and Query Graph
+    * Press `Control+Space` to get intellisense
+```js
+const res = await ace({
+  where: './ace',
+  what: [
     // insert nodes
     { do: 'NodeInsert', how: { node: 'User', props: { id: '_:Alpha',  name: 'Alpha' } } },
     { do: 'NodeInsert', how: { node: 'User', props: { id: '_:Omega',  name: 'Omega' } } },
@@ -127,8 +144,9 @@ const res = await ace({
     }
   ]
 })
-
-
+```
+5. Log Response
+```js
 console.log(res)
 
 
@@ -139,7 +157,7 @@ console.log(res)
       "_:Omega": 2
     },
   },
-  "users": [
+  "users": [ // this is "users" b/c of the resKey above
     {
       "id": 1,
       "name": "Alpha",
@@ -163,7 +181,6 @@ console.log(res)
   ]
 }
 ```
-
 
 ## Create an Instagram Graph
 ```js

@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "types": "tsc/src/index.d.ts",
   "author": "https://github.com/acedatabasefoundation",
-  "description": "The Ace Graph Database Mission, is to create, maintain and enhance, the Best database for JavaScript developers!",
+  "description": "The Ace Graph Database Mission, is to create maintain and enhance, the Best database for JavaScript developers!",
   "imports": {
     "#ace": "./.ace/index.js"
   },

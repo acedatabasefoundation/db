@@ -1,4 +1,4 @@
-import fs from 'node:fs'
+import { readFile } from 'node:fs/promises'
 
 
 /**
@@ -6,7 +6,7 @@ import fs from 'node:fs'
  * @returns { Promise<string> }
  */
 export async function getVersion (file) {
-  const str = await fs.promises.readFile(file, 'utf-8')
+  const str = await readFile(file, 'utf-8')
   const json = JSON.parse(str)
   return json.version
 }

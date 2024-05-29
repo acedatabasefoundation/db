@@ -1,15 +1,32 @@
-import fs from 'node:fs'
 import path from 'node:path'
 
 
 /**
- * @param { string } absolutePath
- * @returns { Promise<fs.promises.FileHandle> }
+ * @param { * } item 
+ * @returns { number }
  */
-export async function openFile (absolutePath) {
-  return fs.promises.open(absolutePath, 'a+')
+export function getByteAmount (item) {
+  return ((new TextEncoder()).encode(item)).length
 }
 
+
+/**
+ * @param { string } where 
+ * @param { 'wal' | 'schemas' | 'graphs' } type 
+ * @returns { string }
+ */
+export function getPath (where, type) {
+  const start = (where.endsWith('/')) ? where.slice(0, -1) : where
+
+  switch (type) {
+    case 'wal':
+      return relativeToAbsolutePath(start + '/wal.txt')
+    case 'schemas':
+      return relativeToAbsolutePath(start + '/schemas')
+    case 'graphs':
+      return relativeToAbsolutePath(start + '/graphs')
+  }
+}
 
 
 /**
@@ -19,15 +36,6 @@ export async function openFile (absolutePath) {
  * @param { string } relativePath 
  * @returns { string }
  */
-export function relativeToAbsolutePath (relativePath) {
+function relativeToAbsolutePath (relativePath) {
   return path.resolve('.', relativePath)
-}
-
-
-/**
- * @param { * } item 
- * @returns { number }
- */
-export function getByteAmount (item) {
-  return ((new TextEncoder()).encode(item)).length
 }

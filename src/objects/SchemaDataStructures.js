@@ -1,5 +1,5 @@
 import { td } from '#ace'
-import { DELIMITER } from '../util/variables.js'
+import { DELIMITER, SCHEMA_ID } from '../util/variables.js'
 
 
 /**
@@ -20,34 +20,36 @@ export function SchemaDataStructures (schema) {
   if (schema?.nodes) {
     for (const nodeName in schema.nodes) {
       for (const propName in schema.nodes[nodeName]) {
-        const propValue = schema.nodes[nodeName][propName]
- 
-        if (propValue.is === 'Prop') setDefaults(schemaDataStructures, nodeName, propName, propValue) // defaults
-        else {
-          schemaDataStructures.nodeNamePlusRelationshipNameToNodePropNameMap.set(nodeName + DELIMITER + propValue.options.relationship, propName)
+        if (propName !== SCHEMA_ID) {
+          const propValue = schema.nodes[nodeName][propName]
+  
+          if (propValue.is === 'Prop') setDefaults(schemaDataStructures, nodeName, propName, propValue) // defaults
+          else {
+            schemaDataStructures.nodeNamePlusRelationshipNameToNodePropNameMap.set(nodeName + DELIMITER + propValue.options.relationship, propName)
 
-          // relationshipPropsMap
-          const mapValue = schemaDataStructures.relationshipPropsMap.get(propValue.options.relationship) || new Map()
-          mapValue.set(propName, { propNode: nodeName, propValue })
-          schemaDataStructures.relationshipPropsMap.set(propValue.options.relationship, mapValue)
+            // relationshipPropsMap
+            const mapValue = schemaDataStructures.relationshipPropsMap.get(propValue.options.relationship) || new Map()
+            mapValue.set(propName, { propNode: nodeName, propValue })
+            schemaDataStructures.relationshipPropsMap.set(propValue.options.relationship, mapValue)
 
-          // cascade
-          if (propValue.options.cascade) {
-            const set = schemaDataStructures.cascade.get(nodeName) || new Set()
-            set.add(propName)
-            schemaDataStructures.cascade.set(nodeName, set)
+            // cascade
+            if (propValue.options.cascade) {
+              const set = schemaDataStructures.cascade.get(nodeName) || new Set()
+              set.add(propName)
+              schemaDataStructures.cascade.set(nodeName, set)
+            }
+
+            // nodeRelationshipPropsMap
+            if (propValue.options.node) {
+              const set = schemaDataStructures.nodeRelationshipPropsMap.get(propValue.options.node) || new Set()
+              set.add(nodeName + DELIMITER + propName)
+              schemaDataStructures.nodeRelationshipPropsMap.set(propValue.options.node, set)
+            }
           }
 
-          // nodeRelationshipPropsMap
-          if (propValue.options.node) {
-            const set = schemaDataStructures.nodeRelationshipPropsMap.get(propValue.options.node) || new Set()
-            set.add(nodeName + DELIMITER + propName)
-            schemaDataStructures.nodeRelationshipPropsMap.set(propValue.options.node, set)
-          }
+          // mustPropsMap
+          setMustPropsMap(schemaDataStructures, nodeName, propName, propValue)
         }
-
-        // mustPropsMap
-        setMustPropsMap(schemaDataStructures, nodeName, propName, propValue)
       }
     }
   }

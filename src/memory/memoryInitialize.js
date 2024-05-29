@@ -1,8 +1,8 @@
-import fs from 'node:fs'
 import { td } from '#ace'
 import { memory } from './memory.js'
+import { createReadStream } from 'node:fs'
 import { createInterface } from 'node:readline'
-import { getByteAmount, relativeToAbsolutePath } from '../ace/file.js'
+import { getByteAmount, getPath } from '../ace/file.js'
 
 
 /**
@@ -12,7 +12,7 @@ import { getByteAmount, relativeToAbsolutePath } from '../ace/file.js'
 export async function memoryInitialize (options) {
   return new Promise((resolve, reject) => {
     try {
-      const readLineInterface = createInterface({ input: fs.createReadStream(relativeToAbsolutePath(options.where) + '/wal.txt'), crlfDelay: Infinity })
+      const readLineInterface = createInterface({ input: createReadStream(getPath(options.where, 'wal')), crlfDelay: Infinity })
 
       readLineInterface.on('error', reject)
       readLineInterface.on('close', resolve)

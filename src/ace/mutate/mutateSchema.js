@@ -4,7 +4,7 @@ import { AceError } from '../../objects/AceError.js'
 import { validateSchema } from '../validateSchema.js'
 import { write, getMany, getOne } from '../storage.js'
 import { SchemaDataStructures } from '../../objects/SchemaDataStructures.js'
-import { DELIMITER, SCHEMA_KEY, getNodeIdsKey, getRelationshipProp, getRelationshipIdsKey } from '../../util/variables.js'
+import { DELIMITER, getNodeIdsKey, getRelationshipProp, getRelationshipIdsKey } from '../../util/variables.js'
 
 
 /**
@@ -15,37 +15,68 @@ export function addToSchema (reqItem) {
   /** @type { * } Deep copy current schema, only assign memory.txn.schema to _schema if _schema passes vaidation */
   let _schema = memory.txn.schema ? structuredClone(memory.txn.schema) : {}
 
-  // add nodes to schema
-  if (reqItem.how.nodes) {
+  /** @type { number } Id's on nodes, relationships & props help us know what has been changed when we compare 2 schema's */
+  let lastId = _schema.lastId || 0
+
+  if (reqItem.how.nodes) { // add nodes to schema
     for (const node in reqItem.how.nodes) {
       if (!_schema) _schema = { nodes: { [node]: reqItem.how.nodes[node] }, relationships: {} }
       else if (!_schema.nodes) _schema.nodes = { [node]: reqItem.how.nodes[node] }
       else if (_schema.nodes[node]) _schema.nodes[node] = { ..._schema.nodes[node], ...reqItem.how.nodes[node] }
       else _schema.nodes[node] = reqItem.how.nodes[node]
+
+      if (!_schema.nodes[node].$aceId) {
+        lastId++
+        _schema.nodes[node].$aceId = lastId
+      }
+
+      for (const propName in _schema.nodes[node]) {
+        if (propName !== '$aceId' && !_schema.nodes[node][propName].$aceId) {
+          lastId++
+          _schema.nodes[node][propName].$aceId = lastId
+        }
+      }
     }
   }
 
-  // add relationships to schema
-  if (reqItem.how.relationships) {
+  if (reqItem.how.relationships) { // add relationships to schema
     for (const relationship in reqItem.how.relationships) {
       if (!_schema) _schema = { nodes: {}, relationships: { [relationship]: reqItem.how.relationships[relationship] } }
       else if (!_schema.relationships) _schema.relationships = { [relationship]: reqItem.how.relationships[relationship] }
       else if (_schema.relationships[relationship]) _schema.relationships[relationship] = { ..._schema.relationships[relationship], ...reqItem.how.relationships[relationship] }
       else _schema.relationships[relationship] = reqItem.how.relationships[relationship]
+
+      if (!_schema.relationships[relationship].$aceId) {
+        lastId++
+        _schema.relationships[relationship].$aceId = lastId
+      }
+
+      if (_schema.relationships[relationship].props) {
+        for (const propName in _schema.relationships[relationship].props) {
+          if (propName !== '$aceId' && !_schema.relationships[relationship].props[propName].$aceId) {
+            lastId++
+            _schema.relationships[relationship].props[propName].$aceId = lastId
+          }
+        }
+      }
     }
   }
 
-  write('upsert', SCHEMA_KEY, validateSchema(_schema))
+  _schema.lastId = lastId
+  validateSchema(_schema)
+
   memory.txn.schema = _schema
+  memory.txn.schemaUpdated = true
   memory.txn.schemaDataStructures = SchemaDataStructures(_schema)
 }
 
 
 /** 
+ * @param { td.AceFnOptions } options
  * @param { td.AceMutateRequestItemSchemaUpdateNodeName } reqItem
  * @returns { Promise<void> }
  */
-export async function schemaUpdateNodeName ( reqItem) {
+export async function schemaUpdateNodeName (options, reqItem) {
   for (const { nowName, newName } of reqItem.how.nodes) {
     if (!memory.txn.schema?.nodes[nowName]) throw AceError('schemaUpdateNodeName__invalidNowName', 'The node cannot be renamed b/c it is not defined in your schema', { nowName, newName })
 
@@ -95,16 +126,17 @@ export async function schemaUpdateNodeName ( reqItem) {
       }
     }
 
-    schemaDeleteConclude()
+    schemaDeleteConclude(options)
   }
 }
 
 
 /** 
+ * @param { td.AceFnOptions } options
  * @param { td.AceMutateRequestItemSchemaUpdateNodePropName } reqItem
  * @returns { Promise<void> }
  */
-export async function schemaUpdateNodePropName (reqItem) {
+export async function schemaUpdateNodePropName (options, reqItem) {
   for (const { node, nowName, newName } of reqItem.how.props) {
     if (!memory.txn.schema?.nodes[node]) throw AceError('schemaUpdateNodePropName__invalidNode', `The prop cannot be renamed b/c the node ${node} it is not defined in your schema`, { node, nowName, newName })
     if (!memory.txn.schema?.nodes[node]?.[nowName]) throw AceError('schemaUpdateNodePropName__invalidProp', `The prop cannot be renamed b/c the node ${node} and the prop ${nowName} is not defined in your schema`, { node, nowName, newName })
@@ -128,7 +160,7 @@ export async function schemaUpdateNodePropName (reqItem) {
     // update schema
     memory.txn.schema.nodes[node][newName] = memory.txn.schema.nodes[node][nowName]
     delete memory.txn.schema.nodes[node][nowName]
-    schemaDeleteConclude()
+    schemaDeleteConclude(options)
   }
 }
 
@@ -169,10 +201,11 @@ export function schemaDeleteNodes (reqNodeName) {
 
 
 /** 
+ * @param { td.AceFnOptions } options
  * @param { td.AceMutateRequestItemSchemaUpdateRelationshipName } reqItem
  * @returns { Promise<void> }
  */
-export async function schemaUpdateRelationshipName (reqItem) {
+export async function schemaUpdateRelationshipName (options, reqItem) {
   for (const { nowName, newName } of reqItem.how.relationships) {
     if (!memory.txn.schema?.relationships?.[nowName]) throw AceError('schemaUpdateRelationshipName__invalidNowName', 'The relationship cannot be renamed b/c it is not defined in your schema', { nowName, newName })
 
@@ -230,16 +263,17 @@ export async function schemaUpdateRelationshipName (reqItem) {
       }
     }
 
-    schemaDeleteConclude()
+    schemaDeleteConclude(options)
   }
 }
 
 
 /** 
+ * @param { td.AceFnOptions } options
  * @param { td.AceMutateRequestItemSchemaUpdateRelationshipPropName } reqItem
  * @returns { Promise<void> }
  */
-export async function schemaUpdateRelationshipPropName (reqItem) {
+export async function schemaUpdateRelationshipPropName (options, reqItem) {
   for (const { relationship, nowName, newName } of reqItem.how.props) {
     if (!memory.txn.schema?.relationships?.[relationship]) throw AceError('schemaUpdateRelationshipPropName__invalidRelationship', `The prop cannot be renamed b/c the relationship ${ relationship } it is not defined in your schema`, { relationship, nowName, newName })
     if (!memory.txn.schema?.relationships[relationship]?.props?.[nowName]) throw AceError('schemaUpdateRelationshipPropName__invalidProp', `The prop cannot be renamed b/c the relationship ${ relationship } and the prop ${ nowName } is not defined in your schema`, { relationship, nowName, newName })
@@ -266,17 +300,20 @@ export async function schemaUpdateRelationshipPropName (reqItem) {
     if (props) {
       props[newName] = props[nowName]
       delete props[nowName]
-      schemaDeleteConclude()
+      schemaDeleteConclude(options)
     }
   }
 }
 
 
-/** @returns { void } */
-export function schemaDeleteConclude () {
+/**
+ * @param { td.AceFnOptions } options
+ * @returns { void }
+ */
+export function schemaDeleteConclude (options) {
   if (memory.txn.schema) {
     validateSchema(memory.txn.schema)
-    write('upsert', SCHEMA_KEY, memory.txn.schema)
+    memory.txn.schemaUpdated = true
     memory.txn.schemaDataStructures = SchemaDataStructures(memory.txn.schema)
   }
 }

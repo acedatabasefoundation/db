@@ -52,6 +52,9 @@
     "src/objects/SchemaDataStructures.js",
     "src/objects/Txn.js",
 
+    "src/schema/fromFile.js",
+    "src/schema/toFile.js",
+
     "src/security/createJWKs.js",
     "src/security/crypt.js",
     "src/security/getRandomBase64.js",

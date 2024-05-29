@@ -1,6 +1,7 @@
 import { td, enums } from '#ace'
-import { DELIMITER } from '../util/variables.js'
 import { AceError } from '../objects/AceError.js'
+import { DELIMITER, SCHEMA_ID } from '../util/variables.js'
+import { isObjectPopulated } from '../util/isObjectPopulated.js'
 
 
 /**
@@ -8,8 +9,9 @@ import { AceError } from '../objects/AceError.js'
  * @param { td.AceSchema } schema
  */
 export function validateSchema (schema) {
-  if (!schema?.nodes || typeof schema.nodes !== 'object' || Array.isArray(schema.nodes)) throw AceError('schema__invalidNodes', 'The provided schema requires a nodes object please', {})
-  if (schema.relationships && (typeof schema.relationships !== 'object' || Array.isArray(schema.relationships))) throw AceError('schema__invalidRelationships', 'If you would love to provide relationships with your schema, please pass it as an object', {})
+  if (!isObjectPopulated(schema?.nodes)) throw AceError('schema__invalidNodes', 'Please ensure the provided schema includes a nodes object with props', {})
+  if (schema.relationships && (typeof schema.relationships !== 'object' || Array.isArray(schema.relationships))) throw AceError('schema__invalidRelationships', 'Please ensure the provided schema has relationships as an object if you would love to include relationships', {})
+  if (typeof schema.lastId !== 'number') throw AceError('schema__missingLastId', 'Please ensure each schema has a lastId', {})
 
   /** @type { Set<string> } - Helps ensure each node in `schema.nodes` is unique */
   const nodeNameSet = new Set()
@@ -32,6 +34,9 @@ export function validateSchema (schema) {
   /** @type { Map<string, td.AceSchemaDirectionsMapDirection[]> } - `Map<relationshipName, [{ nodeName, nodePropName, id }]>` - Helps ensure relationships defined in `schema.relationships` have required and properfly formatted nodes props in `schema.nodes` */
   const directionsMap = new Map()
 
+  /** @type { Set<number> } Each id will go in here to ensure we do not have duplicate ids */
+  const aceIdSet = new Set()
+
   for (const nodeName in schema.nodes) {
     if (nodeNameSet.has(nodeName)) throw AceError('schema__notUniqueNodeName', `The node name ${ nodeName } is not unique, please ensure each nodeName is unique`, { nodeName })
 
@@ -39,30 +44,36 @@ export function validateSchema (schema) {
 
     if (typeof nodeName !== 'string') throw AceError('schema__invalidNodeType', `The node name ${ nodeName } is an invalid type, please add node that is a type of string`, { nodeName })
     if (nodeName.includes(DELIMITER)) throw AceError('schema__nodeDelimeter', `The node name ${ nodeName } includes ${ DELIMITER } which Ace does not allow b/c ${ DELIMITER } is used as a delimeter within our query language`, { nodeName })
-    if (nodeName.includes(' ')) throw AceError('schema__hasSpaces', `The node name ${ nodeName } is an invalid because it has a space in it, please add nodes that have no spaces in them`, { nodeName })
+    if (nodeName.includes(' ')) throw AceError('schema__hasSpaces', `The node name ${nodeName} is an invalid because it has a space in it, please add nodes that have no spaces in them`, { nodeName })
+    if (typeof schema.nodes[nodeName].$aceId !== 'number') throw AceError('schema__missingAceId', `Please ensure each schema node has an $aceId that is a type of "number", this is not happening yet for the node: ${ nodeName }`, { node: schema.nodes[nodeName] })
+    if (aceIdSet.has(schema.nodes[nodeName].$aceId)) throw AceError('schema__duplicateAceId', `Please ensure each schema node has an $aceId that is unique, this is not happening yet for the node: ${ nodeName }`, { node: schema.nodes[nodeName] })
+
+    aceIdSet.add(schema.nodes[nodeName].$aceId)
 
     for (const nodePropName in schema.nodes[nodeName]) {
-      validateSchemaProp(nodePropName, schema.nodes[nodeName][nodePropName], false)
+      if (nodePropName !== SCHEMA_ID) {
+        validateSchemaProp(nodePropName, schema.nodes[nodeName][nodePropName], false, aceIdSet)
 
-      const prop = schema.nodes[nodeName][nodePropName]
+        const prop = schema.nodes[nodeName][nodePropName]
 
-      if (prop.is === 'Prop') {
-        const mapValue = uniqueNodePropsMap.get(nodeName)
+        if (prop.is === 'Prop') {
+          const mapValue = uniqueNodePropsMap.get(nodeName)
 
-        if (!mapValue) uniqueNodePropsMap.set(nodeName, new Set([ nodePropName ]))
-        else {
-          if (mapValue.has(nodePropName)) throw AceError('schema__notUniqueNodePropName', `The node name ${ nodeName } and prop name ${ nodePropName } is not unique, please ensure all node prop names are unique for the node`, { nodeName, nodePropName })
-          else mapValue.add(nodePropName)
+          if (!mapValue) uniqueNodePropsMap.set(nodeName, new Set([ nodePropName ]))
+          else {
+            if (mapValue.has(nodePropName)) throw AceError('schema__notUniqueNodePropName', `The node name ${ nodeName } and prop name ${ nodePropName } is not unique, please ensure all node prop names are unique for the node`, { nodeName, nodePropName })
+            else mapValue.add(nodePropName)
+          }
+        } else {
+          const schemaRelationshipProp = /** @type { td.AceSchemaForwardRelationshipProp | td.AceSchemaReverseRelationshipProp | td.AceSchemaBidirectionalRelationshipProp } */ (prop)
+          const mapValue = directionsMap.get(schemaRelationshipProp.options.relationship)
+          const arrayValue = { nodeName, nodePropName, id: schemaRelationshipProp.is }
+
+          if (!mapValue) directionsMap.set(schemaRelationshipProp.options.relationship, [arrayValue])
+          else mapValue.push(arrayValue)
+
+          relationshipPropNodeNameSet.add(schemaRelationshipProp.options.node)
         }
-      } else {
-        const schemaRelationshipProp = /** @type { td.AceSchemaForwardRelationshipProp | td.AceSchemaReverseRelationshipProp | td.AceSchemaBidirectionalRelationshipProp } */ (prop)
-        const mapValue = directionsMap.get(schemaRelationshipProp.options.relationship)
-        const arrayValue = { nodeName, nodePropName, id: schemaRelationshipProp.is }
-
-        if (!mapValue) directionsMap.set(schemaRelationshipProp.options.relationship, [arrayValue])
-        else mapValue.push(arrayValue)
-
-        relationshipPropNodeNameSet.add(schemaRelationshipProp.options.node)
       }
     }
   }
@@ -81,22 +92,28 @@ export function validateSchema (schema) {
     const _errorData = { relationshipName, relationship }
 
     if (typeof relationshipName !== 'string') throw AceError('schema__invalidRelationshipType', `The relationship name \`${ relationshipName }\` is not a type of string, please add relationships that are a type of string`, _errorData)
-    if (!relationshipName.match(/^[A-Za-z\_]+$/)) throw AceError('schema__invalidRelationshipCharacters', `The relationship name \`${ relationshipName }\` has invalid characters, please add relationships include characters a-z or A-Z or underscores`, _errorData)
     if (relationship?.is !== 'OneToOne' && relationship?.is !== 'ManyToMany' && relationship?.is !== 'OneToMany') throw AceError('schema__invalidRelationshipId', `The relationship name \`${ relationshipName }\` is invalid b/c relationship?.id is invalid, please ensure relationships have a valid relationship id of OneToOne, OneToMany or ManyToMany`, _errorData)
     if (relationshipName.includes(DELIMITER)) throw AceError('schema__relationshipDelimeter', `The relationship name ${relationshipName} includes ${DELIMITER} which Ace does not allow b/c ${DELIMITER} is used as a delimeter within our query language`, { relationshipName })
+    if (relationshipName.includes(' ')) throw AceError('schema__hasSpaces', `Please ensure relationship names do not includes a space, this is not happening yet for the relationship name: ${ relationshipName }`, { relationshipName })
+    if (typeof relationship.$aceId !== 'number') throw AceError('schema__missingAceId', `Please ensure each schema node has an $aceId that is a type of "number", this is not happening yet for the node: ${relationshipName}`, { relationship })
+    if (aceIdSet.has(relationship.$aceId)) throw AceError('schema__duplicateAceId', `Please ensure each schema node has an $aceId that is unique, this is not happening yet for the node: ${ relationshipName }`, { relationship })
+    
+    aceIdSet.add(relationship.$aceId)
 
     if (relationship.props) {
       if (typeof relationship.props !== 'object' || Array.isArray(relationship.props)) throw AceError('schema__invalidRelationshipProps', `The relationship name ${ relationshipName } has invalid props, if you'd love to include props please ensure relationship.props type, is an object`, _errorData)
 
       for (const propName in relationship.props) {
-        validateSchemaProp(propName, relationship.props[propName], true)
+        if (propName !== SCHEMA_ID) {
+          validateSchemaProp(propName, relationship.props[propName], true, aceIdSet)
 
-        const mapValue = uniqueRelationshipPropsMap.get(relationshipName)
+          const mapValue = uniqueRelationshipPropsMap.get(relationshipName)
 
-        if (!mapValue) uniqueRelationshipPropsMap.set(relationshipName, new Set([propName]))
-        else {
-          if (mapValue.has(propName)) throw AceError('schema__notUniqueRelationshipPropName', `The relationship name \`${ relationshipName }\` and the prop name \`${ propName }\` is defined more then once in the schema, please ensure all relationship prop names are unique for the node`, { relationshipName, propName })
-          else mapValue.add(propName)
+          if (!mapValue) uniqueRelationshipPropsMap.set(relationshipName, new Set([propName]))
+          else {
+            if (mapValue.has(propName)) throw AceError('schema__notUniqueRelationshipPropName', `The relationship name \`${ relationshipName }\` and the prop name \`${ propName }\` is defined more then once in the schema, please ensure all relationship prop names are unique for the node`, { relationshipName, propName })
+            else mapValue.add(propName)
+          }
         }
       }
     }
@@ -138,9 +155,13 @@ function notify (relationshipName, directions) {
  * @param { string } propName
  * @param { td.AceSchemaProp | td.AceSchemaForwardRelationshipProp | td.AceSchemaReverseRelationshipProp | td.AceSchemaBidirectionalRelationshipProp | td.AceSchemaRelationshipProp } propValue
  * @param { boolean } isRelationshipProp
+ * @param { Set<number> } aceIdSet
  */
-function validateSchemaProp (propName, propValue, isRelationshipProp) {
+function validateSchemaProp (propName, propValue, isRelationshipProp, aceIdSet) {
   validatePropName(propName, isRelationshipProp)
+
+  if (typeof propValue.$aceId !== 'number') throw AceError('schema__missingAceId', `Please ensure each schma prop has an $aceId that is a type of "number", this is not happening yet for the prop: ${ propName }`, { propName, propValue })
+  if (aceIdSet.has(propValue.$aceId)) throw AceError('schema__duplicateAceId', `Please ensure each schema prop has an $aceId that is unique, this is not happening yet for the prop: ${ propName }`, { propName, propValue })
 
   switch (propValue.is) {
     case 'Prop':
@@ -186,5 +207,6 @@ function validatePropName (prop, isRelationshipProp) {
     if (prop === 'id') throw AceError('schema__validatePropName__nodeId', 'The prop id is invalid because id is a reserved node prop', { prop })
     if (prop.startsWith('_')) throw AceError('schema__validatePropName__removeUnderscore', `The prop ${ prop } is invalid because none relationship props may not start with an underscore. This helps know what props in a query are relationship props`, { prop })
     if (prop === '$ace') throw AceError('schema__validatePropName__reservedAce', 'The prop $ace is reserved, please ensure no prop is named $ace', { prop })
+    if (prop === '$aceId') throw AceError('schema__validatePropName__reservedAce', `Please ensure node props are not named $aceId. This is not happening yet for the prop: ${ prop }`, { prop })
   }
 }

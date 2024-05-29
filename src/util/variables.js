@@ -74,10 +74,11 @@ export function getNow () {
 
 // INTERNAL ONLY (So not exported @ index.js / index.ts)
 
+export const SCHEMA_ID = '$aceId'
+
 export const DELIMITER = '___'
 
 export const KEY_START = '$ace' + DELIMITER
-export const SCHEMA_KEY = KEY_START + 'schema'
 export const LAST_ID_KEY = KEY_START + 'last' + DELIMITER + 'id'
 export const INDEX_NODE_IDS_PREFIX = KEY_START + 'index' + DELIMITER + 'nodes' + DELIMITER
 export const INDEX_SORT = KEY_START + 'index' + DELIMITER + 'sort' + DELIMITER
