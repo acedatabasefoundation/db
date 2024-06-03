@@ -1,7 +1,7 @@
 import { td } from '#ace'
-import { memory } from '../../memory/memory.js'
-import { getOne, getMany } from '../storage.js'
+import { Memory } from '../../objects/Memory.js'
 import { doQueryOptions } from './doQueryOptions.js'
+import { getOne, getMany } from '../../util/storage.js'
 import { isObjectPopulated } from '../../util/isObjectPopulated.js'
 import { getDetailedResValueSectionByParent, getDetailedResValueSectionById } from './getDetailedResValue.js'
 import { getRelationshipProp, getSortIndexKey, getUniqueIndexKey, getNodeIdsKey, getRelationshipIdsKey } from '../../util/variables.js'
@@ -52,7 +52,6 @@ async function getInitialIds (reqItem) {
   let ids
 
   const detailedResValueSection = getDetailedResValueSectionById(reqItem)
-  // const resValue = getDetailedResValueSectionById(reqItem)
 
   if (detailedResValueSection.resValue?.$o?.sort) {
     const sortIndexStorageKey = getSortIndexKey(detailedResValueSection.node || detailedResValueSection.relationship || '', detailedResValueSection.resValue?.$o?.sort.prop) // IF sorting by an property requested => see if property is a sort index
@@ -188,7 +187,7 @@ async function addPropsToResponse (detailedResValueSection, res, item, jwks, iRe
     }
 
     /** @type { Map<string, { propNode: string, propValue: td.AceSchemaForwardRelationshipProp | td.AceSchemaReverseRelationshipProp | td.AceSchemaBidirectionalRelationshipProp }> | undefined } */
-    const relationshipPropsMap = (item.relationship && memory.txn.schemaDataStructures.relationshipPropsMap) ? memory.txn.schemaDataStructures.relationshipPropsMap.get(detailedResValueSection.relationship || '') : undefined
+    const relationshipPropsMap = (item.relationship && Memory.txn.schemaDataStructures.relationshipPropsMap) ? Memory.txn.schemaDataStructures.relationshipPropsMap.get(detailedResValueSection.relationship || '') : undefined
 
     for (const reqResKey in detailedResValueSection.resValue) { // loop a section of query.x object
       const resValueItemValue = detailedResValueSection.resValue[reqResKey]
@@ -197,8 +196,8 @@ async function addPropsToResponse (detailedResValueSection, res, item, jwks, iRe
       const parentNodeOptions = {}
 
       if (!item.relationship) {
-        parentNodeOptions.schemaNodeProp = memory.txn.schema?.nodes[detailedResValueSection.node || '']?.[reqResKey]
-        parentNodeOptions.schemaRelationshipProp = (detailedResValueSection.relationship) ? memory.txn.schema?.relationships?.[detailedResValueSection.relationship]?.props?.[reqResKey] : undefined
+        parentNodeOptions.schemaNodeProp = Memory.txn.schema?.nodes[detailedResValueSection.node || '']?.[reqResKey]
+        parentNodeOptions.schemaRelationshipProp = (detailedResValueSection.relationship) ? Memory.txn.schema?.relationships?.[detailedResValueSection.relationship]?.props?.[reqResKey] : undefined
       }
 
       if (reqResKey !== '$o' && (!detailedResValueSection.resHide || !detailedResValueSection.resHide?.has(reqResKey))) {
@@ -297,6 +296,7 @@ async function addRelationshipsToResponse (detailedResValueSection, res, ids, is
  * @param { any } resOriginalItem 
  * @param { td.AceFnCryptoJWKs } jwks
  * @param { number } iReq
+ * @returns { Promise<void> }
  */
 async function addRelationshipPropsToResponse (id, relationshipIds, schemaNodeProp, reqResKey, resValueItemValue, detailedResValueSection, resNowItem, resOriginalItem, jwks, iReq) {
   if (id && schemaNodeProp && relationshipIds?.length) {

@@ -1,17 +1,17 @@
 import { td } from '#ace'
-import { getMany } from './storage.js'
-import { memory } from '../memory/memory.js'
-import { AceError } from '../objects/AceError.js'
-import { getRelationshipProp } from '../util/variables.js'
+import { getMany } from '../../util/storage.js'
+import { Memory } from '../../objects/Memory.js'
+import { AceError } from '../../objects/AceError.js'
+import { getRelationshipProp } from '../../util/variables.js'
 
 
 /** @returns { Promise<void> } */
 export async function validateMustBeDefined () {
-  if (memory.txn.schemaDataStructures.mustPropsMap.size) {
-    for (const writeItem of memory.txn.writeMap) {
+  if (Memory.txn.schemaDataStructures.mustPropsMap.size) {
+    for (const writeItem of Memory.txn.writeMap) {
       if (writeItem[1].value?.relationship) validateRelationshipProp(writeItem[1].value.relationship, writeItem[1].value.props)
       else if (writeItem[1].value?.node) {
-        const mustProps = memory.txn.schemaDataStructures.mustPropsMap.get(writeItem[1].value.node)
+        const mustProps = Memory.txn.schemaDataStructures.mustPropsMap.get(writeItem[1].value.node)
 
         if (mustProps?.size) {
           for (const mustProp of mustProps) {
@@ -41,6 +41,7 @@ export async function validateMustBeDefined () {
  * @param { string } node 
  * @param { td.AceGraphNodeProps } props 
  * @param { string } mustProp 
+ * @returns { void }
  */
 function validateProp (node, props, mustProp) {
   if (typeof props[mustProp] === 'undefined') throw getEror('node', node, mustProp, props)
@@ -50,9 +51,11 @@ function validateProp (node, props, mustProp) {
 /**
  * @param { string } relationship 
  * @param { td.AceGraphRelationshipProps } props 
+ * @returns { void }
  */
 function validateRelationshipProp (relationship, props) {
-  const mustProps = memory.txn.schemaDataStructures.mustPropsMap.get(relationship)
+  const mustProps = Memory.txn.schemaDataStructures.mustPropsMap.get(relationship)
+
   if (mustProps?.size) {
     for (const mustProp of mustProps) {
       if (typeof props[mustProp[0]] === 'undefined') throw getEror('relationship', relationship, mustProp[0], props)
@@ -115,7 +118,7 @@ function getEror (type, name, propName, props) {
   /** @type { { [k: string]: string | number } } */
   const enumIds = {}
 
-  for (const entry of memory.txn.enumGraphIdsMap) {
+  for (const entry of Memory.txn.enumGraphIdsMap) {
     enumIds[entry[0]] = entry[1]
   }
 

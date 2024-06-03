@@ -1,5 +1,5 @@
-import { memory } from '../memory/memory.js'
-import { ENUM_ID_PREFIX } from '../util/variables.js'
+import { Memory } from '../../objects/Memory.js'
+import { ENUM_ID_PREFIX } from '../../util/variables.js'
 
 
 
@@ -25,5 +25,5 @@ export function enumIdToGraphId (options) {
  * @returns { any }
  */
 function _enumIdToGraphId (id) {
-  return (typeof id === 'string' && id.startsWith(ENUM_ID_PREFIX)) ? memory.txn.enumGraphIdsMap.get(id) : id
+  return (typeof id === 'string' && id.startsWith(ENUM_ID_PREFIX)) ? Memory.txn.enumGraphIdsMap.get(id) : id
 }

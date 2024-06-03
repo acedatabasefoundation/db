@@ -1,7 +1,6 @@
-/** @typedef { 'Empty' | 'MemoryInitialize' | 'BackupGet' | 'BackupLoad' | 'PluginInstall' | 'PluginUninstall' | 'SchemaGet' | 'SchemaAdd' | 'SchemaUpdateNodeName' | 'SchemaUpdateNodePropName' | 'SchemaUpdateRelationshipName' | 'SchemaUpdateRelationshipPropName' | 'SchemaUpdatePropDataType' | 'SchemaUpdatePropMustBeDefined' | 'SchemaUpdatePropCascade' | 'SchemaUpdatePropIndex' | 'SchemaUpdatePropHas' | 'NodeInsert' | 'NodeUpdate' | 'NodeUpsert' | 'NodeQuery' | 'NodeDeleteData' | 'NodePropDeleteData' | 'NodeDeleteDataAndDeleteFromSchema' | 'NodePropDeleteDataAndDeleteFromSchema' | 'RelationshipInsert' | 'RelationshipUpdate' | 'RelationshipUpsert' | 'RelationshipQuery' | 'RelationshipDeleteData' | 'RelationshipPropDeleteData' | 'RelationshipDeleteDataAndDeleteFromSchema' | 'RelationshipPropDeleteDataAndDeleteFromSchema' } aceDo */
+/** @typedef { 'Empty' | 'BackupGet' | 'BackupLoad' | 'PluginInstall' | 'PluginUninstall' | 'SchemaGet' | 'SchemaAdd' | 'SchemaUpdateNodeName' | 'SchemaUpdateNodePropName' | 'SchemaUpdateRelationshipName' | 'SchemaUpdateRelationshipPropName' | 'SchemaUpdatePropDataType' | 'SchemaUpdatePropMustBeDefined' | 'SchemaUpdatePropCascade' | 'SchemaUpdatePropIndex' | 'SchemaUpdatePropHas' | 'NodeInsert' | 'NodeUpdate' | 'NodeUpsert' | 'NodeQuery' | 'NodeDeleteData' | 'NodePropDeleteData' | 'NodeDeleteDataAndDeleteFromSchema' | 'NodePropDeleteDataAndDeleteFromSchema' | 'RelationshipInsert' | 'RelationshipUpdate' | 'RelationshipUpsert' | 'RelationshipQuery' | 'RelationshipDeleteData' | 'RelationshipPropDeleteData' | 'RelationshipDeleteDataAndDeleteFromSchema' | 'RelationshipPropDeleteDataAndDeleteFromSchema' } aceDo */
 export const aceDo = {
   Empty: /** @type { 'Empty' } */ ('Empty'),
-  MemoryInitialize: /** @type { 'MemoryInitialize' } */ ('MemoryInitialize'),
   BackupGet: /** @type { 'BackupGet' } */ ('BackupGet'),
   BackupLoad: /** @type { 'BackupLoad' } */ ('BackupLoad'),
   PluginInstall: /** @type { 'PluginInstall' } */ ('PluginInstall'),
@@ -157,25 +156,25 @@ export const sortHow = {
 }
 
 
-/** @typedef { 'start' | 'complete' | 'cancel' } txnActions */
-export const txnActions = {
-  start: /** @type { 'start' } */ ('start'),
-  complete: /** @type { 'complete' } */ ('complete'),
-  cancel: /** @type { 'cancel' } */ ('cancel'),
+/** @typedef { 'Start' | 'Complete' | 'Cancel' } txnDo */
+export const txnDo = {
+  Start: /** @type { 'Start' } */ ('Start'),
+  Complete: /** @type { 'Complete' } */ ('Complete'),
+  Cancel: /** @type { 'Cancel' } */ ('Cancel'),
 }
 
 
-/** @typedef { 'gestate' | 'reqNotLastOne' | 'waiting' | 'reqLastOne' } txnSteps */
+/** @typedef { 'preEnter' | 'lastReq' | 'notLastReq' | 'respondedAndWaiting' } txnSteps */
 export const txnSteps = {
-  gestate: /** @type { 'gestate' } */ ('gestate'),
-  reqNotLastOne: /** @type { 'reqNotLastOne' } */ ('reqNotLastOne'),
-  waiting: /** @type { 'waiting' } */ ('waiting'),
-  reqLastOne: /** @type { 'reqLastOne' } */ ('reqLastOne'),
+  preEnter: /** @type { 'preEnter' } */ ('preEnter'),
+  lastReq: /** @type { 'lastReq' } */ ('lastReq'),
+  notLastReq: /** @type { 'notLastReq' } */ ('notLastReq'),
+  respondedAndWaiting: /** @type { 'respondedAndWaiting' } */ ('respondedAndWaiting'),
 }
 
 
-/** @typedef { 'insert' | 'update' | 'upsert' | 'delete' } writeActions */
-export const writeActions = {
+/** @typedef { 'insert' | 'update' | 'upsert' | 'delete' } writeDo */
+export const writeDo = {
   insert: /** @type { 'insert' } */ ('insert'),
   update: /** @type { 'update' } */ ('update'),
   upsert: /** @type { 'upsert' } */ ('upsert'),

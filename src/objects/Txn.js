@@ -7,12 +7,11 @@ export function Txn () {
   return {
     writeStr: '',
     schema: null,
-    step: 'gestate',
+    step: 'preEnter',
     hasUpdates: false,
     writeMap: new Map(),
     schemaUpdated: false,
     sortIndexMap: new Map(),
-    wasEmptyRequested: false,
     enumGraphIdsMap: new Map(),
     schemaDataStructures: SchemaDataStructures(null),
   }

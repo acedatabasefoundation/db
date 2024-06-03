@@ -1,6 +1,5 @@
 export const aceDo = new Map([ // boolean is will this id write to the graph
   [ 'Empty', true ],
-  [ 'MemoryInitialize', false ],
 
   // Backup
   [ 'BackupGet', false ],

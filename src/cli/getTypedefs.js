@@ -12,23 +12,33 @@ export function getTypedefs (schema) {
   return `import * as enums from './enums.js'
 
 
-/**
+${ typedefs.Nodes }${ typedefs.Relationships }/** AceMemory
+ *
  * @typedef { object } AceMemory
  * @prop { AceQueueItem[] } queue
  * @prop { AceTxn } txn
  * @prop { AceMemoryWal } wal
  *
  * @typedef { object } AceMemoryWal
- * @prop { AceMemoryMiniIndexItem[] } miniIndex
- * @prop { number } byteAmount
- * @prop { Map<string | number, { action: enums.writeActions, value: any }> } map
+ * @prop { number } byteAmount - number of bytes in the map
+ * @prop { number } [ fileSize ] - filehandle.stat() on the wal file
+ * @prop { Map<string | number, { do: enums.writeDo, value: any }> } map
  * @prop { import('node:fs/promises').FileHandle } [ filehandle ]
+ * @prop { { byteAmount: number, map: Map<string | number, any> } } revert
  *
  * @typedef { [ string | number, number, number, number ] } AceMemoryMiniIndexItem
  */
 
 
-${ typedefs.Nodes }${ typedefs.Relationships }/** AceGraph
+/** AceFile
+ *
+ * @typedef { ('dir' | 'trash' | 'graphs' | 'schemas' | 'wal' | 'trashNow')[] } AceFileInitPathsTypes
+ * @typedef { ('dir' | 'wal' | 'trash' | 'graphs' | 'schemas' | 'schemaDetails' | 'trashNow' | 'trashNowWal'  | 'trashNowGraphs' | 'trashNowSchemas')[] } AceFileGetPathsTypes
+ * @typedef { { dir: string, wal: string, trash: string, graphs: string, schemas: string, schemaDetails: string, trashNow: string, trashNowWal: string, trashNowGraphs: string, trashNowSchemas: string } } AceFilePaths
+ */
+
+
+/** AceGraph
  *
  * @typedef { { node: string, props: AceGraphNodeProps, [ relationship: string ]: any | string[] } } AceGraphNode
  * @typedef { { id: (string | number), [propName: string]: any } } AceGraphNodeProps
@@ -65,11 +75,13 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceGraph
  * @property { AceSchema | null } schema
  * @property { AceTxnSchemaDataStructures } schemaDataStructures
  * @property { boolean } schemaUpdated
+ * @property { { lastCreatedVersion: number, currentVersion: number } } [ schemaNowDetails ]
+ * @property { { lastCreatedVersion: number, currentVersion: number } } [ schemaOriginalDetails ]
  * @property { number } [ lastId ]
  * @property { boolean } hasUpdates
- * @property { boolean } wasEmptyRequested
- * @property { Map<string, number> } enumGraphIdsMap
- * @property { Map<string | number, { action: enums.writeActions, value: * }> } writeMap
+ * @property { string } [ emptyTimestamp ]
+ * @property { Map<string | number, number> } enumGraphIdsMap
+ * @property { Map<string | number, { do: enums.writeDo, value: * }> } writeMap
  * @property { string } writeStr
  * @property { Map<string, { propName: string, newIds: (string | number)[] }> } sortIndexMap - If we add a node and prop and that node+prop has a sort index, put the newly created nodes in here
  * 
@@ -84,42 +96,37 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceGraph
  * @typedef { object } AceTxnSchemaDataStructuresDefaultItem
  * @property { string } prop
  * @property { any } [ value ]
- * @property { 'setIsoNow' } [ action ]
+ * @property { 'setIsoNow' } [ do ]
  */
 
 
 /** AceFn
  *
  * @typedef { object } AceFnOptions
- * @property { AceFnOptionsWhere } where - Path of graph file relative to your package.json file (aka your cwd)
+ * @property { string } path - Path of graph file relative to your package.json file
  * @property { AceFnRequest } [ what ]
  * @property { AceFnOptionsTxn } [ txn ]
  * @property { AceFnStringJWKs } [ jwks ]
  *
- * @typedef { string } AceFnOptionsWhere
- *
  * @typedef { AceFnOptionsTxnStart | AceFnOptionsTxnComplete | AceFnOptionsTxnCancel | AceFnOptionsTxnContinue } AceFnOptionsTxn
  * 
  * @typedef { object } AceFnOptionsTxnStart
- * @property { typeof enums.txnActions.start } action
+ * @property { typeof enums.txnDo.Start } do
  * @property { never } [ id ]
  *
  * @typedef { object } AceFnOptionsTxnComplete
- * @property { typeof enums.txnActions.complete } action
+ * @property { typeof enums.txnDo.Complete } do
  * @property { string } id
  *
  * @typedef { object } AceFnOptionsTxnCancel
- * @property { typeof enums.txnActions.cancel } action
+ * @property { typeof enums.txnDo.Cancel } do
  * @property { string } id
  *
  * @typedef { object } AceFnOptionsTxnContinue
  * @property { string } id
- * @property { never } [ action ]
+ * @property { never } [ do ]
  *
- * @typedef { object } AceFnRequestItemMemoryInitialize
- * @property { typeof enums.aceDo.MemoryInitialize } do
- *
- * @typedef { AceQueryRequestItem | AceMutateRequestItem | AceFnRequestItemMemoryInitialize } AceFnRequestItem
+ * @typedef { AceQueryRequestItem | AceMutateRequestItem } AceFnRequestItem
  * 
  * @typedef { AceFnRequestItem | (AceFnRequestItem)[] } AceFnRequest
  * @typedef { { [prop: string]: any, $ace?: AceFn$ } } AceFnResponse
@@ -278,7 +285,7 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceGraph
  * 
  * @typedef { object } AceMutateRequestItemNodeDeleteData
  * @property { typeof enums.aceDo.NodeDeleteData } do
- * @property { (string | number)[] } how - The ids you'd love deleted. To cascade delete, add cascade to your schema
+ * @property { (string | number)[] } how - The ids you'd love deleted. To cascade delete, add cascade to the schema
  *
  * @typedef { object } AceMutateRequestItemRelationshipDeleteData
  * @property { typeof enums.aceDo.RelationshipDeleteData } do
@@ -337,11 +344,11 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceGraph
  * @typedef { object } AceMutateRequestOptions
  * @property { string } [ privateJWK ]
  *
- * @typedef { ${ typedefs.mutate.NodeInsertPropsTypes || '{ id?: string | number, [propName: string]: any, $o?: AceMutateRequestOptions }'  } } AceMutateRequestItemNodeInsertProps
+ * @typedef { ${ typedefs.mutate.NodeInsertPropsTypes || '{ id?: string | number, [propName: string]: any }'  } } AceMutateRequestItemNodeInsertProps
  * @typedef { ${ typedefs.mutate.NodeUpdatePropsTypes || typedefs.mutate.DefaultNodeUpPropsTypes  } } AceMutateRequestItemNodeUpdateProps
  * @typedef { ${ typedefs.mutate.NodeUpsertPropsTypes || typedefs.mutate.DefaultNodeUpPropsTypes } } AceMutateRequestItemNodeUpsertProps
  *
- * @typedef { ${ typedefs.mutate.RelationshipInsertPropsTypes || '{ a: string, b: string, [propName: string]: any, $o?: AceMutateRequestOptions }' } } AceMutateRequestItemRelationshipInsertProps
+ * @typedef { ${ typedefs.mutate.RelationshipInsertPropsTypes || '{ a: string, b: string, [propName: string]: any }' } } AceMutateRequestItemRelationshipInsertProps
  * @typedef { ${ typedefs.mutate.RelationshipUpdatePropsTypes || typedefs.mutate.DefaultRelationshipUpPropsTypes  } } AceMutateRequestItemRelationshipUpdateProps
  * @typedef { ${ typedefs.mutate.RelationshipUpsertPropsTypes || typedefs.mutate.DefaultRelationshipUpPropsTypes } } AceMutateRequestItemRelationshipUpsertProps
  * 
@@ -630,8 +637,8 @@ function getSchemaTypedefs (schema) {
       SchemaUpdateRelationshipPropNameType: '',
       NodeDeleteDataAndDeleteFromSchemaType: '',
       NodePropDeleteDataAndDeleteFromSchemaType: '',
-      DefaultNodeUpPropsTypes: '{ id: string | number, [propName: string]: any, $o?: AceMutateRequestOptions }',
-      DefaultRelationshipUpPropsTypes: '{ id: string | number, a: string, b: string, [propName: string]: any, $o?: AceMutateRequestOptions }'
+      DefaultNodeUpPropsTypes: '{ id: string | number, [propName: string]: any }',
+      DefaultRelationshipUpPropsTypes: '{ id: string | number, a: string, b: string, [propName: string]: any }'
     }
   }
 
@@ -662,9 +669,9 @@ function getSchemaTypedefs (schema) {
  * @typedef { object } ${ schemaNodeName }MutateRequestItemNodeInsertHow
  * @property { '${ schemaNodeName }' } node - Insert **${ schemaNodeName }** node
  * @property { ${ schemaNodeName }MutateRequestItemInsertProps } props
+ * @property { AceMutateRequestOptions } [ $o ] - Mutation insert options
  * @typedef { ${ schemaNodeName }MutateRequestItemInsertPropsTemp & { [propName: string]: any } } ${ schemaNodeName }MutateRequestItemInsertProps
  * @typedef { object } ${ schemaNodeName }MutateRequestItemInsertPropsTemp
- * @property { AceMutateRequestOptions } [ $o ] - Mutation insert options
  * @property { string | number } [ id ] - If you are setting your own **id**, it must be a unique **id** to all other relationships or nodes in your graph. If you are allowing Ace to set this id, it must look like this **_:chris** - The beginning must have the id prefix which is **_:** and the end must have a unique identifier string, this way you can reuse this id in other mutations`
 
       typedefs.mutate.NodeUpdateTypes += `\n *
@@ -674,9 +681,9 @@ function getSchemaTypedefs (schema) {
  * @typedef { object } ${ schemaNodeName }MutateRequestItemNodeUpdateHow
  * @property { '${ schemaNodeName }' } node - Update **${ schemaNodeName }** node
  * @property { ${ schemaNodeName }MutateRequestUpdateItemProps } props
+ * @property { AceMutateRequestOptions } [ $o ] - Mutation update options
  * @typedef { ${ schemaNodeName }MutateRequestUpdateItemPropsTemp & { [propName: string]: any } } ${ schemaNodeName }MutateRequestUpdateItemProps
  * @typedef { object } ${ schemaNodeName }MutateRequestUpdateItemPropsTemp
- * @property { AceMutateRequestOptions } [ $o ] - Mutation update options
  * @property { string | number } id - The node's unique identifier`
 
       typedefs.mutate.NodeUpsertTypes += `\n *
@@ -686,9 +693,9 @@ function getSchemaTypedefs (schema) {
  * @typedef { object } ${ schemaNodeName }MutateRequestItemNodeUpsertHow
  * @property { '${ schemaNodeName }' } node - Upsert **${ schemaNodeName }** node
  * @property { ${ schemaNodeName }MutateRequestUpsertItemProps } props
+ * @property { AceMutateRequestOptions } [ $o ] - Mutation upsert options
  * @typedef { ${ schemaNodeName }MutateRequestUpdateItemPropsTemp & { [propName: string]: any } } ${ schemaNodeName }MutateRequestUpsertItemProps
  * @typedef { object } ${ schemaNodeName }MutateRequestUpsertItemPropsTemp
- * @property { AceMutateRequestOptions } [ $o ] - Mutation upsert options
  * @property { string | number } id - The node's unique identifier`
 
       for (const schemaNodePropName in schema.nodes[schemaNodeName]) {
@@ -802,6 +809,7 @@ function getSchemaTypedefs (schema) {
  * @typedef { object } ${ schemaRelationshipName }MutateRequestItemRelationshipInsertHow
  * @property { '${ schemaRelationshipName }' } relationship - Insert **${ schemaRelationshipName }** relationship
  * @property { ${ schemaRelationshipName }MutateRequestItemRelationshipInsertProps } props
+ * @property { AceMutateRequestOptions } [ $o ] - Mutation insert options
  * @typedef { ${ schemaRelationshipName }MutateRequestItemRelationshipInsertPropsTemp & { [propName:string]: any  } } ${ schemaRelationshipName }MutateRequestItemRelationshipInsertProps
  * @typedef { object } ${ schemaRelationshipName }MutateRequestItemRelationshipInsertPropsTemp
  * @property { string } a - ${ abDescription }
@@ -814,6 +822,7 @@ function getSchemaTypedefs (schema) {
  * @typedef { object } ${ schemaRelationshipName }MutateRequestItemRelationshipUpdateHow
  * @property { '${ schemaRelationshipName }' } relationship - Update **${ schemaRelationshipName }** relationship
  * @property { ${ schemaRelationshipName }MutateRequestItemRelationshipUpdateProps } props
+ * @property { AceMutateRequestOptions } [ $o ] - Mutation update options
  * @typedef { ${ schemaRelationshipName }MutateRequestItemRelationshipUpdatePropsTemp & { [propName:string]: any  } } ${ schemaRelationshipName }MutateRequestItemRelationshipUpdateProps
  * @typedef { object } ${ schemaRelationshipName }MutateRequestItemRelationshipUpdatePropsTemp
  * @property { string } _id - The relationship _id you would love to update
@@ -827,6 +836,7 @@ function getSchemaTypedefs (schema) {
  * @typedef { object } ${ schemaRelationshipName }MutateRequestItemRelationshipUpsertHow
  * @property { '${ schemaRelationshipName }' } relationship - Upsert **${ schemaRelationshipName }** relationship
  * @property { ${ schemaRelationshipName }MutateRequestItemRelationshipUpsertProps } props
+ * @property { AceMutateRequestOptions } [ $o ] - Mutation upsert options
  * @typedef { ${schemaRelationshipName }MutateRequestItemRelationshipUpsertPropsTemp & { [propName:string]: any  } } ${ schemaRelationshipName }MutateRequestItemRelationshipUpsertProps
  * @typedef { object } ${schemaRelationshipName }MutateRequestItemRelationshipUpsertPropsTemp
  * @property { string } _id - The relationship _id you would love to upsert
@@ -946,7 +956,8 @@ function getSchemaTypedefs (schema) {
  * @property { AceMutateRequestItemNodeInsertHow } how
  * @typedef { object } AceMutateRequestItemNodeInsertHow
  * @property { string } node
- * @property { AceMutateRequestItemNodeInsertProps } props`
+ * @property { AceMutateRequestItemNodeInsertProps } props
+ * @property { AceMutateRequestOptions } [ $o ]`
   })
 
   typedefs.mutate.NodeUpdateType = plop({
@@ -958,7 +969,8 @@ function getSchemaTypedefs (schema) {
  * @property { AceMutateRequestItemNodeUpdateHow } how
  * @typedef { object } AceMutateRequestItemNodeUpdateHow
  * @property { string } node
- * @property { AceMutateRequestItemNodeUpdateProps } props`
+ * @property { AceMutateRequestItemNodeUpdateProps } props
+ * @property { AceMutateRequestOptions } [ $o ]`
   })
 
   typedefs.mutate.NodeUpsertType = plop({
@@ -970,7 +982,8 @@ function getSchemaTypedefs (schema) {
  * @property { AceMutateRequestItemNodeUpsertHow } how
  * @typedef { object } AceMutateRequestItemNodeUpsertHow
  * @property { string } node
- * @property { AceMutateRequestItemNodeUpsertProps } props`
+ * @property { AceMutateRequestItemNodeUpsertProps } props
+ * @property { AceMutateRequestOptions } [ $o ]`
   })
 
   typedefs.mutate.RelationshipInsertType = plop({
@@ -982,7 +995,8 @@ function getSchemaTypedefs (schema) {
  * @property { AceMutateRequestItemRelationshipInsertHow } how
  * @typedef { object } AceMutateRequestItemRelationshipInsertHow
  * @property { string } relationship
- * @property { AceMutateRequestItemRelationshipInsertProps } props`
+ * @property { AceMutateRequestItemRelationshipInsertProps } props
+ * @property { AceMutateRequestOptions } [ $o ]`
   })
 
   typedefs.mutate.RelationshipUpdateType = plop({
@@ -994,7 +1008,8 @@ function getSchemaTypedefs (schema) {
  * @property { AceMutateRequestItemRelationshipUpdateHow } how
  * @typedef { object } AceMutateRequestItemRelationshipUpdateHow
  * @property { string } relationship
- * @property { AceMutateRequestItemRelationshipUpdateProps } props`
+ * @property { AceMutateRequestItemRelationshipUpdateProps } props
+ * @property { AceMutateRequestOptions } [ $o ]`
   })
 
   typedefs.mutate.RelationshipUpsertType = plop({
@@ -1006,7 +1021,8 @@ function getSchemaTypedefs (schema) {
  * @property { AceMutateRequestItemRelationshipUpsertHow } how
  * @typedef { object } AceMutateRequestItemRelationshipUpsertHow
  * @property { string } relationship
- * @property { AceMutateRequestItemRelationshipUpsertProps } props`
+ * @property { AceMutateRequestItemRelationshipUpsertProps } props
+ * @property { AceMutateRequestOptions } [ $o ]`
   })
 
   return typedefs

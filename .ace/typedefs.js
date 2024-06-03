@@ -1,19 +1,29 @@
 import * as enums from './enums.js'
 
 
-/**
+/** AceMemory
+ *
  * @typedef { object } AceMemory
  * @prop { AceQueueItem[] } queue
  * @prop { AceTxn } txn
  * @prop { AceMemoryWal } wal
  *
  * @typedef { object } AceMemoryWal
- * @prop { AceMemoryMiniIndexItem[] } miniIndex
- * @prop { number } byteAmount
- * @prop { Map<string | number, { action: enums.writeActions, value: any }> } map
+ * @prop { number } byteAmount - number of bytes in the map
+ * @prop { number } [ fileSize ] - filehandle.stat() on the wal file
+ * @prop { Map<string | number, { do: enums.writeDo, value: any }> } map
  * @prop { import('node:fs/promises').FileHandle } [ filehandle ]
+ * @prop { { byteAmount: number, map: Map<string | number, any> } } revert
  *
  * @typedef { [ string | number, number, number, number ] } AceMemoryMiniIndexItem
+ */
+
+
+/** AceFile
+ *
+ * @typedef { ('dir' | 'trash' | 'graphs' | 'schemas' | 'wal' | 'trashNow')[] } AceFileInitPathsTypes
+ * @typedef { ('dir' | 'wal' | 'trash' | 'graphs' | 'schemas' | 'schemaDetails' | 'trashNow' | 'trashNowWal'  | 'trashNowGraphs' | 'trashNowSchemas')[] } AceFileGetPathsTypes
+ * @typedef { { dir: string, wal: string, trash: string, graphs: string, schemas: string, schemaDetails: string, trashNow: string, trashNowWal: string, trashNowGraphs: string, trashNowSchemas: string } } AceFilePaths
  */
 
 
@@ -54,11 +64,13 @@ import * as enums from './enums.js'
  * @property { AceSchema | null } schema
  * @property { AceTxnSchemaDataStructures } schemaDataStructures
  * @property { boolean } schemaUpdated
+ * @property { { lastCreatedVersion: number, currentVersion: number } } [ schemaNowDetails ]
+ * @property { { lastCreatedVersion: number, currentVersion: number } } [ schemaOriginalDetails ]
  * @property { number } [ lastId ]
  * @property { boolean } hasUpdates
- * @property { boolean } wasEmptyRequested
- * @property { Map<string, number> } enumGraphIdsMap
- * @property { Map<string | number, { action: enums.writeActions, value: * }> } writeMap
+ * @property { string } [ emptyTimestamp ]
+ * @property { Map<string | number, number> } enumGraphIdsMap
+ * @property { Map<string | number, { do: enums.writeDo, value: * }> } writeMap
  * @property { string } writeStr
  * @property { Map<string, { propName: string, newIds: (string | number)[] }> } sortIndexMap - If we add a node and prop and that node+prop has a sort index, put the newly created nodes in here
  * 
@@ -73,42 +85,37 @@ import * as enums from './enums.js'
  * @typedef { object } AceTxnSchemaDataStructuresDefaultItem
  * @property { string } prop
  * @property { any } [ value ]
- * @property { 'setIsoNow' } [ action ]
+ * @property { 'setIsoNow' } [ do ]
  */
 
 
 /** AceFn
  *
  * @typedef { object } AceFnOptions
- * @property { AceFnOptionsWhere } where - Path of graph file relative to your package.json file (aka your cwd)
+ * @property { string } path - Path of graph file relative to your package.json file
  * @property { AceFnRequest } [ what ]
  * @property { AceFnOptionsTxn } [ txn ]
  * @property { AceFnStringJWKs } [ jwks ]
  *
- * @typedef { string } AceFnOptionsWhere
- *
  * @typedef { AceFnOptionsTxnStart | AceFnOptionsTxnComplete | AceFnOptionsTxnCancel | AceFnOptionsTxnContinue } AceFnOptionsTxn
  * 
  * @typedef { object } AceFnOptionsTxnStart
- * @property { typeof enums.txnActions.start } action
+ * @property { typeof enums.txnDo.Start } do
  * @property { never } [ id ]
  *
  * @typedef { object } AceFnOptionsTxnComplete
- * @property { typeof enums.txnActions.complete } action
+ * @property { typeof enums.txnDo.Complete } do
  * @property { string } id
  *
  * @typedef { object } AceFnOptionsTxnCancel
- * @property { typeof enums.txnActions.cancel } action
+ * @property { typeof enums.txnDo.Cancel } do
  * @property { string } id
  *
  * @typedef { object } AceFnOptionsTxnContinue
  * @property { string } id
- * @property { never } [ action ]
+ * @property { never } [ do ]
  *
- * @typedef { object } AceFnRequestItemMemoryInitialize
- * @property { typeof enums.aceDo.MemoryInitialize } do
- *
- * @typedef { AceQueryRequestItem | AceMutateRequestItem | AceFnRequestItemMemoryInitialize } AceFnRequestItem
+ * @typedef { AceQueryRequestItem | AceMutateRequestItem } AceFnRequestItem
  * 
  * @typedef { AceFnRequestItem | (AceFnRequestItem)[] } AceFnRequest
  * @typedef { { [prop: string]: any, $ace?: AceFn$ } } AceFnResponse
@@ -267,6 +274,7 @@ import * as enums from './enums.js'
  * @typedef { object } AceMutateRequestItemNodeInsertHow
  * @property { string } node
  * @property { AceMutateRequestItemNodeInsertProps } props
+ * @property { AceMutateRequestOptions } [ $o ]
  *
  * @typedef { object } AceMutateRequestItemRelationshipInsert
  * @property { typeof enums.aceDo.RelationshipInsert } do
@@ -274,6 +282,7 @@ import * as enums from './enums.js'
  * @typedef { object } AceMutateRequestItemRelationshipInsertHow
  * @property { string } relationship
  * @property { AceMutateRequestItemRelationshipInsertProps } props
+ * @property { AceMutateRequestOptions } [ $o ]
  *
  * @typedef { object } AceMutateRequestItemNodeUpdate
  * @property { typeof enums.aceDo.NodeUpdate } do
@@ -281,6 +290,7 @@ import * as enums from './enums.js'
  * @typedef { object } AceMutateRequestItemNodeUpdateHow
  * @property { string } node
  * @property { AceMutateRequestItemNodeUpdateProps } props
+ * @property { AceMutateRequestOptions } [ $o ]
  *
  * @typedef { object } AceMutateRequestItemRelationshipUpdate
  * @property { typeof enums.aceDo.RelationshipUpdate } do
@@ -288,6 +298,7 @@ import * as enums from './enums.js'
  * @typedef { object } AceMutateRequestItemRelationshipUpdateHow
  * @property { string } relationship
  * @property { AceMutateRequestItemRelationshipUpdateProps } props
+ * @property { AceMutateRequestOptions } [ $o ]
  *
  * @typedef { object } AceMutateRequestItemNodeUpsert
  * @property { typeof enums.aceDo.NodeUpsert } do
@@ -295,6 +306,7 @@ import * as enums from './enums.js'
  * @typedef { object } AceMutateRequestItemNodeUpsertHow
  * @property { string } node
  * @property { AceMutateRequestItemNodeUpsertProps } props
+ * @property { AceMutateRequestOptions } [ $o ]
  *
  * @typedef { object } AceMutateRequestItemRelationshipUpsert
  * @property { typeof enums.aceDo.RelationshipUpsert } do
@@ -302,6 +314,7 @@ import * as enums from './enums.js'
  * @typedef { object } AceMutateRequestItemRelationshipUpsertHow
  * @property { string } relationship
  * @property { AceMutateRequestItemRelationshipUpsertProps } props
+ * @property { AceMutateRequestOptions } [ $o ]
  * 
  * @typedef { AceMutateRequestItemRelationshipInsert | AceMutateRequestItemRelationshipUpdate | AceMutateRequestItemRelationshipUpsert } AceMutateRequestItemRelationshipInup
  * 
@@ -309,7 +322,7 @@ import * as enums from './enums.js'
  * 
  * @typedef { object } AceMutateRequestItemNodeDeleteData
  * @property { typeof enums.aceDo.NodeDeleteData } do
- * @property { (string | number)[] } how - The ids you'd love deleted. To cascade delete, add cascade to your schema
+ * @property { (string | number)[] } how - The ids you'd love deleted. To cascade delete, add cascade to the schema
  *
  * @typedef { object } AceMutateRequestItemRelationshipDeleteData
  * @property { typeof enums.aceDo.RelationshipDeleteData } do
@@ -368,13 +381,13 @@ import * as enums from './enums.js'
  * @typedef { object } AceMutateRequestOptions
  * @property { string } [ privateJWK ]
  *
- * @typedef { { id?: string | number, [propName: string]: any, $o?: AceMutateRequestOptions } } AceMutateRequestItemNodeInsertProps
- * @typedef { { id: string | number, [propName: string]: any, $o?: AceMutateRequestOptions } } AceMutateRequestItemNodeUpdateProps
- * @typedef { { id: string | number, [propName: string]: any, $o?: AceMutateRequestOptions } } AceMutateRequestItemNodeUpsertProps
+ * @typedef { { id?: string | number, [propName: string]: any } } AceMutateRequestItemNodeInsertProps
+ * @typedef { { id: string | number, [propName: string]: any } } AceMutateRequestItemNodeUpdateProps
+ * @typedef { { id: string | number, [propName: string]: any } } AceMutateRequestItemNodeUpsertProps
  *
- * @typedef { { a: string, b: string, [propName: string]: any, $o?: AceMutateRequestOptions } } AceMutateRequestItemRelationshipInsertProps
- * @typedef { { id: string | number, a: string, b: string, [propName: string]: any, $o?: AceMutateRequestOptions } } AceMutateRequestItemRelationshipUpdateProps
- * @typedef { { id: string | number, a: string, b: string, [propName: string]: any, $o?: AceMutateRequestOptions } } AceMutateRequestItemRelationshipUpsertProps
+ * @typedef { { a: string, b: string, [propName: string]: any } } AceMutateRequestItemRelationshipInsertProps
+ * @typedef { { id: string | number, a: string, b: string, [propName: string]: any } } AceMutateRequestItemRelationshipUpdateProps
+ * @typedef { { id: string | number, a: string, b: string, [propName: string]: any } } AceMutateRequestItemRelationshipUpsertProps
  * 
  * @typedef { AceMutateRequestItemRelationshipInsertProps | AceMutateRequestItemRelationshipUpdateProps | AceMutateRequestItemRelationshipUpsertProps } AceMutateRequestItemRelationshipInUpProps
  */

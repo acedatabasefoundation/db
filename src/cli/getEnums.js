@@ -8,9 +8,9 @@ import { queryWhereSymbol } from '../enums/queryWhereSymbol.js'
 import { schemaHas } from '../enums/schemaHas.js'
 import { schemaIs } from '../enums/schemaIs.js'
 import { sortHow } from '../enums/sortHow.js'
-import { txnActions } from '../enums/txnActions.js'
+import { txnDo } from '../enums/txnDo.js'
 import { txnSteps } from '../enums/txnSteps.js'
-import { writeActions } from '../enums/writeActions.js'
+import { writeDo } from '../enums/writeDo.js'
 
 
 
@@ -29,9 +29,9 @@ function setEnumsMap () {
   enumsMap.set('schemaHas', schemaHas)
   enumsMap.set('schemaIs', schemaIs)
   enumsMap.set('sortHow', sortHow)
-  enumsMap.set('txnActions', txnActions)
+  enumsMap.set('txnDo', txnDo)
   enumsMap.set('txnSteps', txnSteps)
-  enumsMap.set('writeActions', writeActions)
+  enumsMap.set('writeDo', writeDo)
 
   return enumsMap
 }

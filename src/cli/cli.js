@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
 
-import { cliTypes } from './cliTypes.js'
 import { getHelp } from './getHelp.js'
 import { logJWKs } from './logJWKs.js'
+import { emptyTrash } from './trash.js'
 import { fileURLToPath } from 'node:url'
+import { cliTypes } from './cliTypes.js'
 import { getVersion } from './getVersion.js'
 import { dirname, resolve } from 'node:path'
 
@@ -17,28 +18,31 @@ import { dirname, resolve } from 'node:path'
 
 
     switch (process.argv[2]) {
+      case 'help':
+      default:
+        getHelp(await getVersion(packageDotJson))
+        break
+
+
       case '-v':
       case 'version':
         console.log(await getVersion(packageDotJson))
         break
 
 
-      case '-j':
       case 'jwks':
         await logJWKs()
         break
 
 
-      case '-t':
       case 'types':
         await cliTypes(process.argv[3])
         break
 
 
-      case '-h':
-      case 'help':
-      default:
-        getHelp(await getVersion(packageDotJson))
+      case 'trash':
+        if (process.argv[3] === 'empty') await emptyTrash(process.argv[4])
+        else getHelp(await getVersion(packageDotJson))
         break
     }
   } catch (error) {

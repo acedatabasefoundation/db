@@ -1,6 +1,6 @@
 export const txnSteps = new Set([
-  'gestate',
-  'reqNotLastOne',
-  'waiting',
-  'reqLastOne',
+  'preEnter',
+  'lastReq',
+  'notLastReq',
+  'respondedAndWaiting',
 ])

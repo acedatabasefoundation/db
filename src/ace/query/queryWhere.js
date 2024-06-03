@@ -1,6 +1,6 @@
 import { td, enums } from '#ace'
-import { memory } from '../../memory/memory.js'
 import { verify } from '../../security/hash.js'
+import { Memory } from '../../objects/Memory.js'
 import { AceError } from '../../objects/AceError.js'
 import { getRelationshipNode } from './getRelationshipNode.js'
 
@@ -308,7 +308,7 @@ function getValue (item, is, graphNode, detailedResValueSection, res) {
  */
 function isLeftOrRightHash (qw, left, right, sideIndex) {
   const side = sideIndex === 0 ? left : right
-  return Boolean(side.is === 'prop' && side.detailedResValueSection && /** @type { td.AceSchemaProp } */ (memory.txn.schema?.nodes?.[side.detailedResValueSection.node || '']?.[/** @type { td.AceQueryProp } */(qw[sideIndex]).prop])?.options?.dataType === enums.dataTypes.hash)
+  return Boolean(side.is === 'prop' && side.detailedResValueSection && /** @type { td.AceSchemaProp } */ (Memory.txn.schema?.nodes?.[side.detailedResValueSection.node || '']?.[/** @type { td.AceQueryProp } */(qw[sideIndex]).prop])?.options?.dataType === enums.dataTypes.hash)
 }
 
 
@@ -326,8 +326,8 @@ async function isHashValid (qw, left, right, sideIndex, detailedResValueSection,
   const jwkProp = detailedResValueSection.resValue?.$o?.publicJWKs?.[/** @type {'findByOr'} */ (option)]
   const publicJWK = jwkProp ? jwks.public[jwkProp] : null
 
-  if (!jwkProp) throw AceError('aceFn__falsyHashPublicKey', `The request is invalid because $o.publicJWKs.${ option } is falsy`, { $o: detailedResValueSection.resValue?.$o })
-  if (!publicJWK) throw AceError('aceFn__invalidHashPublicKey', `The request is invalid because $o.publicJWKs.${ option } does not match request.publicJWKs`, { qw })
+  if (!jwkProp) throw AceError('aceFn__falsyHashPublicKey', `Please ensure $o.publicJWKs[${ option }] is truthy`, { $o: detailedResValueSection.resValue?.$o })
+  if (!publicJWK) throw AceError('aceFn__invalidHashPublicKey', `Please ensure $o.publicJWKs[${ option }] is also in ace() options.jwks.public[${ option }]`, { qw })
 
   return sideIndex ?
     await verify(left.value, right.value, publicJWK) :
@@ -354,7 +354,7 @@ function getGroupItemOption (option, group, groupItem) {
     else groupItemOption = startsWith + 'PropValue'
   } else if (/** @type { td.AceQueryWhereDefined } */(groupItem)?.isPropDefined) groupItemOption = startsWith + 'Defined'
   else if (/** @type { td.AceQueryWhereUndefined } */(groupItem)?.isPropUndefined) groupItemOption = startsWith + 'Undefined'
-  else throw AceError('aceFn__invalidQuerySearch', `This ${ type } is invalid b/c it is not fomatted correctly`, { [type]: group })
+  else throw AceError('aceFn__invalidQuerySearch', `Please ensure ${ type } is fomatted correctly`, { [type]: group })
   
   return /** @type { enums.queryOptions } */ (groupItemOption)
 }

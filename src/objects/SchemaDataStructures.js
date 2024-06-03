@@ -42,7 +42,7 @@ export function SchemaDataStructures (schema) {
             // nodeRelationshipPropsMap
             if (propValue.options.node) {
               const set = schemaDataStructures.nodeRelationshipPropsMap.get(propValue.options.node) || new Set()
-              set.add(nodeName + DELIMITER + propName)
+              set.add(nodeName + DELIMITER + propName + DELIMITER + propValue.options.relationship)
               schemaDataStructures.nodeRelationshipPropsMap.set(propValue.options.node, set)
             }
           }
@@ -83,7 +83,7 @@ function setDefaults (schemaDataStructures, itemName, propName, propValue) {
   if (propValue.options?.default) {
     const defaults = schemaDataStructures.defaults.get(itemName) || []
 
-    if (propValue.options.dataType === 'isoString' && propValue.options.default === 'now') defaults.push({ prop: propName, action: 'setIsoNow' })
+    if (propValue.options.dataType === 'isoString' && propValue.options.default === 'now') defaults.push({ prop: propName, do: 'setIsoNow' })
     else defaults.push({ prop: propName, value: propValue.options.default })
 
     schemaDataStructures.defaults.set(itemName, defaults)

@@ -1,16 +1,16 @@
 import { enums } from '#ace'
-import { memory } from '../memory/memory.js'
+import { Memory } from '../objects/Memory.js'
 
 
 /**
- * @param { enums.writeActions } action 
+ * @param { enums.writeDo } todo
  * @param { string | number } key 
  * @param { any } [ value ]
  * @returns { void }
  */
-export function write (action, key, value) {
-  memory.txn.writeMap.set(key, { value, action })
-  memory.txn.writeStr += (JSON.stringify([ key, action, value ]) + '\n')
+export function write(todo, key, value) {
+  Memory.txn.writeMap.set(key, { value, do: todo })
+  Memory.txn.writeStr += (JSON.stringify([ key, todo, value ]) + '\n')
 }
 
 
@@ -23,8 +23,8 @@ export async function getOne (key) {
   let res
 
   if (key) {
-    const item = memory.txn.writeMap.get(key) || memory.wal.map.get(key)
-    if (item && item?.action !== 'delete') res = item.value
+    const item = Memory.txn.writeMap.get(key) || Memory.wal.map.get(key)
+    if (item && item?.do !== 'delete') res = item.value
   }
 
   return res

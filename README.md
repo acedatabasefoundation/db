@@ -30,16 +30,11 @@ Create maintain and enhance, the Best database, for JavaScript Developers!
 
 ## ☁️ Getting Stated
 1. Download Ace
-    * Have an existing NodeJS application, or in bash start a new one with `npm init`
+    * Have an existing NodeJS application, or in bash start a new one with `npm init` or `npm create vite@latest`
     * In bash navigate to the folder where you `package.json` is and `npm i @ace/db`
     * This will download `v0.0.1`
     * Ace will be production recommended when we release `v1.0.0`
     * No migrations scripts are planned for any version between now and `v1.0.0`
-1. Create data folders
-    * In bash navigate to the folder where you `package.json` is
-    * Bash: `mkdir -p ace/schemas ace/graphs`
-    * The `ace` folder will hold schema versions, graphs and your write ahead log
-    * The name of the `ace` folder can be whatever you love, the name of the `graphs` and `schemas` folder is required
 1. Create a Graph
     * [Create a Facebook Graph](#create-a-facebook-graph)
     * [Create an Instagram Graph](#create-an-instagram-graph)
@@ -85,7 +80,7 @@ import { ace } from '@ace/db'
 
 
 await ace({
-  where: './ace',
+  path: './ace',
   what: [
     // empty any existing items in the graph
     { do: 'Empty' },
@@ -117,7 +112,7 @@ await ace({
     * Press `Control+Space` to get intellisense
 ```js
 const res = await ace({
-  where: './ace',
+  path: './ace',
   what: [
     // insert nodes
     { do: 'NodeInsert', how: { node: 'User', props: { id: '_:Alpha',  name: 'Alpha' } } },
@@ -188,7 +183,7 @@ import { ace } from '@ace/db'
 
 
 const res = await ace({
-  where: './ace',
+  path: './ace',
   what: [
     // empty any existing items in the graph
     { do: 'Empty' },
@@ -298,7 +293,7 @@ console.log(res)
 ## Embeded
 * Data is stored in memory and in the directory you specify on your application server
 ```js
-await ace({ where: './ace', what: [ ... ] }) // where = the directory, starting from your applications package.json
+await ace({ path: './ace', what: [ ... ] }) // path = the directory, starting from your applications package.json
 ```
 
 
@@ -322,21 +317,21 @@ await ace({ where: './ace', what: [ ... ] }) // where = the directory, starting 
 ## Transactions
 * When a call to `ace()` starts a transaction (txn) the response will include a `txnId` as seen below
 * Use the `txnId` to continue, cancel or complete a txn
-* If a txn has been running for 21 seconds, ace will cancel it, throw a timeout error, and begin the next request in the [queue](#queue)
+* If a txn has been running for 9 seconds, ace will cancel it, throw a timeout error, and begin the next request in the [queue](#queue)
 ```js
 import { ace } from '@ace/db'
 
 // start txn
-const res = await ace({ txn: { action: 'start' }, where: './ace', what: { ... } })
+const res = await ace({ txn: { do: 'Start' }, path: './ace', what: { ... } })
 
 // continue txn
-await ace({ txn: { id: res.$ace.txnId }, where: './ace', what: { ... } })
+await ace({ txn: { id: res.$ace.txnId }, path: './ace', what: { ... } })
 
 // cancel txn
-await ace({ txn: { id: res.$ace.txnId, action: 'cancel' }, where: './ace' })
+await ace({ txn: { id: res.$ace.txnId, do: 'Cancel' }, path: './ace' })
 
 // complete txn
-await ace({ txn: { id: res.$ace.txnId, action: 'complete' }, where: './ace', what: { ... } })
+await ace({ txn: { id: res.$ace.txnId, do: 'Complete' }, path: './ace', what: { ... } })
 
 // completing a txn after cancelling it does not make sense btw, above is just to show all available txn options
 ```
@@ -365,35 +360,32 @@ await ace({ txn: { id: res.$ace.txnId, action: 'complete' }, where: './ace', wha
 
 ## CLI
 ```bash
-ace
-  Show this message
-  How:
-    ace
-    ace -h
-    ace help
-
-
-ace version
-   Prints your currently downloaded Ace Graph Database Version
-  How:
-    ace -v
-    ace version
+ace help
+  - Show this message
 
 
 ace jwks
-  - A jwk (JSON Web Key) is like a password and helps Ace do cryptography
-  - Use ACE_PRIVATE_JWK to create a hash, use ACE_PUBLIC_JWK to verify a hash and use ACE_CRYPT_JWK to encrypt and decrypt data
+  - A jwk (JSON Web Key) is like a password. JWKs helps Ace do cryptography
+  - Use ACE_PRIVATE_JWK to create a hash, use ACE_PUBLIC_JWK to verify a hash and use ACE_CRYPT_JWK to encrypt and decrypt information
   - Ace recommends storing JWKs in your .env file as a string
-  How:
-    ace -j
-    ace jwks
+
+
+ace trash empty ./ace
+  - Empty trash folder
+  - This is where we put the contents of your ./ace folder when you call Empty w/ ace()
+  - Path is required, it's relative to your package.json and is what your folder name is
 
 
 ace types
+ace types ./ace
   - Create types (TS) and typedefs (JSDoc)
-  How:
-    ace -t
-    ace types
+  - Path is optional, it's relative to your package.json and is what your folder name is
+  - If path is included, types are schema specific
+
+
+ace -v
+ace version
+  - Prints your currently downloaded Ace Graph Database Version
 ```
 
 
