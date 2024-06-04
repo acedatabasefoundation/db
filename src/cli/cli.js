@@ -40,9 +40,8 @@ import { dirname, resolve } from 'node:path'
         break
 
 
-      case 'trash':
-        if (process.argv[3] === 'empty') await emptyTrash(process.argv[4])
-        else getHelp(await getVersion(packageDotJson))
+      case 'trash:empty':
+        await emptyTrash(process.argv[3])
         break
     }
   } catch (error) {

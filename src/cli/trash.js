@@ -18,5 +18,5 @@ export async function emptyTrash (path) {
     await mkdir(paths.trash)
   }
 
-  console.log('✨ trash empty!')
+  console.log('✨ trash is empty!')
 }

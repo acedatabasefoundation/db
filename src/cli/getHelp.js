@@ -16,7 +16,7 @@ ace jwks
   - Ace recommends storing JWKs in your .env file as a string
 
 
-ace trash empty ./ace
+ace trash:empty ./ace
   - Empty trash folder
   - This is where we put the contents of your ./ace folder when you call Empty w/ ace()
   - Path is required, it's relative to your package.json and is what your folder name is
