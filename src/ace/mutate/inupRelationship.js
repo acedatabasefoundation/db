@@ -6,7 +6,7 @@ import { applyDefaults } from './applyDefaults.js'
 import { AceError } from '../../objects/AceError.js'
 import { write, getOne } from '../../util/storage.js'
 import { enumIdToGraphId } from '../id/enumIdToGraphId.js'
-import { deleteIdFromRelationshipProp } from './deleteIdFromRelationshipProp.js'
+import { delete_IdFromRelationshipProp } from './delete_IdFromRelationshipProp.js'
 import { ENUM_ID_PREFIX, ADD_NOW_DATE, getNow, getRelationshipProp, getRelationshipIdsKey } from '../../util/variables.js'
 
 
@@ -79,7 +79,7 @@ async function updatePreviousRelationshipNode (isDifferent, deletedNodeId, reqIt
     const relationshipNode = await getOne(deletedNodeId)
 
     if (relationshipNode && reqItem.how.props._id) {
-      await deleteIdFromRelationshipProp(getRelationshipProp(reqItem.how.relationship), reqItem.how.props._id, relationshipNode)
+      delete_IdFromRelationshipProp(getRelationshipProp(reqItem.how.relationship), reqItem.how.props._id, relationshipNode)
     }
   }
 }

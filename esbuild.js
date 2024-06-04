@@ -15,8 +15,8 @@ esbuild.build({ // // https://esbuild.github.io/api/
     './tsc/src/ace/id/getGraphId.js',
 
     './tsc/src/ace/mutate/applyDefaults.js',
-    './tsc/src/ace/mutate/delete_IdFromRelationshipIndex.js',
-    './tsc/src/ace/mutate/deleteIdFromRelationshipProp.js',
+    './tsc/src/ace/mutate/delete_IdsFromRelationshipIndex.js',
+    './tsc/src/ace/mutate/delete_IdFromRelationshipProp.js',
     './tsc/src/ace/mutate/deleteNodePropsById.js',
     './tsc/src/ace/mutate/deleteNodesById.js',
     './tsc/src/ace/mutate/deleteRelationshipPropsById.js',

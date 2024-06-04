@@ -8,8 +8,8 @@
     "src/ace/id/getGraphId.js",
 
     "src/ace/mutate/applyDefaults.js",
-    "src/ace/mutate/delete_IdFromRelationshipIndex.js",
-    "src/ace/mutate/deleteIdFromRelationshipProp.js",
+    "src/ace/mutate/delete_IdsFromRelationshipIndex.js",
+    "src/ace/mutate/delete_IdFromRelationshipProp.js",
     "src/ace/mutate/deleteNodePropsById.js",
     "src/ace/mutate/deleteNodesById.js",
     "src/ace/mutate/deleteRelationshipPropsById.js",

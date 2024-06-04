@@ -2,8 +2,8 @@ import { td } from '#ace'
 import { AceError } from '../../objects/AceError.js'
 import { getMany, write } from '../../util/storage.js'
 import { getRelationshipProp } from '../../util/variables.js'
-import { deleteIdFromRelationshipProp } from './deleteIdFromRelationshipProp.js'
-import { delete_IdFromRelationshipIndex } from './delete_IdFromRelationshipIndex.js'
+import { delete_IdFromRelationshipProp } from './delete_IdFromRelationshipProp.js'
+import { delete_IdsFromRelationshipIndex } from './delete_IdsFromRelationshipIndex.js'
 
 
 /**
@@ -16,15 +16,24 @@ export async function deleteRelationshipsBy_Ids (_ids) {
   /** @type { Map<string | number, td.AceGraphRelationship> } */
   const graphRelationships = await getMany(_ids)
 
-  for (const entryGraphRelationship of graphRelationships) {
-    await delete_IdFromRelationshipIndex(entryGraphRelationship[1].relationship, entryGraphRelationship[1].props._id)
+  /** @type { Map<string, Set<string | number>>} Map<relationshipName, _ids> Group _ids by relationship*/
+  const byRelationship = new Map()
+
+  for (const [ graphRelationship_Id, graphRelationship ] of graphRelationships) {
+    const set = byRelationship.get(graphRelationship.relationship) || new Set()
+    set.add(graphRelationship.props._id)
+    byRelationship.set(graphRelationship.relationship, set)
 
     /** @type { Map<string | number, td.AceGraphNode> } */
-    const relationshipNodes = await getMany([ entryGraphRelationship[1].props.a, entryGraphRelationship[1].props.b ])
+    const relationshipNodes = await getMany([ graphRelationship.props.a, graphRelationship.props.b ])
 
-    for (const entryRelationshipNode of relationshipNodes) {
-      await deleteIdFromRelationshipProp(getRelationshipProp(entryGraphRelationship[1].relationship), entryGraphRelationship[1].props._id, entryRelationshipNode[1])
+    for (const [ _, relationshipNode ] of relationshipNodes) {
+      delete_IdFromRelationshipProp(getRelationshipProp(graphRelationship.relationship), graphRelationship_Id, relationshipNode)
     }
+  }
+
+  for (const entry of byRelationship) {
+    await delete_IdsFromRelationshipIndex(entry[0], entry[1])
   }
 
   for (const _id of _ids) {

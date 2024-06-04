@@ -3,6 +3,7 @@ import { Memory } from '../../objects/Memory.js'
 import { AceError } from '../../objects/AceError.js'
 import { enumIdToGraphId } from '../id/enumIdToGraphId.js'
 import { isObjectPopulated } from '../../util/isObjectPopulated.js'
+import { SCHEMA_ID } from '../../util/variables.js'
 
 
 /**
@@ -124,8 +125,10 @@ function fillNodeQuery (stars, resValue, rootNode) {
 
     if (nodeProps1) {
       for (const propName1 in nodeProps1) { // loop the root node
-        if (nodeProps1[propName1].is === 'Prop') updatedResValue[propName1] = true // IF the prop does not point to a node THEN add prop to resValue
+        if (propName1 === SCHEMA_ID) {}
+        else if (nodeProps1[propName1].is === 'Prop') updatedResValue[propName1] = true // IF the prop does not point to a node THEN add prop to resValue
         else if (stars === '**' || stars === '***') { // IF prop points to a node THEN only continue if more levels requested
+
           /** @type { string } */
           const nodeName2 = /** @type { td.AceSchemaNodeRelationshipOptions } */ (nodeProps1[propName1].options).node // the node (level 2 node) that this prop points to
 
@@ -148,8 +151,8 @@ function fillNodeQuery (stars, resValue, rootNode) {
 
           if (nodeProps2) {
             for (const propName2 in nodeProps2) {
-
-              if (nodeProps2[propName2].is === 'Prop') updatedResValue[propName1][propName2] = true // IF prop does not point to nodes THEN add prop to resValue
+              if (propName2 === SCHEMA_ID) {}
+              else if (nodeProps2[propName2].is === 'Prop') updatedResValue[propName1][propName2] = true // IF prop does not point to nodes THEN add prop to resValue
               else if (stars === '***') { //  // IF prop points to a node THEN only continue if 3 levels requested
                 const nodeName3 = /** @type { td.AceSchemaNodeRelationshipOptions } */ (nodeProps2[propName2].options).node
 
@@ -159,7 +162,7 @@ function fillNodeQuery (stars, resValue, rootNode) {
                 updatedResValue[propName1][propName2] = { id: true, _id: true }
 
                 for (const propName3 in nodeProps3) { // IF the prop does not point to a node THEN add prop to resValue
-                  if (nodeProps3[propName3].is === 'Prop') updatedResValue[propName1][propName2][propName3] = true
+                  if (propName3 !== SCHEMA_ID && nodeProps3[propName3].is === 'Prop') updatedResValue[propName1][propName2][propName3] = true
                 }
 
                 const relationship3 = /** @type { td.AceSchemaNodeRelationshipOptions } */ (nodeProps2?.[propName2]?.options)?.relationship // the relationship name between the level 3 node and the leve 2 node
