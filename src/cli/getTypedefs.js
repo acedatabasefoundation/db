@@ -100,6 +100,12 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceMemory
  */
 
 
+/** AceFn Return Type
+ * @template { AceFnOptions } T
+ * @typedef { T['txn'] extends AceFnOptionsTxnStart ? AceFnTxnStartResponse : T['txn'] extends AceFnOptionsTxnCancel ? AceFnTxnCancelResponse : T['txn'] extends AceFnOptionsTxnComplete ? AceFnTxnCompleteResponse : T['txn'] extends AceFnOptionsTxnContinue ? AceFnTxnContinueResponse : AceFnNoTxnResponse } AceResponse
+ */
+
+
 /** AceFn
  *
  * @typedef { object } AceFnOptions
@@ -125,6 +131,14 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceMemory
  * @typedef { object } AceFnOptionsTxnContinue
  * @property { string } id
  * @property { never } [ do ]
+ * 
+ * @typedef { { enumIds?: { [id: string]: number }, deletedKeys?: (string | number)[] } } AceFn$Default
+ *
+ * @typedef { { [prop: string]: any } & { $ace: AceFn$Default & { txnId: string, txnStarted: true } } } AceFnTxnStartResponse
+ * @typedef { { [prop: string]: any } & { $ace: AceFn$Default & { txnId: string, txnCancelled: true } } } AceFnTxnCancelResponse
+ * @typedef { { [prop: string]: any } & { $ace: AceFn$Default & { txnId: string, txnCompleted: true } } } AceFnTxnCompleteResponse
+ * @typedef { { [prop: string]: any } & { $ace: AceFn$Default & { txnId: string } } } AceFnTxnContinueResponse
+ * @typedef { { [prop: string]: any } & { $ace?: AceFn$Default } } AceFnNoTxnResponse
  *
  * @typedef { AceQueryRequestItem | AceMutateRequestItem } AceFnRequestItem
  * 
