@@ -36,7 +36,7 @@ import { dirname, resolve } from 'node:path'
 
 
       case 'types':
-        await cliTypes(process.argv[3])
+        await cliTypes(process.argv[3], process.argv[4])
         break
 
 

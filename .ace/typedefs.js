@@ -59,13 +59,14 @@ import * as enums from './enums.js'
  * 
  * @typedef { object } AceTxn
  * @property { string } [ id ]
+ * @property { string } [ env ]
  * @property { NodeJS.Timeout } [ timeoutId ]
  * @property { enums.txnSteps } step
  * @property { AceSchema | null } schema
  * @property { AceTxnSchemaDataStructures } schemaDataStructures
  * @property { boolean } schemaUpdated
- * @property { { lastCreatedVersion: number, currentVersion: number } } [ schemaNowDetails ]
- * @property { { lastCreatedVersion: number, currentVersion: number } } [ schemaOriginalDetails ]
+ * @property { AceSchemaDetails } [ schemaNowDetails ]
+ * @property { AceSchemaDetails } [ schemaOriginalDetails ]
  * @property { number } [ lastId ]
  * @property { boolean } hasUpdates
  * @property { string } [ emptyTimestamp ]
@@ -99,7 +100,8 @@ import * as enums from './enums.js'
  *
  * @typedef { object } AceFnOptions
  * @property { string } path - Path of graph file relative to your package.json file
- * @property { AceFnRequest } [ what ]
+ * @property { string } env - Your process.env.NODE_ENV. Env allows different schema versions in different environments (eg: local, qa, production)
+ * @property { AceFnRequest } [ req ]
  * @property { AceFnOptionsTxn } [ txn ]
  * @property { AceFnStringJWKs } [ jwks ]
  *
@@ -147,6 +149,8 @@ import * as enums from './enums.js'
 
 
 /** AceSchema
+ * 
+ * @typedef { { [env: string]: { lastCreatedVersion: number, currentVersion: number } } } AceSchemaDetails
  *
  * @typedef { { lastId: number, nodes: { [nodeName: string]: AceSchemaNodeValue & { $aceId: number } }, relationships?: { [relationshipName: string]: AceSchemaRelationshipValue & { $aceId: number } } } } AceSchema
  * @typedef { { [nodePropName: string]: AceSchemaProp | AceSchemaForwardRelationshipProp | AceSchemaReverseRelationshipProp | AceSchemaBidirectionalRelationshipProp } } AceSchemaNodeValue

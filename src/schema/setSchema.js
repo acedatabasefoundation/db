@@ -1,7 +1,9 @@
 import { td } from '#ace'
 import { readFile } from 'node:fs/promises'
 import { Memory } from '../objects/Memory.js'
+import { AceError } from '../objects/AceError.js'
 import { getPaths, initPaths } from '../util/file.js'
+import { SchemaDetails } from '../objects/SchemaDetails.js'
 import { SchemaDataStructures } from '../objects/SchemaDataStructures.js'
 
 
@@ -26,11 +28,13 @@ export async function setSchema (options) {
   }
 
   if (Memory.txn.schemaOriginalDetails) {
-    const str = await readFile(`${ paths.schemas }/${ Memory.txn.schemaOriginalDetails.currentVersion }.json`, 'utf8')
+    if (!Memory.txn.env) throw AceError('aceFn__missingEnv', 'Please ensure Memory.txn.env is a truthy when calling SchemaDetails()', {})
+
+    const str = await readFile(`${ paths.schemas }/${ Memory.txn.schemaOriginalDetails[ Memory.txn.env ].currentVersion }.json`, 'utf8')
     if (str) schema = /** @type { td.AceSchema } */ (JSON.parse(str))
   } else {
-    Memory.txn.schemaNowDetails = { lastCreatedVersion: 0, currentVersion: 0 }
-    Memory.txn.schemaOriginalDetails = { lastCreatedVersion: 0, currentVersion: 0 }
+    Memory.txn.schemaNowDetails = SchemaDetails()
+    Memory.txn.schemaOriginalDetails = SchemaDetails()
   }
 
   Memory.txn.schema = schema

@@ -23,10 +23,11 @@ ace trash:empty ./ace
 
 
 ace types
-ace types ./ace
+ace types ./ace local
   - Create types (TS) and typedefs (JSDoc)
   - Path is optional, it's relative to your package.json and is what your folder name is
-  - If path is included, types are schema specific
+  - Env is optinal and it's your process.env.NODE_ENV. Env allows different schema versions in different environments (eg: local, qa, prod)
+  - If path & env are included, types are schema specific
 
 
 ace -v

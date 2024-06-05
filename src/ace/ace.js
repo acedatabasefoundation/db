@@ -5,9 +5,8 @@ import { approachReqGateway } from './gateway/approachReqGateway.js'
 
 
 /**
- * @template { td.AceFnOptions } T
- * @param { T } options
- * @returns { Promise<td.AceResponse<T>> }
+ * @param { td.AceFnOptions } options
+ * @returns { Promise<td.AceFnResponse> }
  */
 export async function ace (options) {
   return new Promise(async (resolve, reject) => {

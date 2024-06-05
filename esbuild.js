@@ -34,6 +34,7 @@ esbuild.build({ // // https://esbuild.github.io/api/
     './tsc/src/ace/query/queryWhere.js',
 
     './tsc/src/ace/txn/cancelTxn.js',
+    './tsc/src/ace/txn/setTxnEnv.js',
     './tsc/src/ace/txn/setTxnId.js',
     './tsc/src/ace/txn/setTxnStep.js',
     './tsc/src/ace/txn/setTxnTimer.js',
@@ -78,6 +79,7 @@ esbuild.build({ // // https://esbuild.github.io/api/
     './tsc/src/objects/AceError.js',
     './tsc/src/objects/Memory.js',
     './tsc/src/objects/SchemaDataStructures.js',
+    './tsc/src/objects/SchemaDetails.js',
     './tsc/src/objects/Txn.js',
 
     './tsc/src/schema/addToSchema.js',

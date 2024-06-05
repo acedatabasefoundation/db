@@ -52,6 +52,7 @@ export async function doneReqGateway ({ res, error, resolve, reject, options }) 
  */
 async function resetMemory () {
   Memory.txn.id = undefined
+  Memory.txn.env = undefined
   Memory.txn.timeoutId = undefined
   Memory.txn.step = 'preEnter'
   Memory.txn.schema = null

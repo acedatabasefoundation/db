@@ -11,12 +11,13 @@ import { getJsIndex, getTsIndex } from './getIndex.js'
 
 
 /**
- * @param { string } [ path ] 
+ * @param { string } [ path ]
+ * @param { string } [ env ]
  */
-export async function cliTypes (path) {
+export async function cliTypes (path, env) {
   const root = '../../'
   const __dirname = dirname(fileURLToPath(import.meta.url))
-  const { schema } = path ? await ace({ path, what: { do: 'SchemaGet', how: 'schema' } }) : { schema: null }
+  const { schema } = (path && env) ? await ace({ path, env, req: { do: 'SchemaGet', how: 'schema' } }) : { schema: null }
 
   const files = {
     enums: resolve(__dirname, root + '.ace/enums.js'),

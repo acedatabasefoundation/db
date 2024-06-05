@@ -81,7 +81,7 @@ import { ace } from '@ace/db'
 
 await ace({
   path: './ace',
-  what: [
+  req: [
     // empty any existing items in the graph
     { do: 'Empty' },
 
@@ -113,7 +113,7 @@ await ace({
 ```js
 const res = await ace({
   path: './ace',
-  what: [
+  req: [
     // insert nodes
     { do: 'NodeInsert', how: { node: 'User', props: { id: '_:Alpha',  name: 'Alpha' } } },
     { do: 'NodeInsert', how: { node: 'User', props: { id: '_:Omega',  name: 'Omega' } } },
@@ -184,7 +184,7 @@ import { ace } from '@ace/db'
 
 const res = await ace({
   path: './ace',
-  what: [
+  req: [
     // empty any existing items in the graph
     { do: 'Empty' },
 
@@ -293,7 +293,7 @@ console.log(res)
 ## Embeded
 * Data is stored in memory and in the directory you specify on your application server
 ```js
-await ace({ path: './ace', what: [ ... ] }) // path = the directory, starting from your applications package.json
+await ace({ path: './ace', req: [ ... ] }) // path = the directory, starting from your applications package.json
 ```
 
 
@@ -322,16 +322,16 @@ await ace({ path: './ace', what: [ ... ] }) // path = the directory, starting fr
 import { ace } from '@ace/db'
 
 // start txn
-const res = await ace({ txn: { do: 'Start' }, path: './ace', what: { ... } })
+const res = await ace({ txn: { do: 'Start' }, path: './ace', req: { ... } })
 
 // continue txn
-await ace({ txn: { id: res.$ace.txnId }, path: './ace', what: { ... } })
+await ace({ txn: { id: res.$ace.txnId }, path: './ace', req: { ... } })
 
 // cancel txn
 await ace({ txn: { id: res.$ace.txnId, do: 'Cancel' }, path: './ace' })
 
 // complete txn
-await ace({ txn: { id: res.$ace.txnId, do: 'Complete' }, path: './ace', what: { ... } })
+await ace({ txn: { id: res.$ace.txnId, do: 'Complete' }, path: './ace', req: { ... } })
 
 // completing a txn after cancelling it does not make sense btw, above is just to show all available txn options
 ```

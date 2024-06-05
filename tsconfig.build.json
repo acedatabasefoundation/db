@@ -27,6 +27,7 @@
     "src/ace/query/queryWhere.js",
 
     "src/ace/txn/cancelTxn.js",
+    "src/ace/txn/setTxnEnv.js",
     "src/ace/txn/setTxnId.js",
     "src/ace/txn/setTxnStep.js",
     "src/ace/txn/setTxnTimer.js",
@@ -71,6 +72,7 @@
     "src/objects/AceError.js",
     "src/objects/Memory.js",
     "src/objects/SchemaDataStructures.js",
+    "src/objects/SchemaDetails.js",
     "src/objects/Txn.js",
 
     "src/schema/addToSchema.js",

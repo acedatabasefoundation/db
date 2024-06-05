@@ -7,21 +7,21 @@ import { td } from '#ace'
  */
 export function log (options) {
   try {
-    /** @type { { path: string, what?: { do: string } | ({ do: string } | string)[] | undefined } } */
+    /** @type { { path: string, req?: { do: string } | ({ do: string } | string)[] | undefined } } */
     const formatted = {
       path: options.path,
     }
 
-    if (Array.isArray(options.what)) {
-      formatted.what = []
+    if (Array.isArray(options.req)) {
+      formatted.req = []
 
       for (let i = 0; i < 3; i++) {
-        if (options.what[i]) formatted.what.push({ do: options.what[i].do })
+        if (options.req[i]) formatted.req.push({ do: options.req[i].do })
       }
 
-      if (options.what[3]) formatted.what.push('...')
-    } else if (options.what) {
-      formatted.what = { do: options.what.do }
+      if (options.req[3]) formatted.req.push('...')
+    } else if (options.req) {
+      formatted.req = { do: options.req.do }
     }
 
     console.log(formatted, '\n')

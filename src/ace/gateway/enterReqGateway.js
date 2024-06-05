@@ -4,6 +4,7 @@ import { setJWKs } from '../setJWKs.js'
 import { deligate } from '../deligate.js'
 import { setTxnId } from '../txn/setTxnId.js'
 import { cancelTxn } from '../txn/cancelTxn.js'
+import { setTxnEnv } from '../txn/setTxnEnv.js'
 import { Memory } from '../../objects/Memory.js'
 import { setTxnStep } from '../txn/setTxnStep.js'
 import { appendWal } from '../../wal/appendWal.js'
@@ -30,9 +31,10 @@ export async function enterReqGateway (resolve, reject, options) {
   const res = { now: {}, original: {} }
 
   setTxnId(options, res)
+  setTxnEnv(options)
 
   if (options.txn?.do === 'Cancel') await cancelTxn(res, resolve, options)
-  else if (!options.what) throw AceError('aceFn__missingWhat', 'Please ensure options.what is not falsy. The only time options.what may be falsy is if options.txn.do is "Cancel".', { options })
+  else if (!options.req) throw AceError('aceFn__missingWhat', 'Please ensure options.req is not falsy. The only time options.req may be falsy is if options.txn.do is "Cancel".', { options })
   else {
     setTxnTimer(reject, options)
 
@@ -43,7 +45,7 @@ export async function enterReqGateway (resolve, reject, options) {
     setTxnStep(options)
 
     /** @type { td.AceFnRequestItem[] } */
-    const req =  Array.isArray(options.what) ? options.what : [ options.what ]
+    const req = Array.isArray(options.req) ? options.req : [ options.req ]
 
     setHasUpdates(req)
 
