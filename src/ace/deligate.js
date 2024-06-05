@@ -3,18 +3,18 @@ import { Memory } from '../objects/Memory.js'
 import { inupNode } from './mutate/inupNode.js'
 import { emptyMemory } from '../empty/emptyMemory.js'
 import { addToSchema } from '../schema/addToSchema.js'
-import { updateNodeName } from '../schema/updateNodeName.js'
 import { deleteNodesById } from './mutate/deleteNodesById.js'
 import { inupRelationship } from './mutate/inupRelationship.js'
 import { queryNode, queryRelationship } from './query/query.js'
-import { deleteNodesByName } from '../schema/deleteNodesByName.js'
-import { updateNodePropName } from '../schema/updateNodePropName.js'
+import { schemaDeleteNodes } from '../schema/schemaDeleteNodes.js'
 import { deleteNodePropsById } from './mutate/deleteNodePropsById.js'
-import { deleteNodePropsByName } from '../schema/deleteNodePropsByName.js'
-import { updateRelationshipName } from '../schema/updateRelationshipName.js'
+import { schemaUpdateNodeName } from '../schema/schemaUpdateNodeName.js'
+import { schemaDeleteNodeProps } from '../schema/schemaDeleteNodeProps.js'
+import { schemaUpdateNodePropName } from '../schema/schemaUpdateNodePropName.js'
 import { deleteRelationshipsBy_Ids } from './mutate/deleteRelationshipsBy_Ids.js'
-import { updateRelationshipPropName } from '../schema/updateRelationshipPropName.js'
 import { deleteRelationshipPropsById } from './mutate/deleteRelationshipPropsById.js'
+import { schemaUpdateRelationshipName } from '../schema/schemaUpdateRelationshipName.js'
+import { schemaUpdateRelationshipPropName } from '../schema/schemaUpdateRelationshipPropName.js'
 
 
 /**
@@ -64,53 +64,53 @@ export async function deligate (req, res, jwks) {
         break
 
 
-      case 'NodeDeleteData':
+      case 'NodeDelete':
         await deleteNodesById(/** @type { { how: (string|number)[] } } */(req[iReq]).how)
         break
 
 
-      case 'RelationshipDeleteData':
-        await deleteRelationshipsBy_Ids(/** @type { td.AceMutateRequestItemRelationshipDeleteData } */(req[iReq]).how._ids)
+      case 'RelationshipDelete':
+        await deleteRelationshipsBy_Ids(/** @type { td.AceMutateRequestItemRelationshipDelete } */(req[iReq]).how._ids)
         break
 
 
-      case 'NodePropDeleteData':
-        await deleteNodePropsById(/** @type { td.AceMutateRequestItemNodePropDeleteData } */(req[iReq]))
+      case 'NodePropDelete':
+        await deleteNodePropsById(/** @type { td.AceMutateRequestItemNodePropDelete } */(req[iReq]))
         break
 
 
-      case 'RelationshipPropDeleteData':
-        await deleteRelationshipPropsById(/** @type { td.AceMutateRequestItemRelationshipPropDeleteData } */(req[iReq]))
+      case 'RelationshipPropDelete':
+        await deleteRelationshipPropsById(/** @type { td.AceMutateRequestItemRelationshipPropDelete } */(req[iReq]))
         break
 
 
-      case 'NodeDeleteDataAndDeleteFromSchema':
-        await deleteNodesByName(/** @type { td.AceMutateRequestItemNodeDeleteDataAndDeleteFromSchema } */(req[iReq]))
+      case 'SchemaDeleteNodes':
+        await schemaDeleteNodes(/** @type { td.AceMutateRequestItemSchemaDeleteNodes } */(req[iReq]))
         break
 
 
-      case 'NodePropDeleteDataAndDeleteFromSchema':
-        await deleteNodePropsByName(/** @type { td.AceMutateRequestItemNodePropDeleteDataAndDeleteFromSchema } */(req[iReq]))
+      case 'SchemaDeleteNodeProps':
+        await schemaDeleteNodeProps(/** @type { td.AceMutateRequestItemSchemaDeleteNodeProps } */(req[iReq]))
         break
 
 
       case 'SchemaUpdateNodeName':
-        await updateNodeName(/** @type { td.AceMutateRequestItemSchemaUpdateNodeName } */(req[iReq]))
+        await schemaUpdateNodeName(/** @type { td.AceMutateRequestItemSchemaUpdateNodeName } */(req[iReq]))
         break
 
 
       case 'SchemaUpdateNodePropName':
-        await updateNodePropName(/** @type { td.AceMutateRequestItemSchemaUpdateNodePropName } */(req[iReq]))
+        await schemaUpdateNodePropName(/** @type { td.AceMutateRequestItemSchemaUpdateNodePropName } */(req[iReq]))
         break
 
 
       case 'SchemaUpdateRelationshipName':
-        await updateRelationshipName(/** @type { td.AceMutateRequestItemSchemaUpdateRelationshipName } */(req[iReq]))
+        await schemaUpdateRelationshipName(/** @type { td.AceMutateRequestItemSchemaUpdateRelationshipName } */(req[iReq]))
         break
 
 
       case 'SchemaUpdateRelationshipPropName':
-        await updateRelationshipPropName(/** @type { td.AceMutateRequestItemSchemaUpdateRelationshipPropName } */(req[iReq]))
+        await schemaUpdateRelationshipPropName(/** @type { td.AceMutateRequestItemSchemaUpdateRelationshipPropName } */(req[iReq]))
         break
     }
   }

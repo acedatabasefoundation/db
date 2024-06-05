@@ -5,7 +5,7 @@ import { getMany, write } from '../../util/storage.js'
 
 
 /**
- * @param { td.AceMutateRequestItemRelationshipPropDeleteData } reqItem
+ * @param { td.AceMutateRequestItemRelationshipPropDelete } reqItem
  * @returns { Promise<void> }
  */
 export async function deleteRelationshipPropsById (reqItem) {

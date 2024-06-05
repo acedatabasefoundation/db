@@ -1,7 +1,7 @@
 import { td } from '#ace'
-import { doneUpdate } from './doneUpdate.js'
 import { Memory } from '../objects/Memory.js'
 import { AceError } from '../objects/AceError.js'
+import { doneSchemaUpdate } from './doneSchemaUpdate.js'
 import { write, getMany, getOne } from '../util/storage.js'
 import { DELIMITER, getNodeIdsKey } from '../util/variables.js'
 
@@ -10,9 +10,9 @@ import { DELIMITER, getNodeIdsKey } from '../util/variables.js'
  * @param { td.AceMutateRequestItemSchemaUpdateNodeName } reqItem
  * @returns { Promise<void> }
  */
-export async function updateNodeName (reqItem) {
+export async function schemaUpdateNodeName (reqItem) {
   for (const { nowName, newName } of reqItem.how.nodes) {
-    if (!Memory.txn.schema?.nodes[nowName]) throw AceError('aceFn__updateNodeName__invalidNowName', `Please ensure each nowName is defined in the schema, this is not happening yet for the nowName: ${ nowName } @ the reqItem:`, { reqItem, nowName, newName })
+    if (!Memory.txn.schema?.nodes[nowName]) throw AceError('aceFn__schemaUpdateNodeName__invalidNowName', `Please ensure each nowName is defined in the schema, this is not happening yet for the nowName: ${ nowName } @ the reqItem:`, { reqItem, nowName, newName })
 
 
     // update node on each graphNode
@@ -55,6 +55,6 @@ export async function updateNodeName (reqItem) {
     Memory.txn.schema.nodes[newName] = Memory.txn.schema.nodes[nowName]
     delete Memory.txn.schema.nodes[nowName]
 
-    doneUpdate()
+    doneSchemaUpdate()
   }
 }

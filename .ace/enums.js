@@ -1,4 +1,4 @@
-/** @typedef { 'Empty' | 'BackupGet' | 'BackupLoad' | 'PluginInstall' | 'PluginUninstall' | 'SchemaGet' | 'SchemaAdd' | 'SchemaUpdateNodeName' | 'SchemaUpdateNodePropName' | 'SchemaUpdateRelationshipName' | 'SchemaUpdateRelationshipPropName' | 'SchemaUpdatePropDataType' | 'SchemaUpdatePropMustBeDefined' | 'SchemaUpdatePropCascade' | 'SchemaUpdatePropIndex' | 'SchemaUpdatePropHas' | 'NodeInsert' | 'NodeUpdate' | 'NodeUpsert' | 'NodeQuery' | 'NodeDeleteData' | 'NodePropDeleteData' | 'NodeDeleteDataAndDeleteFromSchema' | 'NodePropDeleteDataAndDeleteFromSchema' | 'RelationshipInsert' | 'RelationshipUpdate' | 'RelationshipUpsert' | 'RelationshipQuery' | 'RelationshipDeleteData' | 'RelationshipPropDeleteData' | 'RelationshipDeleteDataAndDeleteFromSchema' | 'RelationshipPropDeleteDataAndDeleteFromSchema' } aceDo */
+/** @typedef { 'Empty' | 'BackupGet' | 'BackupLoad' | 'PluginInstall' | 'PluginUninstall' | 'SchemaGet' | 'SchemaAdd' | 'SchemaUpdateNodeName' | 'SchemaUpdateNodePropName' | 'SchemaUpdateRelationshipName' | 'SchemaUpdateRelationshipPropName' | 'SchemaDeleteNodes' | 'SchemaDeleteNodeProps' | 'SchemaDeleteRelationships' | 'SchemaDeleteRelationshipProps' | 'SchemaUpdatePropDataType' | 'SchemaUpdatePropMustBeDefined' | 'SchemaUpdatePropCascade' | 'SchemaUpdatePropHas' | 'NodeInsert' | 'NodeUpdate' | 'NodeUpsert' | 'NodeQuery' | 'NodeDelete' | 'NodePropDelete' | 'RelationshipInsert' | 'RelationshipUpdate' | 'RelationshipUpsert' | 'RelationshipQuery' | 'RelationshipDelete' | 'RelationshipPropDelete' } aceDo */
 export const aceDo = {
   Empty: /** @type { 'Empty' } */ ('Empty'),
   BackupGet: /** @type { 'BackupGet' } */ ('BackupGet'),
@@ -11,27 +11,26 @@ export const aceDo = {
   SchemaUpdateNodePropName: /** @type { 'SchemaUpdateNodePropName' } */ ('SchemaUpdateNodePropName'),
   SchemaUpdateRelationshipName: /** @type { 'SchemaUpdateRelationshipName' } */ ('SchemaUpdateRelationshipName'),
   SchemaUpdateRelationshipPropName: /** @type { 'SchemaUpdateRelationshipPropName' } */ ('SchemaUpdateRelationshipPropName'),
+  SchemaDeleteNodes: /** @type { 'SchemaDeleteNodes' } */ ('SchemaDeleteNodes'),
+  SchemaDeleteNodeProps: /** @type { 'SchemaDeleteNodeProps' } */ ('SchemaDeleteNodeProps'),
+  SchemaDeleteRelationships: /** @type { 'SchemaDeleteRelationships' } */ ('SchemaDeleteRelationships'),
+  SchemaDeleteRelationshipProps: /** @type { 'SchemaDeleteRelationshipProps' } */ ('SchemaDeleteRelationshipProps'),
   SchemaUpdatePropDataType: /** @type { 'SchemaUpdatePropDataType' } */ ('SchemaUpdatePropDataType'),
   SchemaUpdatePropMustBeDefined: /** @type { 'SchemaUpdatePropMustBeDefined' } */ ('SchemaUpdatePropMustBeDefined'),
   SchemaUpdatePropCascade: /** @type { 'SchemaUpdatePropCascade' } */ ('SchemaUpdatePropCascade'),
-  SchemaUpdatePropIndex: /** @type { 'SchemaUpdatePropIndex' } */ ('SchemaUpdatePropIndex'),
   SchemaUpdatePropHas: /** @type { 'SchemaUpdatePropHas' } */ ('SchemaUpdatePropHas'),
   NodeInsert: /** @type { 'NodeInsert' } */ ('NodeInsert'),
   NodeUpdate: /** @type { 'NodeUpdate' } */ ('NodeUpdate'),
   NodeUpsert: /** @type { 'NodeUpsert' } */ ('NodeUpsert'),
   NodeQuery: /** @type { 'NodeQuery' } */ ('NodeQuery'),
-  NodeDeleteData: /** @type { 'NodeDeleteData' } */ ('NodeDeleteData'),
-  NodePropDeleteData: /** @type { 'NodePropDeleteData' } */ ('NodePropDeleteData'),
-  NodeDeleteDataAndDeleteFromSchema: /** @type { 'NodeDeleteDataAndDeleteFromSchema' } */ ('NodeDeleteDataAndDeleteFromSchema'),
-  NodePropDeleteDataAndDeleteFromSchema: /** @type { 'NodePropDeleteDataAndDeleteFromSchema' } */ ('NodePropDeleteDataAndDeleteFromSchema'),
+  NodeDelete: /** @type { 'NodeDelete' } */ ('NodeDelete'),
+  NodePropDelete: /** @type { 'NodePropDelete' } */ ('NodePropDelete'),
   RelationshipInsert: /** @type { 'RelationshipInsert' } */ ('RelationshipInsert'),
   RelationshipUpdate: /** @type { 'RelationshipUpdate' } */ ('RelationshipUpdate'),
   RelationshipUpsert: /** @type { 'RelationshipUpsert' } */ ('RelationshipUpsert'),
   RelationshipQuery: /** @type { 'RelationshipQuery' } */ ('RelationshipQuery'),
-  RelationshipDeleteData: /** @type { 'RelationshipDeleteData' } */ ('RelationshipDeleteData'),
-  RelationshipPropDeleteData: /** @type { 'RelationshipPropDeleteData' } */ ('RelationshipPropDeleteData'),
-  RelationshipDeleteDataAndDeleteFromSchema: /** @type { 'RelationshipDeleteDataAndDeleteFromSchema' } */ ('RelationshipDeleteDataAndDeleteFromSchema'),
-  RelationshipPropDeleteDataAndDeleteFromSchema: /** @type { 'RelationshipPropDeleteDataAndDeleteFromSchema' } */ ('RelationshipPropDeleteDataAndDeleteFromSchema'),
+  RelationshipDelete: /** @type { 'RelationshipDelete' } */ ('RelationshipDelete'),
+  RelationshipPropDelete: /** @type { 'RelationshipPropDelete' } */ ('RelationshipPropDelete'),
 }
 
 

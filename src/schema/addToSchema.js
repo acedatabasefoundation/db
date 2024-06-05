@@ -1,6 +1,6 @@
 import { td } from '#ace'
 import { Memory } from '../objects/Memory.js'
-import { doneUpdate } from './doneUpdate.js'
+import { doneSchemaUpdate } from './doneSchemaUpdate.js'
 
 
 /**
@@ -60,5 +60,5 @@ export function addToSchema (reqItem) {
 
   _schema.lastId = lastId
   Memory.txn.schema = _schema
-  doneUpdate()
+  doneSchemaUpdate()
 }

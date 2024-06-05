@@ -273,9 +273,9 @@ import * as enums from './enums.js'
 /** AceMutate
  *
  * @typedef { AceMutateRequestItemEmpty | AceMutateRequestItemBackupLoad | AceMutateRequestItemSchema | AceMutateRequestItemNode | AceMutateRequestItemRelationship } AceMutateRequestItem
- * @typedef { AceMutateRequestItemSchemaAdd | AceMutateRequestItemSchemaUpdateNodeName | AceMutateRequestItemSchemaUpdateNodePropName | AceMutateRequestItemSchemaUpdateRelationshipName | AceMutateRequestItemSchemaUpdateRelationshipPropName | AceMutateRequestItemNodeDeleteDataAndDeleteFromSchema | AceMutateRequestItemNodePropDeleteDataAndDeleteFromSchema } AceMutateRequestItemSchema
- * @typedef { AceMutateRequestItemNodeInsert | AceMutateRequestItemNodeUpdate | AceMutateRequestItemNodeUpsert | AceMutateRequestItemNodeDeleteData | AceMutateRequestItemNodePropDeleteData | AceMutateRequestItemNodeDeleteDataAndDeleteFromSchema | AceMutateRequestItemNodePropDeleteDataAndDeleteFromSchema } AceMutateRequestItemNode
- * @typedef { AceMutateRequestItemRelationshipInsert | AceMutateRequestItemRelationshipUpdate | AceMutateRequestItemRelationshipUpsert | AceMutateRequestItemRelationshipDeleteData | AceMutateRequestItemRelationshipPropDeleteData } AceMutateRequestItemRelationship
+ * @typedef { AceMutateRequestItemSchemaAdd | AceMutateRequestItemSchemaUpdateNodeName | AceMutateRequestItemSchemaUpdateNodePropName | AceMutateRequestItemSchemaUpdateRelationshipName | AceMutateRequestItemSchemaUpdateRelationshipPropName | AceMutateRequestItemSchemaDeleteNodes | AceMutateRequestItemSchemaDeleteNodeProps } AceMutateRequestItemSchema
+ * @typedef { AceMutateRequestItemNodeInsert | AceMutateRequestItemNodeUpdate | AceMutateRequestItemNodeUpsert | AceMutateRequestItemNodeDelete | AceMutateRequestItemNodePropDelete | AceMutateRequestItemSchemaDeleteNodes | AceMutateRequestItemSchemaDeleteNodeProps } AceMutateRequestItemNode
+ * @typedef { AceMutateRequestItemRelationshipInsert | AceMutateRequestItemRelationshipUpdate | AceMutateRequestItemRelationshipUpsert | AceMutateRequestItemRelationshipDelete | AceMutateRequestItemRelationshipPropDelete } AceMutateRequestItemRelationship
  *
  * @typedef { object } AceMutateRequestItemBackupLoad
  * @property { typeof enums.aceDo.BackupLoad } do
@@ -339,34 +339,34 @@ import * as enums from './enums.js'
  * 
  * @typedef { AceMutateRequestItemNodeUpdate & { [relationshipProp: string]: string[] } } AceMutateRequestItemNodeWithRelationships
  * 
- * @typedef { object } AceMutateRequestItemNodeDeleteData
- * @property { typeof enums.aceDo.NodeDeleteData } do
+ * @typedef { object } AceMutateRequestItemNodeDelete
+ * @property { typeof enums.aceDo.NodeDelete } do
  * @property { (string | number)[] } how - The ids you'd love deleted. To cascade delete, add cascade to the schema
  *
- * @typedef { object } AceMutateRequestItemRelationshipDeleteData
- * @property { typeof enums.aceDo.RelationshipDeleteData } do
+ * @typedef { object } AceMutateRequestItemRelationshipDelete
+ * @property { typeof enums.aceDo.RelationshipDelete } do
  * @property { { _ids: (string | number)[] } } how
  *
- * @typedef { object } AceMutateRequestItemNodePropDeleteData
- * @property { typeof enums.aceDo.NodePropDeleteData } do
+ * @typedef { object } AceMutateRequestItemNodePropDelete
+ * @property { typeof enums.aceDo.NodePropDelete } do
  * @property { { ids: (string | number)[], props: string[] } } how
  *
- * @typedef { object } AceMutateRequestItemRelationshipPropDeleteData
- * @property { typeof enums.aceDo.RelationshipPropDeleteData } do
+ * @typedef { object } AceMutateRequestItemRelationshipPropDelete
+ * @property { typeof enums.aceDo.RelationshipPropDelete } do
  * @property { { _ids: (string | number)[], props: string[] } } how
  *
- * @typedef { string } AceMutateRequestItemNodeDeleteDataAndDeleteFromSchemaNode
+ * @typedef { string } AceMutateRequestItemSchemaDeleteNodesNode
  * 
- * @typedef { object } AceMutateRequestItemNodeDeleteDataAndDeleteFromSchema
- * @property { typeof enums.aceDo.NodeDeleteDataAndDeleteFromSchema } do
- * @property { AceMutateRequestItemNodeDeleteDataAndDeleteFromSchemaHow } how
- * @typedef { object } AceMutateRequestItemNodeDeleteDataAndDeleteFromSchemaHow
- * @property { AceMutateRequestItemNodeDeleteDataAndDeleteFromSchemaNode[] } nodes
+ * @typedef { object } AceMutateRequestItemSchemaDeleteNodes
+ * @property { typeof enums.aceDo.SchemaDeleteNodes } do
+ * @property { AceMutateRequestItemSchemaDeleteNodesHow } how
+ * @typedef { object } AceMutateRequestItemSchemaDeleteNodesHow
+ * @property { AceMutateRequestItemSchemaDeleteNodesNode[] } nodes
  *
- * @typedef { object } AceMutateRequestItemNodePropDeleteDataAndDeleteFromSchema
- * @property { typeof enums.aceDo.NodePropDeleteDataAndDeleteFromSchema } do
- * @property { AceMutateRequestItemNodePropDeleteDataAndDeleteFromSchemaHow } how
- * @typedef { object } AceMutateRequestItemNodePropDeleteDataAndDeleteFromSchemaHow
+ * @typedef { object } AceMutateRequestItemSchemaDeleteNodeProps
+ * @property { typeof enums.aceDo.SchemaDeleteNodeProps } do
+ * @property { AceMutateRequestItemSchemaDeleteNodePropsHow } how
+ * @typedef { object } AceMutateRequestItemSchemaDeleteNodePropsHow
  * @property { { node: string, prop: string }[] } props
  *
  * @typedef { object } AceMutateRequestItemSchemaUpdateNodeName

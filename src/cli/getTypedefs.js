@@ -284,9 +284,9 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceMemory
 /** AceMutate
  *
  * @typedef { AceMutateRequestItemEmpty | AceMutateRequestItemBackupLoad | AceMutateRequestItemSchema | AceMutateRequestItemNode | AceMutateRequestItemRelationship } AceMutateRequestItem
- * @typedef { AceMutateRequestItemSchemaAdd | AceMutateRequestItemSchemaUpdateNodeName | AceMutateRequestItemSchemaUpdateNodePropName | AceMutateRequestItemSchemaUpdateRelationshipName | AceMutateRequestItemSchemaUpdateRelationshipPropName | AceMutateRequestItemNodeDeleteDataAndDeleteFromSchema | AceMutateRequestItemNodePropDeleteDataAndDeleteFromSchema } AceMutateRequestItemSchema
- * @typedef { AceMutateRequestItemNodeInsert | AceMutateRequestItemNodeUpdate | AceMutateRequestItemNodeUpsert | AceMutateRequestItemNodeDeleteData | AceMutateRequestItemNodePropDeleteData | AceMutateRequestItemNodeDeleteDataAndDeleteFromSchema | AceMutateRequestItemNodePropDeleteDataAndDeleteFromSchema } AceMutateRequestItemNode
- * @typedef { AceMutateRequestItemRelationshipInsert | AceMutateRequestItemRelationshipUpdate | AceMutateRequestItemRelationshipUpsert | AceMutateRequestItemRelationshipDeleteData | AceMutateRequestItemRelationshipPropDeleteData } AceMutateRequestItemRelationship
+ * @typedef { AceMutateRequestItemSchemaAdd | AceMutateRequestItemSchemaUpdateNodeName | AceMutateRequestItemSchemaUpdateNodePropName | AceMutateRequestItemSchemaUpdateRelationshipName | AceMutateRequestItemSchemaUpdateRelationshipPropName | AceMutateRequestItemSchemaDeleteNodes | AceMutateRequestItemSchemaDeleteNodeProps } AceMutateRequestItemSchema
+ * @typedef { AceMutateRequestItemNodeInsert | AceMutateRequestItemNodeUpdate | AceMutateRequestItemNodeUpsert | AceMutateRequestItemNodeDelete | AceMutateRequestItemNodePropDelete | AceMutateRequestItemSchemaDeleteNodes | AceMutateRequestItemSchemaDeleteNodeProps } AceMutateRequestItemNode
+ * @typedef { AceMutateRequestItemRelationshipInsert | AceMutateRequestItemRelationshipUpdate | AceMutateRequestItemRelationshipUpsert | AceMutateRequestItemRelationshipDelete | AceMutateRequestItemRelationshipPropDelete } AceMutateRequestItemRelationship
  *
  * @typedef { object } AceMutateRequestItemBackupLoad
  * @property { typeof enums.aceDo.BackupLoad } do
@@ -302,35 +302,35 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceMemory
  * 
  * @typedef { AceMutateRequestItemNodeUpdate & { [relationshipProp: string]: string[] } } AceMutateRequestItemNodeWithRelationships
  * 
- * @typedef { object } AceMutateRequestItemNodeDeleteData
- * @property { typeof enums.aceDo.NodeDeleteData } do
+ * @typedef { object } AceMutateRequestItemNodeDelete
+ * @property { typeof enums.aceDo.NodeDelete } do
  * @property { (string | number)[] } how - The ids you'd love deleted. To cascade delete, add cascade to the schema
  *
- * @typedef { object } AceMutateRequestItemRelationshipDeleteData
- * @property { typeof enums.aceDo.RelationshipDeleteData } do
+ * @typedef { object } AceMutateRequestItemRelationshipDelete
+ * @property { typeof enums.aceDo.RelationshipDelete } do
  * @property { { _ids: (string | number)[] } } how
  *
- * @typedef { object } AceMutateRequestItemNodePropDeleteData
- * @property { typeof enums.aceDo.NodePropDeleteData } do
+ * @typedef { object } AceMutateRequestItemNodePropDelete
+ * @property { typeof enums.aceDo.NodePropDelete } do
  * @property { { ids: (string | number)[], props: string[] } } how
  *
- * @typedef { object } AceMutateRequestItemRelationshipPropDeleteData
- * @property { typeof enums.aceDo.RelationshipPropDeleteData } do
+ * @typedef { object } AceMutateRequestItemRelationshipPropDelete
+ * @property { typeof enums.aceDo.RelationshipPropDelete } do
  * @property { { _ids: (string | number)[], props: string[] } } how
  *
- * @typedef { ${ typedefs.mutate.NodeDeleteDataAndDeleteFromSchemaType || 'string' } } AceMutateRequestItemNodeDeleteDataAndDeleteFromSchemaNode
+ * @typedef { ${ typedefs.mutate.SchemaDeleteNodesType || 'string' } } AceMutateRequestItemSchemaDeleteNodesNode
  * 
- * @typedef { object } AceMutateRequestItemNodeDeleteDataAndDeleteFromSchema
- * @property { typeof enums.aceDo.NodeDeleteDataAndDeleteFromSchema } do
- * @property { AceMutateRequestItemNodeDeleteDataAndDeleteFromSchemaHow } how
- * @typedef { object } AceMutateRequestItemNodeDeleteDataAndDeleteFromSchemaHow
- * @property { AceMutateRequestItemNodeDeleteDataAndDeleteFromSchemaNode[] } nodes
+ * @typedef { object } AceMutateRequestItemSchemaDeleteNodes
+ * @property { typeof enums.aceDo.SchemaDeleteNodes } do
+ * @property { AceMutateRequestItemSchemaDeleteNodesHow } how
+ * @typedef { object } AceMutateRequestItemSchemaDeleteNodesHow
+ * @property { AceMutateRequestItemSchemaDeleteNodesNode[] } nodes
  *
- * @typedef { object } AceMutateRequestItemNodePropDeleteDataAndDeleteFromSchema
- * @property { typeof enums.aceDo.NodePropDeleteDataAndDeleteFromSchema } do
- * @property { AceMutateRequestItemNodePropDeleteDataAndDeleteFromSchemaHow } how
- * @typedef { object } AceMutateRequestItemNodePropDeleteDataAndDeleteFromSchemaHow
- * @property { ${ typedefs.mutate.NodePropDeleteDataAndDeleteFromSchemaType || '{ node: string, prop: string }[]' } } props
+ * @typedef { object } AceMutateRequestItemSchemaDeleteNodeProps
+ * @property { typeof enums.aceDo.SchemaDeleteNodeProps } do
+ * @property { AceMutateRequestItemSchemaDeleteNodePropsHow } how
+ * @typedef { object } AceMutateRequestItemSchemaDeleteNodePropsHow
+ * @property { ${ typedefs.mutate.SchemaDeleteNodePropsType || '{ node: string, prop: string }[]' } } props
  *
  * @typedef { object } AceMutateRequestItemSchemaUpdateNodeName
  * @property { typeof enums.aceDo.SchemaUpdateNodeName } do
@@ -638,6 +638,7 @@ function getSchemaTypedefs (schema) {
       NodeUpdatePropsTypes: '',
       NodeUpsertPropsTypes: '',
       RelationshipInUpProps: '',
+      SchemaDeleteNodesType: '',
       RelationshipInsertType: '',
       RelationshipUpdateType: '',
       RelationshipUpsertType: '',
@@ -648,14 +649,13 @@ function getSchemaTypedefs (schema) {
       RelationshipUpdateTypes: '',
       RelationshipUpsertTypes: '',
       SchemaUpdateNodeNameType: '',
+      SchemaDeleteNodePropsType: '',
       SchemaUpdateNodePropNameType: '',
       RelationshipInsertPropsTypes: '',
       RelationshipUpdatePropsTypes: '',
       RelationshipUpsertPropsTypes: '',
       SchemaUpdateRelationshipNameType: '',
       SchemaUpdateRelationshipPropNameType: '',
-      NodeDeleteDataAndDeleteFromSchemaType: '',
-      NodePropDeleteDataAndDeleteFromSchemaType: '',
       DefaultNodeUpPropsTypes: '{ id: string | number, [propName: string]: any }',
       DefaultRelationshipUpPropsTypes: '{ id: string | number, a: string, b: string, [propName: string]: any }'
     }
@@ -721,7 +721,7 @@ function getSchemaTypedefs (schema) {
         if (schemaNodePropName !== SCHEMA_ID) {
           const schemaProp = schema.nodes[schemaNodeName][schemaNodePropName]
 
-          typedefs.mutate.NodePropDeleteDataAndDeleteFromSchemaType += `{ node: '${ schemaNodeName }', prop: '${ schemaNodePropName }' } | `
+          typedefs.mutate.SchemaDeleteNodePropsType += `{ node: '${ schemaNodeName }', prop: '${ schemaNodePropName }' } | `
           typedefs.mutate.SchemaUpdateNodePropNameType += `{ node: '${ schemaNodeName }', nowName: '${ schemaNodePropName }', newName: string } | `
 
           switch (schemaProp.is) {
@@ -934,8 +934,8 @@ function getSchemaTypedefs (schema) {
   if (typedefs.mutate.SchemaUpdateNodePropNameType) typedefs.mutate.SchemaUpdateNodePropNameType = '(' + typedefs.mutate.SchemaUpdateNodePropNameType.slice(0, -3) + ')[]'
   if (typedefs.mutate.SchemaUpdateRelationshipNameType) typedefs.mutate.SchemaUpdateRelationshipNameType = '(' + typedefs.mutate.SchemaUpdateRelationshipNameType.slice(0, -3) + ')[]'
   if (typedefs.mutate.SchemaUpdateRelationshipPropNameType) typedefs.mutate.SchemaUpdateRelationshipPropNameType = '(' + typedefs.mutate.SchemaUpdateRelationshipPropNameType.slice(0, -3) + ')[]'
-  if (typedefs.mutate.NodeDeleteDataAndDeleteFromSchemaType) typedefs.mutate.NodeDeleteDataAndDeleteFromSchemaType = '(' + typedefs.mutate.NodeDeleteDataAndDeleteFromSchemaType.slice(0, -3) + ')'
-  if (typedefs.mutate.NodePropDeleteDataAndDeleteFromSchemaType) typedefs.mutate.NodePropDeleteDataAndDeleteFromSchemaType = '(' + typedefs.mutate.NodePropDeleteDataAndDeleteFromSchemaType.slice(0, -3) + ')[]'
+  if (typedefs.mutate.SchemaDeleteNodesType) typedefs.mutate.SchemaDeleteNodesType = '(' + typedefs.mutate.SchemaDeleteNodesType.slice(0, -3) + ')'
+  if (typedefs.mutate.SchemaDeleteNodePropsType) typedefs.mutate.SchemaDeleteNodePropsType = '(' + typedefs.mutate.SchemaDeleteNodePropsType.slice(0, -3) + ')[]'
 
 
   typedefs.query.NodeType = plop({

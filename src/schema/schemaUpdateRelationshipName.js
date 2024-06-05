@@ -1,7 +1,7 @@
 import { td } from '#ace'
-import { doneUpdate } from './doneUpdate.js'
 import { Memory } from '../objects/Memory.js'
 import { AceError } from '../objects/AceError.js'
+import { doneSchemaUpdate } from './doneSchemaUpdate.js'
 import { write, getMany, getOne } from '../util/storage.js'
 import { getRelationshipIdsKey, getRelationshipProp } from '../util/variables.js'
 
@@ -10,9 +10,9 @@ import { getRelationshipIdsKey, getRelationshipProp } from '../util/variables.js
  * @param { td.AceMutateRequestItemSchemaUpdateRelationshipName } reqItem
  * @returns { Promise<void> }
  */
-export async function updateRelationshipName (reqItem) {
+export async function schemaUpdateRelationshipName (reqItem) {
   for (const { nowName, newName } of reqItem.how.relationships) {
-    if (!Memory.txn.schema?.relationships?.[nowName]) throw AceError('aceFn__updateRelationshipName__invalidNowName', `Please ensure that when updating a relationship name, the nowName is defined as a relationship in your schea, this is not happening yet for the nowName: ${ nowName }`, { nowName, newName })
+    if (!Memory.txn.schema?.relationships?.[nowName]) throw AceError('aceFn__schemaUpdateRelationshipName__invalidNowName', `Please ensure that when updating a relationship name, the nowName is defined as a relationship in your schea, this is not happening yet for the nowName: ${ nowName }`, { nowName, newName })
 
     // update relationship on each graphRelationship
     const relationshipIdsKey = getRelationshipIdsKey(nowName)
@@ -68,6 +68,6 @@ export async function updateRelationshipName (reqItem) {
       }
     }
 
-    doneUpdate()
+    doneSchemaUpdate()
   }
 }

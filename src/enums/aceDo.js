@@ -1,4 +1,4 @@
-export const aceDo = new Map([ // boolean is will this id write to the graph
+export const aceDo = new Map([ // boolean => will this id write to the graph (helpful for Memory.txn.hasUpdates)
   [ 'Empty', true ],
 
   // Backup
@@ -17,11 +17,16 @@ export const aceDo = new Map([ // boolean is will this id write to the graph
   [ 'SchemaUpdateRelationshipName', true ],
   [ 'SchemaUpdateRelationshipPropName', true ],
 
+  // Schema Delete
+  [ 'SchemaDeleteNodes', true ],
+  [ 'SchemaDeleteNodeProps', true ],
+  [ 'SchemaDeleteRelationships', true ],
+  [ 'SchemaDeleteRelationshipProps', true ],
+
   // Schema Update Prop
   [ 'SchemaUpdatePropDataType', true ],
   [ 'SchemaUpdatePropMustBeDefined', true ],
   [ 'SchemaUpdatePropCascade', true ],
-  [ 'SchemaUpdatePropIndex', true ],
   [ 'SchemaUpdatePropHas', true ],
 
   // Node
@@ -29,20 +34,16 @@ export const aceDo = new Map([ // boolean is will this id write to the graph
   [ 'NodeUpdate', true ],
   [ 'NodeUpsert', true ],
   [ 'NodeQuery', false ],
-  [ 'NodeDeleteData', true ],
-  [ 'NodePropDeleteData', true ],
-  [ 'NodeDeleteDataAndDeleteFromSchema', true ],
-  [ 'NodePropDeleteDataAndDeleteFromSchema', true ],
+  [ 'NodeDelete', true ],
+  [ 'NodePropDelete', true ],
 
   // Relationship
   [ 'RelationshipInsert', true ],
   [ 'RelationshipUpdate', true ],
   [ 'RelationshipUpsert', true ],
   [ 'RelationshipQuery', false ],
-  [ 'RelationshipDeleteData', true ],
-  [ 'RelationshipPropDeleteData', true ],
-  [ 'RelationshipDeleteDataAndDeleteFromSchema', true ],
-  [ 'RelationshipPropDeleteDataAndDeleteFromSchema', true ],
+  [ 'RelationshipDelete', true ],
+  [ 'RelationshipPropDelete', true ],
 ])
 
 

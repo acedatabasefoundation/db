@@ -4,7 +4,7 @@ import { SchemaDataStructures } from '../objects/SchemaDataStructures.js'
 
 
 /** @returns { void } */
-export function doneUpdate () {
+export function doneSchemaUpdate () {
   if (Memory.txn.schema) {
     validateSchema(Memory.txn.schema)
     Memory.txn.schema = Memory.txn.schema

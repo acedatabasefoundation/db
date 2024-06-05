@@ -1,8 +1,8 @@
 import { td } from '#ace'
-import { doneUpdate } from './doneUpdate.js'
 import { Memory } from '../objects/Memory.js'
 import { AceError } from '../objects/AceError.js'
 import { getNodeIdsKey } from '../util/variables.js'
+import { doneSchemaUpdate } from './doneSchemaUpdate.js'
 import { write, getMany, getOne } from '../util/storage.js'
 
 
@@ -10,10 +10,10 @@ import { write, getMany, getOne } from '../util/storage.js'
  * @param { td.AceMutateRequestItemSchemaUpdateNodePropName } reqItem
  * @returns { Promise<void> }
  */
-export async function updateNodePropName (reqItem) {
+export async function schemaUpdateNodePropName (reqItem) {
   for (const { node, nowName, newName } of reqItem.how.props) {
-    if (!Memory.txn.schema?.nodes[node]) throw AceError('aceFn__updateNodePropName__invalidNode', `Please ensure that when updating a node prop name, the node is defined in the schema, this is not happening yet for the node: ${ node }, nowName: ${ nowName }, and newName: ${ newName }`, { node, nowName, newName })
-    if (!Memory.txn.schema?.nodes[node]?.[nowName]) throw AceError('aceFn__updateNodePropName__invalidProp', `Please ensure that when updating a node prop name, the prop is defined in the schema, this is not happening yet for the node: ${ node }, nowName: ${ nowName }, and newName: ${ newName }`, { node, nowName, newName })
+    if (!Memory.txn.schema?.nodes[node]) throw AceError('aceFn__schemaUpdateNodePropName__invalidNode', `Please ensure that when updating a node prop name, the node is defined in the schema, this is not happening yet for the node: ${ node }, nowName: ${ nowName }, and newName: ${ newName }`, { node, nowName, newName })
+    if (!Memory.txn.schema?.nodes[node]?.[nowName]) throw AceError('aceFn__schemaUpdateNodePropName__invalidProp', `Please ensure that when updating a node prop name, the prop is defined in the schema, this is not happening yet for the node: ${ node }, nowName: ${ nowName }, and newName: ${ newName }`, { node, nowName, newName })
 
     /** @type { string[] } */
     const nodeIds = await getOne(getNodeIdsKey(node))
@@ -34,6 +34,6 @@ export async function updateNodePropName (reqItem) {
     // update schema
     Memory.txn.schema.nodes[node][newName] = Memory.txn.schema.nodes[node][nowName]
     delete Memory.txn.schema.nodes[node][nowName]
-    doneUpdate()
+    doneSchemaUpdate()
   }
 }

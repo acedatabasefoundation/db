@@ -1,22 +1,22 @@
 import { td } from '#ace'
 import { Memory } from '../objects/Memory.js'
-import { doneUpdate } from './doneUpdate.js'
 import { getOne, write } from '../util/storage.js'
+import { doneSchemaUpdate } from './doneSchemaUpdate.js'
 import { DELIMITER, getNodeIdsKey } from '../util/variables.js'
 import { deleteNodesById } from '../ace/mutate/deleteNodesById.js'
 
 
 /** 
- * @param { td.AceMutateRequestItemNodeDeleteDataAndDeleteFromSchema } reqItem
+ * @param { td.AceMutateRequestItemSchemaDeleteNodes } reqItem
  * @returns { Promise<void> }
  */
-export async function deleteNodesByName (reqItem) {
+export async function schemaDeleteNodes (reqItem) {
   for (const node of reqItem.how.nodes) {
     await deleteData(node)
     deleteFromSchema(node)
   }
 
-  doneUpdate()
+  doneSchemaUpdate()
 }
 
 
