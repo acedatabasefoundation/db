@@ -120,6 +120,7 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceMemory
  * 
  * @typedef { object } AceFnOptionsTxnStart
  * @property { typeof enums.txnDo.Start } do
+ * @property { number } [ maxSeconds ] - Max number of seconds this transaction can be pending before Ace cancels it. The default is 9 seconds.
  * @property { never } [ id ]
  *
  * @typedef { object } AceFnOptionsTxnComplete
