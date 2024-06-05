@@ -10,7 +10,9 @@ import { Memory } from '../objects/Memory.js'
  */
 export function write(todo, key, value) {
   Memory.txn.writeMap.set(key, { value, do: todo })
-  Memory.txn.writeStr += (JSON.stringify([ key, todo, value ]) + '\n')
+  Memory.txn.writeStr += (todo === 'delete' ?
+    (JSON.stringify([ key, todo ]) + '\n') :
+    (JSON.stringify([ key, todo, value ]) + '\n'))
 }
 
 
