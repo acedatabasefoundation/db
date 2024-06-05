@@ -64,7 +64,8 @@ export async function deleteNodesById (ids) {
       }
     }
 
-    write('update', nodeIdsKey, allNodeIds)
+    if (allNodeIds.length) write('update', nodeIdsKey, allNodeIds)
+    else write('delete', nodeIdsKey)
   }
 
 
