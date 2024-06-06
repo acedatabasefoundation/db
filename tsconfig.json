@@ -81,6 +81,7 @@
     "src/schema/schemaDeleteNodeProps.js",
     "src/schema/schemaDeleteNodes.js",
     "src/schema/schemaUpdateNodeName.js",
+    "src/schema/schemaUpdateNodePropCascade.js",
     "src/schema/schemaUpdateNodePropHas.js",
     "src/schema/schemaUpdateNodePropName.js",
     "src/schema/schemaUpdateRelationshipName.js",

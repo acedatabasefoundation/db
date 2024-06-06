@@ -1,4 +1,4 @@
-/** @typedef { 'Empty' | 'BackupGet' | 'BackupLoad' | 'PluginInstall' | 'PluginUninstall' | 'SchemaGet' | 'SchemaAdd' | 'SchemaUpdateNodeName' | 'SchemaUpdateNodePropName' | 'SchemaUpdateRelationshipName' | 'SchemaUpdateRelationshipPropName' | 'SchemaDeleteNodes' | 'SchemaDeleteNodeProps' | 'SchemaDeleteRelationships' | 'SchemaDeleteRelationshipProps' | 'SchemaUpdatePropDataType' | 'SchemaUpdatePropMustBeDefined' | 'SchemaUpdatePropCascade' | 'SchemaUpdateNodePropHas' | 'NodeInsert' | 'NodeUpdate' | 'NodeUpsert' | 'NodeQuery' | 'NodeDelete' | 'NodePropDelete' | 'RelationshipInsert' | 'RelationshipUpdate' | 'RelationshipUpsert' | 'RelationshipQuery' | 'RelationshipDelete' | 'RelationshipPropDelete' } aceDo */
+/** @typedef { 'Empty' | 'BackupGet' | 'BackupLoad' | 'PluginInstall' | 'PluginUninstall' | 'SchemaGet' | 'SchemaAdd' | 'SchemaUpdateNodeName' | 'SchemaUpdateNodePropName' | 'SchemaUpdateRelationshipName' | 'SchemaUpdateRelationshipPropName' | 'SchemaDeleteNodes' | 'SchemaDeleteNodeProps' | 'SchemaDeleteRelationships' | 'SchemaDeleteRelationshipProps' | 'SchemaUpdatePropMustBeDefined' | 'SchemaUpdateNodePropCascade' | 'SchemaUpdateNodePropHas' | 'NodeInsert' | 'NodeUpdate' | 'NodeUpsert' | 'NodeQuery' | 'NodeDelete' | 'NodePropDelete' | 'RelationshipInsert' | 'RelationshipUpdate' | 'RelationshipUpsert' | 'RelationshipQuery' | 'RelationshipDelete' | 'RelationshipPropDelete' } aceDo */
 export const aceDo = {
   Empty: /** @type { 'Empty' } */ ('Empty'),
   BackupGet: /** @type { 'BackupGet' } */ ('BackupGet'),
@@ -15,9 +15,8 @@ export const aceDo = {
   SchemaDeleteNodeProps: /** @type { 'SchemaDeleteNodeProps' } */ ('SchemaDeleteNodeProps'),
   SchemaDeleteRelationships: /** @type { 'SchemaDeleteRelationships' } */ ('SchemaDeleteRelationships'),
   SchemaDeleteRelationshipProps: /** @type { 'SchemaDeleteRelationshipProps' } */ ('SchemaDeleteRelationshipProps'),
-  SchemaUpdatePropDataType: /** @type { 'SchemaUpdatePropDataType' } */ ('SchemaUpdatePropDataType'),
   SchemaUpdatePropMustBeDefined: /** @type { 'SchemaUpdatePropMustBeDefined' } */ ('SchemaUpdatePropMustBeDefined'),
-  SchemaUpdatePropCascade: /** @type { 'SchemaUpdatePropCascade' } */ ('SchemaUpdatePropCascade'),
+  SchemaUpdateNodePropCascade: /** @type { 'SchemaUpdateNodePropCascade' } */ ('SchemaUpdateNodePropCascade'),
   SchemaUpdateNodePropHas: /** @type { 'SchemaUpdateNodePropHas' } */ ('SchemaUpdateNodePropHas'),
   NodeInsert: /** @type { 'NodeInsert' } */ ('NodeInsert'),
   NodeUpdate: /** @type { 'NodeUpdate' } */ ('NodeUpdate'),

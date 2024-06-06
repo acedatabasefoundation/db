@@ -16,6 +16,7 @@ import { deleteRelationshipsBy_Ids } from './mutate/deleteRelationshipsBy_Ids.js
 import { deleteRelationshipPropsById } from './mutate/deleteRelationshipPropsById.js'
 import { schemaUpdateRelationshipName } from '../schema/schemaUpdateRelationshipName.js'
 import { schemaUpdateRelationshipPropName } from '../schema/schemaUpdateRelationshipPropName.js'
+import { schemaUpdateNodePropCascade } from '../schema/schemaUpdateNodePropCascade.js'
 
 
 /**
@@ -107,6 +108,11 @@ export async function deligate (req, res, jwks) {
 
       case 'SchemaUpdateNodePropHas':
         await schemaUpdateNodePropHas(/** @type { td.AceMutateRequestItemSchemaUpdateNodePropHas } */(req[iReq]))
+        break
+
+
+      case 'SchemaUpdateNodePropCascade':
+        await schemaUpdateNodePropCascade(/** @type { td.AceMutateRequestItemSchemaUpdateNodePropCascade } */(req[iReq]))
         break
 
 
