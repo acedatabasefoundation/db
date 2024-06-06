@@ -1,4 +1,4 @@
-/** @typedef { 'Empty' | 'BackupGet' | 'BackupLoad' | 'PluginInstall' | 'PluginUninstall' | 'SchemaGet' | 'SchemaAdd' | 'SchemaUpdateNodeName' | 'SchemaUpdateNodePropName' | 'SchemaUpdateRelationshipName' | 'SchemaUpdateRelationshipPropName' | 'SchemaDeleteNodes' | 'SchemaDeleteNodeProps' | 'SchemaDeleteRelationships' | 'SchemaDeleteRelationshipProps' | 'SchemaUpdatePropDataType' | 'SchemaUpdatePropMustBeDefined' | 'SchemaUpdatePropCascade' | 'SchemaUpdatePropHas' | 'NodeInsert' | 'NodeUpdate' | 'NodeUpsert' | 'NodeQuery' | 'NodeDelete' | 'NodePropDelete' | 'RelationshipInsert' | 'RelationshipUpdate' | 'RelationshipUpsert' | 'RelationshipQuery' | 'RelationshipDelete' | 'RelationshipPropDelete' } aceDo */
+/** @typedef { 'Empty' | 'BackupGet' | 'BackupLoad' | 'PluginInstall' | 'PluginUninstall' | 'SchemaGet' | 'SchemaAdd' | 'SchemaUpdateNodeName' | 'SchemaUpdateNodePropName' | 'SchemaUpdateRelationshipName' | 'SchemaUpdateRelationshipPropName' | 'SchemaDeleteNodes' | 'SchemaDeleteNodeProps' | 'SchemaDeleteRelationships' | 'SchemaDeleteRelationshipProps' | 'SchemaUpdatePropDataType' | 'SchemaUpdatePropMustBeDefined' | 'SchemaUpdatePropCascade' | 'SchemaUpdateNodePropHas' | 'NodeInsert' | 'NodeUpdate' | 'NodeUpsert' | 'NodeQuery' | 'NodeDelete' | 'NodePropDelete' | 'RelationshipInsert' | 'RelationshipUpdate' | 'RelationshipUpsert' | 'RelationshipQuery' | 'RelationshipDelete' | 'RelationshipPropDelete' } aceDo */
 export const aceDo = {
   Empty: /** @type { 'Empty' } */ ('Empty'),
   BackupGet: /** @type { 'BackupGet' } */ ('BackupGet'),
@@ -18,7 +18,7 @@ export const aceDo = {
   SchemaUpdatePropDataType: /** @type { 'SchemaUpdatePropDataType' } */ ('SchemaUpdatePropDataType'),
   SchemaUpdatePropMustBeDefined: /** @type { 'SchemaUpdatePropMustBeDefined' } */ ('SchemaUpdatePropMustBeDefined'),
   SchemaUpdatePropCascade: /** @type { 'SchemaUpdatePropCascade' } */ ('SchemaUpdatePropCascade'),
-  SchemaUpdatePropHas: /** @type { 'SchemaUpdatePropHas' } */ ('SchemaUpdatePropHas'),
+  SchemaUpdateNodePropHas: /** @type { 'SchemaUpdateNodePropHas' } */ ('SchemaUpdateNodePropHas'),
   NodeInsert: /** @type { 'NodeInsert' } */ ('NodeInsert'),
   NodeUpdate: /** @type { 'NodeUpdate' } */ ('NodeUpdate'),
   NodeUpsert: /** @type { 'NodeUpsert' } */ ('NodeUpsert'),

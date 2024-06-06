@@ -88,6 +88,7 @@ esbuild.build({ // // https://esbuild.github.io/api/
     './tsc/src/schema/schemaDeleteNodeProps.js',
     './tsc/src/schema/schemaDeleteNodes.js',
     './tsc/src/schema/schemaUpdateNodeName.js',
+    './tsc/src/schema/schemaUpdateNodePropHas.js',
     './tsc/src/schema/schemaUpdateNodePropName.js',
     './tsc/src/schema/schemaUpdateRelationshipName.js',
     './tsc/src/schema/schemaUpdateRelationshipPropName.js',

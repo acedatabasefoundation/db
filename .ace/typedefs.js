@@ -273,7 +273,7 @@ import * as enums from './enums.js'
 /** AceMutate
  *
  * @typedef { AceMutateRequestItemEmpty | AceMutateRequestItemBackupLoad | AceMutateRequestItemSchema | AceMutateRequestItemNode | AceMutateRequestItemRelationship } AceMutateRequestItem
- * @typedef { AceMutateRequestItemSchemaAdd | AceMutateRequestItemSchemaUpdateNodeName | AceMutateRequestItemSchemaUpdateNodePropName | AceMutateRequestItemSchemaUpdateRelationshipName | AceMutateRequestItemSchemaUpdateRelationshipPropName | AceMutateRequestItemSchemaDeleteNodes | AceMutateRequestItemSchemaDeleteNodeProps } AceMutateRequestItemSchema
+ * @typedef { AceMutateRequestItemSchemaAdd | AceMutateRequestItemSchemaUpdateNodeName | AceMutateRequestItemSchemaUpdateNodePropName | AceMutateRequestItemSchemaUpdateRelationshipName | AceMutateRequestItemSchemaUpdateRelationshipPropName | AceMutateRequestItemSchemaDeleteNodes | AceMutateRequestItemSchemaDeleteNodeProps | AceMutateRequestItemSchemaUpdateNodePropHas } AceMutateRequestItemSchema
  * @typedef { AceMutateRequestItemNodeInsert | AceMutateRequestItemNodeUpdate | AceMutateRequestItemNodeUpsert | AceMutateRequestItemNodeDelete | AceMutateRequestItemNodePropDelete | AceMutateRequestItemSchemaDeleteNodes | AceMutateRequestItemSchemaDeleteNodeProps } AceMutateRequestItemNode
  * @typedef { AceMutateRequestItemRelationshipInsert | AceMutateRequestItemRelationshipUpdate | AceMutateRequestItemRelationshipUpsert | AceMutateRequestItemRelationshipDelete | AceMutateRequestItemRelationshipPropDelete } AceMutateRequestItemRelationship
  *
@@ -380,6 +380,12 @@ import * as enums from './enums.js'
  * @property { AceMutateRequestItemSchemaUpdateNodePropNameHow } how
  * @typedef { object } AceMutateRequestItemSchemaUpdateNodePropNameHow
  * @property { { node: string, nowName: string, newName: string }[] } props
+ *
+ * @typedef { object } AceMutateRequestItemSchemaUpdateNodePropHas
+ * @property { typeof enums.aceDo.SchemaUpdateNodePropHas } do
+ * @property { AceMutateRequestItemSchemaUpdateNodePropHasHow } how
+ * @typedef { object } AceMutateRequestItemSchemaUpdateNodePropHasHow
+ * @property { { node: string, prop: string, has: enums.schemaHas }[] } props
  *
  * @typedef { object } AceMutateRequestItemSchemaUpdateRelationshipName
  * @property { typeof enums.aceDo.SchemaUpdateRelationshipName } do
