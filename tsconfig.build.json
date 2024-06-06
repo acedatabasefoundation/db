@@ -81,6 +81,7 @@
     "src/schema/schemaDeleteNodeProps.js",
     "src/schema/schemaDeleteNodes.js",
     "src/schema/schemaUpdateNodeName.js",
+    "src/schema/schemaUpdatePropDefault.js",
     "src/schema/schemaUpdateNodePropCascade.js",
     "src/schema/schemaUpdateNodePropHas.js",
     "src/schema/schemaUpdateNodePropName.js",
@@ -99,6 +100,7 @@
     "src/util/file.js",
     "src/util/isObjectPopulated.js",
     "src/util/storage.js",
+    "src/util/validatePropValue.js",
     "src/util/variables.js",
 
     "src/wal/appendWal.js",

@@ -21,6 +21,7 @@ export async function schemaUpdateNodePropCascade (reqItem) {
 
     // update schema (no data update required b/c this value is only used to determine what to do when deleting nodes)
     schemaProp.options.cascade = cascade
-    doneSchemaUpdate()
   }
+
+  doneSchemaUpdate()
 }

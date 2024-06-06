@@ -21,6 +21,7 @@ export async function schemaUpdateNodePropHas (reqItem) {
 
     // update schema (no data update required b/c relationships are stored as an array in the graph wheter one or many)
     schemaProp.options.has = has
-    doneSchemaUpdate()
   }
+
+  doneSchemaUpdate()
 }

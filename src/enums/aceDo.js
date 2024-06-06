@@ -24,6 +24,7 @@ export const aceDo = new Map([ // boolean => will this id write to the graph (he
   [ 'SchemaDeleteRelationshipProps', true ],
 
   // Schema Update Prop
+  [ 'SchemaUpdatePropDefault', true ],
   [ 'SchemaUpdatePropMustBeDefined', true ],
   [ 'SchemaUpdateNodePropCascade', true ],
   [ 'SchemaUpdateNodePropHas', true ],

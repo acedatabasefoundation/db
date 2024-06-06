@@ -91,6 +91,7 @@ esbuild.build({ // // https://esbuild.github.io/api/
     './tsc/src/schema/schemaUpdateNodePropCascade.js',
     './tsc/src/schema/schemaUpdateNodePropHas.js',
     './tsc/src/schema/schemaUpdateNodePropName.js',
+    './tsc/src/schema/schemaUpdatePropDefault.js',
     './tsc/src/schema/schemaUpdateRelationshipName.js',
     './tsc/src/schema/schemaUpdateRelationshipPropName.js',
     './tsc/src/schema/setSchema.js',
@@ -106,6 +107,7 @@ esbuild.build({ // // https://esbuild.github.io/api/
     './tsc/src/util/file.js',
     './tsc/src/util/isObjectPopulated.js',
     './tsc/src/util/storage.js',
+    './tsc/src/util/validatePropValue.js',
     './tsc/src/util/variables.js',
 
     './tsc/src/wal/appendWal.js',

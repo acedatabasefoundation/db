@@ -2,6 +2,7 @@ import { td, enums } from '#ace'
 import { AceError } from '../objects/AceError.js'
 import { DELIMITER, SCHEMA_ID } from '../util/variables.js'
 import { isObjectPopulated } from '../util/isObjectPopulated.js'
+import { validatePropValue } from '../util/validatePropValue.js'
 
 
 /**
@@ -53,7 +54,7 @@ export function validateSchema (schema) {
 
     for (const nodePropName in schema.nodes[nodeName]) {
       if (nodePropName !== SCHEMA_ID) {
-        validateSchemaProp(nodePropName, schema.nodes[nodeName][nodePropName], false, aceIdSet)
+        validateSchemaProp(nodePropName, schema.nodes[nodeName][nodePropName], false, nodeName, aceIdSet)
 
         const prop = schema.nodes[nodeName][nodePropName]
 
@@ -107,7 +108,7 @@ export function validateSchema (schema) {
 
       for (const propName in relationship.props) {
         if (propName !== SCHEMA_ID) {
-          validateSchemaProp(propName, relationship.props[propName], true, aceIdSet)
+          validateSchemaProp(propName, relationship.props[propName], true, relationshipName, aceIdSet)
 
           const mapValue = uniqueRelationshipPropsMap.get(relationshipName)
 
@@ -157,9 +158,10 @@ function notify (relationshipName, directions) {
  * @param { string } propName
  * @param { td.AceSchemaProp | td.AceSchemaForwardRelationshipProp | td.AceSchemaReverseRelationshipProp | td.AceSchemaBidirectionalRelationshipProp | td.AceSchemaRelationshipProp } propValue
  * @param { boolean } isRelationshipProp
+ * @param { string } parentName
  * @param { Set<number> } aceIdSet
  */
-function validateSchemaProp (propName, propValue, isRelationshipProp, aceIdSet) {
+function validateSchemaProp (propName, propValue, isRelationshipProp, parentName, aceIdSet) {
   validatePropName(propName, isRelationshipProp)
 
   if (typeof propValue.$aceId !== 'number') throw AceError('schema__missingAceId', `Please ensure each schma prop has an $aceId that is a type of "number", this is not happening yet for the prop: ${ propName }`, { propName, propValue })
@@ -172,7 +174,8 @@ function validateSchemaProp (propName, propValue, isRelationshipProp, aceIdSet) 
 
       if (!schemaProp.options.dataType) throw AceError('schema__falsyDataType', `Please ensure each schema prop has a truthy data type, this is not happening yet for the schema prop: ${ propName }`, { propName, propValue })
       if (!enums.dataTypes[schemaProp.options.dataType]) throw AceError('schema__invalidDataType', `Please ensure each schema prop has a valid data type, this is not happening yet for the schema prop: ${ propName }. The valid data types are: ${ JSON.stringify(enums.dataTypes) }`, { propName, propValue, validDataTypes: enums.dataTypes })
-      if (isRelationshipProp && propValue.is === 'Prop') throw AceError('schema__invalidNodePropIs', `Please ensure node props do not have an is of "SchemaRelationshipProp", this is not happening yet for the schema prop: ${ propName }`, { propName, propValue })
+      if (isRelationshipProp && propValue.is === 'Prop') throw AceError('schema__invalidNodePropIs', `Please ensure node props do not have an is of "SchemaRelationshipProp", this is not happening yet for the schema prop: ${ propName }`, { propName, propValue })      
+      if (typeof propValue.options.default !== 'undefined') validatePropValue(propName, propValue.options.default, propValue.options.dataType, parentName, isRelationshipProp ? 'relationship' : 'node', 'schemaValidateDefaultPropOption', { [ isRelationshipProp ? 'relationship': 'node' ]: parentName, propName, schemaProp: propValue })
       break
     case 'ForwardRelationshipProp':
     case 'ReverseRelationshipProp':

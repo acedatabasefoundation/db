@@ -1,4 +1,4 @@
-// INTERNAL OR EXTERNAL (So exported @ index.js / index.ts)
+// INTERNAL OR EXTERNAL (So exported @ index.js)
 
 export const ADD_NOW_DATE = 'now'
 export const ENUM_ID_PREFIX = '_:'
@@ -72,7 +72,7 @@ export function getNow () {
 
 
 
-// INTERNAL ONLY (So not exported @ index.js / index.ts)
+// INTERNAL ONLY (So not exported @ index.js)
 
 export const SCHEMA_ID = '$aceId'
 

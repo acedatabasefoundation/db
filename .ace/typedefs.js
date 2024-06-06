@@ -273,7 +273,7 @@ import * as enums from './enums.js'
 /** AceMutate
  *
  * @typedef { AceMutateRequestItemEmpty | AceMutateRequestItemBackupLoad | AceMutateRequestItemSchema | AceMutateRequestItemNode | AceMutateRequestItemRelationship } AceMutateRequestItem
- * @typedef { AceMutateRequestItemSchemaAdd | AceMutateRequestItemSchemaUpdateNodeName | AceMutateRequestItemSchemaUpdateNodePropName | AceMutateRequestItemSchemaUpdateRelationshipName | AceMutateRequestItemSchemaUpdateRelationshipPropName | AceMutateRequestItemSchemaDeleteNodes | AceMutateRequestItemSchemaDeleteNodeProps | AceMutateRequestItemSchemaUpdateNodePropHas | AceMutateRequestItemSchemaUpdateNodePropCascade } AceMutateRequestItemSchema
+ * @typedef { AceMutateRequestItemSchemaAdd | AceMutateRequestItemSchemaUpdateNodeName | AceMutateRequestItemSchemaUpdateNodePropName | AceMutateRequestItemSchemaUpdateRelationshipName | AceMutateRequestItemSchemaUpdateRelationshipPropName | AceMutateRequestItemSchemaDeleteNodes | AceMutateRequestItemSchemaDeleteNodeProps | AceMutateRequestItemSchemaUpdateNodePropHas | AceMutateRequestItemSchemaUpdateNodePropCascade | AceMutateRequestItemSchemaUpdatePropDefault } AceMutateRequestItemSchema
  * @typedef { AceMutateRequestItemNodeInsert | AceMutateRequestItemNodeUpdate | AceMutateRequestItemNodeUpsert | AceMutateRequestItemNodeDelete | AceMutateRequestItemNodePropDelete | AceMutateRequestItemSchemaDeleteNodes | AceMutateRequestItemSchemaDeleteNodeProps } AceMutateRequestItemNode
  * @typedef { AceMutateRequestItemRelationshipInsert | AceMutateRequestItemRelationshipUpdate | AceMutateRequestItemRelationshipUpsert | AceMutateRequestItemRelationshipDelete | AceMutateRequestItemRelationshipPropDelete } AceMutateRequestItemRelationship
  *
@@ -369,6 +369,13 @@ import * as enums from './enums.js'
  * @typedef { object } AceMutateRequestItemSchemaDeleteNodePropsHow
  * @property { { node: string, prop: string }[] } props
  *
+ * @typedef { object } AceMutateRequestItemSchemaUpdatePropDefault - To delete a default in your schema, in the props array, "default" must be undefined
+ * @property { typeof enums.aceDo.SchemaUpdatePropDefault } do - To delete a default in your schema, in the props array, "default" must be undefined
+ * @property { AceMutateRequestItemSchemaUpdatePropDefaultHow } how - To delete a default in your schema, in the props array, "default" must be undefined
+ * @typedef { { nodeOrRelationship: string, prop: string, default?: any } } AceMutateRequestItemSchemaUpdatePropDefaultProp - To delete a default in your schema, in the props array, "default" must be undefined
+ * @typedef { object } AceMutateRequestItemSchemaUpdatePropDefaultHow - To delete a default in your schema, in the props array, "default" must be undefined
+ * @property { AceMutateRequestItemSchemaUpdatePropDefaultProp[] } props - To delete a default in your schema, in the props array, "default" must be undefined
+ * 
  * @typedef { object } AceMutateRequestItemSchemaUpdateNodeName
  * @property { typeof enums.aceDo.SchemaUpdateNodeName } do
  * @property { AceMutateRequestItemSchemaUpdateNodeNameHow } how

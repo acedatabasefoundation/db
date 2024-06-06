@@ -6,6 +6,7 @@ import { applyDefaults } from './applyDefaults.js'
 import { AceError } from '../../objects/AceError.js'
 import { write, getOne } from '../../util/storage.js'
 import { enumIdToGraphId } from '../id/enumIdToGraphId.js'
+import { validatePropValue } from '../../util/validatePropValue.js'
 import { delete_IdFromRelationshipProp } from './delete_IdFromRelationshipProp.js'
 import { ENUM_ID_PREFIX, ADD_NOW_DATE, getNow, getRelationshipProp, getRelationshipIdsKey } from '../../util/variables.js'
 
@@ -98,9 +99,15 @@ async function inupRelationshipPut (reqItem, schemaRelationship) {
   for (const relationshipPropName in props) {
     const relationshipPropValue = props[relationshipPropName]
 
-    if (relationshipPropValue === ADD_NOW_DATE && schemaRelationship.props?.[relationshipPropName]?.options?.dataType === enums.dataTypes.isoString) props[relationshipPropName] = getNow() // populate now timestamp
-    else if (typeof relationshipPropValue === 'string' && relationshipPropValue.startsWith(ENUM_ID_PREFIX)) {
-      overwriteIds(props, relationshipPropName)
+    if (typeof relationshipPropValue === 'string' && relationshipPropValue.startsWith(ENUM_ID_PREFIX)) overwriteIds(props, relationshipPropName)
+    else if (relationshipPropName !== '_id' && relationshipPropName !== 'a' && relationshipPropName !== 'b') {
+      const schemaProp = schemaRelationship.props?.[relationshipPropName]
+
+      if (schemaProp) {
+        validatePropValue(relationshipPropName, relationshipPropValue, schemaProp.options.dataType, reqItem.how.relationship, 'relationship', 'invalidPropValue', { reqItem })
+
+        if (relationshipPropValue === ADD_NOW_DATE && schemaProp.options.dataType === enums.dataTypes.isoString) props[relationshipPropName] = getNow() // populate now timestamp
+      }
     }
   }
 

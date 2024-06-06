@@ -7,6 +7,7 @@ import { applyDefaults } from './applyDefaults.js'
 import { AceError } from '../../objects/AceError.js'
 import { write, getOne } from '../../util/storage.js'
 import { enumIdToGraphId } from '../id/enumIdToGraphId.js'
+import { validatePropValue } from '../../util/validatePropValue.js'
 import { ENUM_ID_PREFIX, ADD_NOW_DATE, RELATIONSHIP_PREFIX, getUniqueIndexKey, getNow, getNodeIdsKey, getSortIndexKey } from '../../util/variables.js'
 
 
@@ -101,10 +102,7 @@ async function populateInupNodesArray (reqItem, jwks, inupNodesArray) {
 
         const _errorData = { schemaProp, reqItem, nodePropName, nodePropValue }
 
-        if (schemaProp.options.dataType === 'string' && typeof nodePropValue !== 'string') throw AceError('aceFn__invalidPropValue__string', `Please ensure the node name ${ reqItem.how.node } with the prop name ${ nodePropName } is a typeof "string" because the schema property data type is "isoString"`, _errorData)
-        if (schemaProp.options.dataType === 'isoString' && typeof nodePropValue !== 'string') throw AceError('aceFn__invalidPropValue__isoString', `Please ensure the node name ${ reqItem.how.node } with the prop name ${ nodePropName } is a typeof "string" because the schema property data type is "string"`, _errorData)
-        if (schemaProp.options.dataType === 'number' && typeof nodePropValue !== 'number') throw AceError('aceFn__invalidPropValue__number', `Please ensure the node name ${ reqItem.how.node } with the prop name ${ nodePropName } is a typeof "number" because the schema property data type is "number"`, _errorData)
-        if (schemaProp.options.dataType === 'boolean' && typeof nodePropValue !== 'boolean') throw AceError('aceFn__invalidPropValue__boolean', `Please ensure the node name ${ reqItem.how.node} with the prop name ${ nodePropName } is a typeof "boolean" because the schema property data type is "boolean"`, _errorData)
+        validatePropValue(nodePropName, nodePropValue, schemaProp.options.dataType, reqItem.how.node, 'node', 'invalidPropValue', _errorData)
 
         if (schemaProp.options.dataType === 'hash') {
           const jwkName = reqItem.how.$o?.privateJWK
