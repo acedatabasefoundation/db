@@ -8,7 +8,7 @@ import { write, getOne } from '../../util/storage.js'
 import { enumIdToGraphId } from '../id/enumIdToGraphId.js'
 import { validatePropValue } from '../../util/validatePropValue.js'
 import { delete_IdFromRelationshipProp } from './delete_IdFromRelationshipProp.js'
-import { ENUM_ID_PREFIX, ADD_NOW_DATE, getNow, getRelationshipProp, getRelationshipIdsKey } from '../../util/variables.js'
+import { ENUM_ID_PREFIX, ADD_NOW_DATE, getNow, getRelationshipProp, getRelationshipIdsKey, getUniqueIndexKey } from '../../util/variables.js'
 
 
 /**
@@ -107,6 +107,7 @@ async function inupRelationshipPut (reqItem, schemaRelationship) {
         validatePropValue(relationshipPropName, relationshipPropValue, schemaProp.options.dataType, reqItem.how.relationship, 'relationship', 'invalidPropValue', { reqItem })
 
         if (relationshipPropValue === ADD_NOW_DATE && schemaProp.options.dataType === enums.dataTypes.isoString) props[relationshipPropName] = getNow() // populate now timestamp
+        if (schemaProp.options.uniqueIndex) write('upsert', getUniqueIndexKey(reqItem.how.relationship, relationshipPropName, relationshipPropValue), reqItem.how.props._id)
       }
     }
   }
