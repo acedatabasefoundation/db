@@ -284,7 +284,7 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceMemory
 /** AceMutate
  *
  * @typedef { AceMutateRequestItemEmpty | AceMutateRequestItemBackupLoad | AceMutateRequestItemSchema | AceMutateRequestItemNode | AceMutateRequestItemRelationship } AceMutateRequestItem
- * @typedef { AceMutateRequestItemSchemaAdd | AceMutateRequestItemSchemaUpdateNodeName | AceMutateRequestItemSchemaUpdateNodePropName | AceMutateRequestItemSchemaUpdateRelationshipName | AceMutateRequestItemSchemaUpdateRelationshipPropName | AceMutateRequestItemSchemaDeleteNodes | AceMutateRequestItemSchemaDeleteNodeProps | AceMutateRequestItemSchemaUpdateNodePropHas | AceMutateRequestItemSchemaUpdateNodePropCascade | AceMutateRequestItemSchemaUpdatePropDefault } AceMutateRequestItemSchema
+ * @typedef { AceMutateRequestItemSchemaAdd | AceMutateRequestItemSchemaUpdateNodeName | AceMutateRequestItemSchemaUpdateNodePropName | AceMutateRequestItemSchemaUpdateRelationshipName | AceMutateRequestItemSchemaUpdateRelationshipPropName | AceMutateRequestItemSchemaDeleteNodes | AceMutateRequestItemSchemaDeleteNodeProps | AceMutateRequestItemSchemaUpdateNodePropHas | AceMutateRequestItemSchemaUpdateNodePropCascade | AceMutateRequestItemSchemaUpdatePropDefault | AceMutateRequestItemSchemaUpdatePropMustBeDefined} AceMutateRequestItemSchema
  * @typedef { AceMutateRequestItemNodeInsert | AceMutateRequestItemNodeUpdate | AceMutateRequestItemNodeUpsert | AceMutateRequestItemNodeDelete | AceMutateRequestItemNodePropDelete | AceMutateRequestItemSchemaDeleteNodes | AceMutateRequestItemSchemaDeleteNodeProps } AceMutateRequestItemNode
  * @typedef { AceMutateRequestItemRelationshipInsert | AceMutateRequestItemRelationshipUpdate | AceMutateRequestItemRelationshipUpsert | AceMutateRequestItemRelationshipDelete | AceMutateRequestItemRelationshipPropDelete } AceMutateRequestItemRelationship
  *
@@ -338,7 +338,14 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceMemory
  * @typedef { ${ typedefs.mutate.SchemaUpdatePropDefaultType || '{ nodeOrRelationship: string, prop: string, default?: any }'} } AceMutateRequestItemSchemaUpdatePropDefaultProp - ${ typedefs.description.SchemaUpdatePropDefault }
  * @typedef { object } AceMutateRequestItemSchemaUpdatePropDefaultHow - ${ typedefs.description.SchemaUpdatePropDefault }
  * @property { AceMutateRequestItemSchemaUpdatePropDefaultProp[] } props - ${ typedefs.description.SchemaUpdatePropDefault }
- * 
+ *
+ * @typedef { object } AceMutateRequestItemSchemaUpdatePropMustBeDefined
+ * @property { typeof enums.aceDo.SchemaUpdatePropMustBeDefined } do
+ * @property { AceMutateRequestItemSchemaUpdatePropMustBeDefinedHow } how
+ * @typedef { ${ typedefs.mutate.SchemaUpdatePropMustBeDefinedType || '{ nodeOrRelationship: string, prop: string, mustBeDefined: boolean }'} } AceMutateRequestItemSchemaUpdatePropMustBeDefinedProp
+ * @typedef { object } AceMutateRequestItemSchemaUpdatePropMustBeDefinedHow
+ * @property { AceMutateRequestItemSchemaUpdatePropMustBeDefinedProp[] } props
+ *
  * @typedef { object } AceMutateRequestItemSchemaUpdateNodeName
  * @property { typeof enums.aceDo.SchemaUpdateNodeName } do
  * @property { AceMutateRequestItemSchemaUpdateNodeNameHow } how
@@ -633,7 +640,8 @@ function getSchemaTypedefs (schema) {
     Nodes: '',
     Relationships: '',
     description: {
-      SchemaUpdatePropDefault: 'To delete a default in your schema, in the props array, "default" must be undefined'
+      SchemaUpdatePropDefault: 'To remove "default" from a prop in the schema, in the props array, "default" must be undefined',
+      SchemaUpdatePropMustBeDefined: 'To remove "mustBeDefined" from a prop in the schema, in the props array, "mustBeDefined" must be undefined',
     },
     query: {
       Nodes: '',
@@ -680,6 +688,7 @@ function getSchemaTypedefs (schema) {
       RelationshipUpsertPropsTypes: '',
       SchemaUpdateNodePropCascadeType: '',
       SchemaUpdateRelationshipNameType: '',
+      SchemaUpdatePropMustBeDefinedType: '',
       SchemaUpdateRelationshipPropNameType: '',
       DefaultNodeUpPropsTypes: '{ id: string | number, [propName: string]: any }',
       DefaultRelationshipUpPropsTypes: '{ id: string | number, a: string, b: string, [propName: string]: any }'
@@ -748,6 +757,7 @@ function getSchemaTypedefs (schema) {
 
           typedefs.mutate.SchemaDeleteNodePropsType += `{ node: '${ schemaNodeName }', prop: '${ schemaNodePropName }' } | `
           typedefs.mutate.SchemaUpdateNodePropNameType += `{ node: '${ schemaNodeName }', nowName: '${ schemaNodePropName }', newName: string } | `
+          typedefs.mutate.SchemaUpdatePropMustBeDefinedType += `{ nodeOrRelationship: '${ schemaNodeName }', prop: '${ schemaNodePropName }', mustBeDefined: boolean } | `
 
           switch (schemaProp.is) {
             case 'Prop':
@@ -903,6 +913,7 @@ function getSchemaTypedefs (schema) {
           typedefs.mutate.RelationshipUpsertTypes += `\n * @property { ${ dataType } } ${ '[ ' + schemaRelationshipPropName + ' ]' } - ${ description }`
           typedefs.mutate.SchemaUpdateRelationshipPropNameType += `{ relationship: '${ schemaRelationshipName }', nowName: '${ schemaRelationshipPropName }', newName: string } | `
           typedefs.mutate.SchemaUpdatePropDefaultType += `{ nodeOrRelationship: '${ schemaRelationshipName }', prop: '${ schemaRelationshipPropName }', default?: any } | `
+          typedefs.mutate.SchemaUpdatePropMustBeDefinedType += `{ nodeOrRelationship: '${ schemaRelationshipName }', prop: '${ schemaRelationshipPropName }', mustBeDefined: boolean } | `
         }
       }
 
@@ -966,8 +977,9 @@ function getSchemaTypedefs (schema) {
   if (typedefs.mutate.SchemaDeleteNodePropsType) typedefs.mutate.SchemaDeleteNodePropsType = '(' + typedefs.mutate.SchemaDeleteNodePropsType.slice(0, -3) + ')[]'
   if (typedefs.mutate.SchemaUpdateNodePropHasType) typedefs.mutate.SchemaUpdateNodePropHasType = '(' + typedefs.mutate.SchemaUpdateNodePropHasType.slice(0, -3) + ')[]'
   if (typedefs.mutate.SchemaUpdateNodePropNameType) typedefs.mutate.SchemaUpdateNodePropNameType = '(' + typedefs.mutate.SchemaUpdateNodePropNameType.slice(0, -3) + ')[]'
-  if (typedefs.mutate.SchemaUpdateRelationshipNameType) typedefs.mutate.SchemaUpdateRelationshipNameType = '(' + typedefs.mutate.SchemaUpdateRelationshipNameType.slice(0, -3) + ')[]'
+  if (typedefs.mutate.SchemaUpdatePropMustBeDefinedType) typedefs.mutate.SchemaUpdatePropMustBeDefinedType = typedefs.mutate.SchemaUpdatePropMustBeDefinedType.slice(0, -3)
   if (typedefs.mutate.SchemaUpdateNodePropCascadeType) typedefs.mutate.SchemaUpdateNodePropCascadeType = '(' + typedefs.mutate.SchemaUpdateNodePropCascadeType.slice(0, -3) + ')[]'
+  if (typedefs.mutate.SchemaUpdateRelationshipNameType) typedefs.mutate.SchemaUpdateRelationshipNameType = '(' + typedefs.mutate.SchemaUpdateRelationshipNameType.slice(0, -3) + ')[]'
   if (typedefs.mutate.SchemaUpdateRelationshipPropNameType) typedefs.mutate.SchemaUpdateRelationshipPropNameType = '(' + typedefs.mutate.SchemaUpdateRelationshipPropNameType.slice(0, -3) + ')[]'
 
 

@@ -39,6 +39,49 @@ export async function validateMustBeDefined () {
 
 /**
  * @param { string } node 
+ * @param { string } relationship 
+ * @param { string } prop 
+ * @param { td.AceGraphNode } graphNode 
+ * @param { td.AceGraphNodeProps } props 
+ * @returns { void }
+ */
+export function validateBidirectionalProp (node, relationship, prop, graphNode, props) {
+  const relationshipProp = getRelationshipProp(relationship)
+  if (typeof graphNode[relationshipProp] === 'undefined') throw getEror('node', node, prop, props)
+}
+
+
+/**
+ * @param { 'a' | 'b' } direction 
+ * @param { string } node 
+ * @param { string } relationship 
+ * @param { string } prop 
+ * @param { td.AceGraphNode } graphNode 
+ * @param { td.AceGraphNodeProps } props 
+ * @returns { Promise<void> }
+ */
+export async function validateDirectionProp (direction, node, relationship, prop, graphNode, props) {
+  let isValid = false
+  const relationshipProp = getRelationshipProp(relationship)
+  const relationshipIds = graphNode[relationshipProp]
+
+  if (relationshipIds?.length) {
+    const graphRelationships = await getMany(relationshipIds)
+
+    for (const entry of graphRelationships) {
+      if (entry[1].props[direction] === graphNode.props.id) {
+        isValid = true
+        break
+      }
+    }
+  }
+
+  if (!isValid) throw getEror('node', node, prop, props)
+}
+
+
+/**
+ * @param { string } node 
  * @param { td.AceGraphNodeProps } props 
  * @param { string } mustProp 
  * @returns { void }
@@ -65,62 +108,12 @@ function validateRelationshipProp (relationship, props) {
 
 
 /**
- * @param { string } node 
- * @param { string } relationship 
- * @param { string } prop 
- * @param { td.AceGraphNode } graphNode 
- * @param { td.AceGraphNodeProps } props 
- * @returns { void }
- */
-function validateBidirectionalProp (node, relationship, prop, graphNode, props) {
-  const relationshipProp = getRelationshipProp(relationship)
-  if (typeof graphNode[relationshipProp] === 'undefined') throw getEror('node', node, prop, props)
-}
-
-
-/**
- * @param { 'a' | 'b' } direction 
- * @param { string } node 
- * @param { string } relationship 
- * @param { string } prop 
- * @param { td.AceGraphNode } graphNode 
- * @param { td.AceGraphNodeProps } props 
- * @returns { Promise<void> }
- */
-async function validateDirectionProp (direction, node, relationship, prop, graphNode, props) {
-  let isValid = false
-  const relationshipProp = getRelationshipProp(relationship)
-  const relationshipIds = graphNode[relationshipProp]
-
-  if (relationshipIds?.length) {
-    const graphRelationships = await getMany(relationshipIds)
-
-    for (const entry of graphRelationships) {
-      if (entry[1].props[direction] === graphNode.props.id) {
-        isValid = true
-        break
-      }
-    }
-  }
-
-  if (!isValid) throw getEror('node', node, prop, props)
-}
-
-
-/**
  * @param { 'node' | 'relationship' } type 
  * @param { string } name
  * @param { string } propName 
- * @param { * } props 
+ * @param { * } graphItem 
  * @returns { td.AceError }
  */
-function getEror (type, name, propName, props) {
-  /** @type { { [k: string]: string | number } } */
-  const enumIds = {}
-
-  for (const entry of Memory.txn.enumGraphIdsMap) {
-    enumIds[entry[0]] = entry[1]
-  }
-
-  return AceError('aceFn__missingMustBeDefinedProp', `Please ensure each request item has all must be defined props. This is not happening yet at ${ type } "${ name }", prop "${ propName }"`, { type, name, mustBeDefinedProp: propName, reqProps: props, enumIds })
+function getEror (type, name, propName, graphItem) {
+  return AceError('aceFn__missingMustBeDefinedProp', `Please ensure each request item has all must be defined props. This is not happening yet at ${ type } "${ name }", prop: "${ propName }"`, { type, name, mustBeDefinedProp: propName, graphItem })
 }

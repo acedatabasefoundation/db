@@ -25,9 +25,9 @@ export async function schemaUpdatePropDefault (reqItem) {
 
 
     // validate reqItem
-    if (!schemaProp) throw AceError('aceFn__schemaUpdatePropDefault__invalidReq', `Please ensure when attempting to update node or relationship prop default, the node or relationship and prop are defined in your schema. This is not happening yet for the node or relationship: ${ prop.nodeOrRelationship } and prop: ${ prop.prop }`, { reqItem })
-    if (schemaProp.is !== 'Prop' && schemaProp.is !== 'RelationshipProp') throw AceError('aceFn__schemaUpdatePropDefault__invalidProp', `Please ensure when attempting to update node or relationship prop default, the prop or relationship has an "is" in your schema of "Prop" or "RelationshipProp". This is not happening yet for the node or relationship: ${ prop.nodeOrRelationship } and prop: ${ prop.prop }`, { reqItem })
-    if (typeof prop.default !== 'undefined') validatePropValue(prop.prop, prop.default, schemaProp.options.dataType, prop.nodeOrRelationship, 'node or relationship', 'schemaUpdatePropDefault', { reqItem })
+    if (!schemaProp) throw AceError('aceFn__schemaUpdatePropDefault__invalidReq', `Please ensure when attempting to update node or relationship prop default, the node or relationship and prop are defined in your schema. This is not happening yet for the node or relationship: ${ prop.nodeOrRelationship } and prop: ${ prop.prop }`, { reqItemProp: prop })
+    if (schemaProp.is !== 'Prop' && schemaProp.is !== 'RelationshipProp') throw AceError('aceFn__schemaUpdatePropDefault__invalidProp', `Please ensure when attempting to update node or relationship prop default, the prop or relationship has an "is" in your schema of "Prop" or "RelationshipProp". This is not happening yet for the node or relationship: ${ prop.nodeOrRelationship } and prop: ${ prop.prop }`, { reqItemProp: prop })
+    if (typeof prop.default !== 'undefined') validatePropValue(prop.prop, prop.default, schemaProp.options.dataType, prop.nodeOrRelationship, 'node or relationship', 'schemaUpdatePropDefault', { reqItemProp: prop })
 
 
     // add to propsByNode || add to propsByRelationship

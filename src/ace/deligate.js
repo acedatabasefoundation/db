@@ -10,14 +10,15 @@ import { schemaDeleteNodes } from '../schema/schemaDeleteNodes.js'
 import { deleteNodePropsById } from './mutate/deleteNodePropsById.js'
 import { schemaUpdateNodeName } from '../schema/schemaUpdateNodeName.js'
 import { schemaDeleteNodeProps } from '../schema/schemaDeleteNodeProps.js'
+import { schemaUpdatePropDefault } from '../schema/schemaUpdatePropDefault.js'
 import { schemaUpdateNodePropHas } from '../schema/schemaUpdateNodePropHas.js'
 import { schemaUpdateNodePropName } from '../schema/schemaUpdateNodePropName.js'
 import { deleteRelationshipsBy_Ids } from './mutate/deleteRelationshipsBy_Ids.js'
 import { deleteRelationshipPropsById } from './mutate/deleteRelationshipPropsById.js'
-import { schemaUpdateRelationshipName } from '../schema/schemaUpdateRelationshipName.js'
-import { schemaUpdateRelationshipPropName } from '../schema/schemaUpdateRelationshipPropName.js'
 import { schemaUpdateNodePropCascade } from '../schema/schemaUpdateNodePropCascade.js'
-import { schemaUpdatePropDefault } from '../schema/schemaUpdatePropDefault.js'
+import { schemaUpdateRelationshipName } from '../schema/schemaUpdateRelationshipName.js'
+import { schemaUpdatePropMustBeDefined } from '../schema/schemaUpdatePropMustBeDefined.js'
+import { schemaUpdateRelationshipPropName } from '../schema/schemaUpdateRelationshipPropName.js'
 
 
 /**
@@ -129,6 +130,11 @@ export async function deligate (req, res, jwks) {
 
       case 'SchemaUpdatePropDefault':
         await schemaUpdatePropDefault(/** @type { td.AceMutateRequestItemSchemaUpdatePropDefault } */(req[iReq]))
+        break
+
+
+      case 'SchemaUpdatePropMustBeDefined':
+        await schemaUpdatePropMustBeDefined(/** @type { td.AceMutateRequestItemSchemaUpdatePropMustBeDefined } */(req[iReq]))
         break
     }
   }
