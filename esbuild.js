@@ -94,6 +94,8 @@ esbuild.build({ // // https://esbuild.github.io/api/
     './tsc/src/schema/schemaUpdateNodePropHas.js',
     './tsc/src/schema/schemaUpdateNodePropName.js',
     './tsc/src/schema/schemaUpdatePropMustBeDefined.js',
+    './tsc/src/schema/schemaUpdatePropSortIndex.js',
+    './tsc/src/schema/schemaUpdatePropUniqueIndex.js',
     './tsc/src/schema/schemaUpdatePropDefault.js',
     './tsc/src/schema/schemaUpdateRelationshipName.js',
     './tsc/src/schema/schemaUpdateRelationshipPropName.js',

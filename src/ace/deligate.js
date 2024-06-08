@@ -14,8 +14,10 @@ import { schemaUpdatePropDefault } from '../schema/schemaUpdatePropDefault.js'
 import { schemaUpdateNodePropHas } from '../schema/schemaUpdateNodePropHas.js'
 import { schemaUpdateNodePropName } from '../schema/schemaUpdateNodePropName.js'
 import { deleteRelationshipsBy_Ids } from './mutate/deleteRelationshipsBy_Ids.js'
+import { schemaUpdatePropSortIndex } from '../schema/schemaUpdatePropSortIndex.js'
 import { deleteRelationshipPropsById } from './mutate/deleteRelationshipPropsById.js'
 import { schemaUpdateNodePropCascade } from '../schema/schemaUpdateNodePropCascade.js'
+import { schemaUpdatePropUniqueIndex } from '../schema/schemaUpdatePropUniqueIndex.js'
 import { schemaUpdateRelationshipName } from '../schema/schemaUpdateRelationshipName.js'
 import { schemaUpdatePropMustBeDefined } from '../schema/schemaUpdatePropMustBeDefined.js'
 import { schemaUpdateRelationshipPropName } from '../schema/schemaUpdateRelationshipPropName.js'
@@ -135,6 +137,16 @@ export async function deligate (req, res, jwks) {
 
       case 'SchemaUpdatePropMustBeDefined':
         await schemaUpdatePropMustBeDefined(/** @type { td.AceMutateRequestItemSchemaUpdatePropMustBeDefined } */(req[iReq]))
+        break
+
+
+      case 'SchemaUpdatePropSortIndex':
+        await schemaUpdatePropSortIndex(/** @type { td.AceMutateRequestItemSchemaUpdatePropSortIndex } */(req[iReq]))
+        break
+
+
+      case 'SchemaUpdatePropUniqueIndex':
+        await schemaUpdatePropUniqueIndex(/** @type { td.AceMutateRequestItemSchemaUpdatePropUniqueIndex } */(req[iReq]))
         break
     }
   }

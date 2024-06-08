@@ -26,6 +26,8 @@ export const aceDo = new Map([ // boolean => will this id write to the graph (he
   // Schema Update Prop
   [ 'SchemaUpdatePropDefault', true ],
   [ 'SchemaUpdatePropMustBeDefined', true ],
+  [ 'SchemaUpdatePropSortIndex', true ],
+  [ 'SchemaUpdatePropUniqueIndex', true ],
   [ 'SchemaUpdateNodePropCascade', true ],
   [ 'SchemaUpdateNodePropHas', true ],
 

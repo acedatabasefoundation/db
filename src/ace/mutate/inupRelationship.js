@@ -111,8 +111,8 @@ async function inupRelationshipPut (jwks, reqItem, schemaRelationship) {
 
       if (schemaProp.options.dataType === 'hash') await hashMutationProp('relationship', reqItem.how.relationship, reqItem.how.props, propName, props[propName], schemaProp, jwks, reqItem.how.$o?.privateJWK)
       if (schemaProp.options.dataType === 'isoString' && props[propName] === ADD_NOW_DATE) props[propName] = getNow() // populate now timestamp
-      if (schemaProp.options.uniqueIndex) write('upsert', getUniqueIndexKey(reqItem.how.relationship, propName, props[propName]), reqItem.how.props._id)
-      if (schemaProp.options.sortIndex) addToSortIndexMap(reqItem.how.props._id, schemaProp, reqItem.how.relationship, propName)
+      if (schemaProp.options.uniqueIndex && typeof props[propName] !== 'undefined') write('upsert', getUniqueIndexKey(reqItem.how.relationship, propName, props[propName]), reqItem.how.props._id)
+      if (schemaProp.options.sortIndex) addToSortIndexMap(schemaProp, reqItem.how.relationship, propName, reqItem.how.props._id)
     }
   }
 

@@ -73,8 +73,8 @@ import * as enums from './enums.js'
  * @property { Map<string | number, number> } enumGraphIdsMap
  * @property { Map<string | number, { do: enums.writeDo, value: * }> } writeMap
  * @property { string } writeStr
- * @property { Map<string, { propName: string, newIds: (string | number)[] }> } sortIndexMap - If we add a node and prop and that node+prop has a sort index, put the newly created nodes in here
- * 
+ * @property { Map<string, { schemaProp: AceSchemaProp | AceSchemaRelationshipProp, nodeOrRelationshipName: string, propName: string, newIds: (string | number)[] }> } sortIndexMap - If we add a node and prop and that node+prop has a sort index, put the newly created nodes in here
+ *
  * @typedef { object } AceTxnSchemaDataStructures
  * @property { Map<string, AceTxnSchemaDataStructuresDefaultItem[]> } defaults
  * @property { Map<string, Set<string>> } cascade
@@ -273,7 +273,7 @@ import * as enums from './enums.js'
 /** AceMutate
  *
  * @typedef { AceMutateRequestItemEmpty | AceMutateRequestItemBackupLoad | AceMutateRequestItemSchema | AceMutateRequestItemNode | AceMutateRequestItemRelationship } AceMutateRequestItem
- * @typedef { AceMutateRequestItemSchemaAdd | AceMutateRequestItemSchemaUpdateNodeName | AceMutateRequestItemSchemaUpdateNodePropName | AceMutateRequestItemSchemaUpdateRelationshipName | AceMutateRequestItemSchemaUpdateRelationshipPropName | AceMutateRequestItemSchemaDeleteNodes | AceMutateRequestItemSchemaDeleteNodeProps | AceMutateRequestItemSchemaUpdateNodePropHas | AceMutateRequestItemSchemaUpdateNodePropCascade | AceMutateRequestItemSchemaUpdatePropDefault | AceMutateRequestItemSchemaUpdatePropMustBeDefined} AceMutateRequestItemSchema
+ * @typedef { AceMutateRequestItemSchemaAdd | AceMutateRequestItemSchemaUpdateNodeName | AceMutateRequestItemSchemaUpdateNodePropName | AceMutateRequestItemSchemaUpdateRelationshipName | AceMutateRequestItemSchemaUpdateRelationshipPropName | AceMutateRequestItemSchemaDeleteNodes | AceMutateRequestItemSchemaDeleteNodeProps | AceMutateRequestItemSchemaUpdateNodePropHas | AceMutateRequestItemSchemaUpdateNodePropCascade | AceMutateRequestItemSchemaUpdatePropDefault | AceMutateRequestItemSchemaUpdatePropMustBeDefined | AceMutateRequestItemSchemaUpdatePropSortIndex | AceMutateRequestItemSchemaUpdatePropUniqueIndex } AceMutateRequestItemSchema
  * @typedef { AceMutateRequestItemNodeInsert | AceMutateRequestItemNodeUpdate | AceMutateRequestItemNodeUpsert | AceMutateRequestItemNodeDelete | AceMutateRequestItemNodePropDelete | AceMutateRequestItemSchemaDeleteNodes | AceMutateRequestItemSchemaDeleteNodeProps } AceMutateRequestItemNode
  * @typedef { AceMutateRequestItemRelationshipInsert | AceMutateRequestItemRelationshipUpdate | AceMutateRequestItemRelationshipUpsert | AceMutateRequestItemRelationshipDelete | AceMutateRequestItemRelationshipPropDelete } AceMutateRequestItemRelationship
  *
@@ -382,6 +382,20 @@ import * as enums from './enums.js'
  * @typedef { { nodeOrRelationship: string, prop: string, mustBeDefined: boolean } } AceMutateRequestItemSchemaUpdatePropMustBeDefinedProp
  * @typedef { object } AceMutateRequestItemSchemaUpdatePropMustBeDefinedHow
  * @property { AceMutateRequestItemSchemaUpdatePropMustBeDefinedProp[] } props
+ *
+ * @typedef { object } AceMutateRequestItemSchemaUpdatePropSortIndex
+ * @property { typeof enums.aceDo.SchemaUpdatePropSortIndex } do
+ * @property { AceMutateRequestItemSchemaUpdatePropSortIndexHow } how
+ * @typedef { { nodeOrRelationship: string, prop: string, sortIndex: boolean } } AceMutateRequestItemSchemaUpdatePropSortIndexProp
+ * @typedef { object } AceMutateRequestItemSchemaUpdatePropSortIndexHow
+ * @property { AceMutateRequestItemSchemaUpdatePropSortIndexProp[] } props
+ *
+ * @typedef { object } AceMutateRequestItemSchemaUpdatePropUniqueIndex
+ * @property { typeof enums.aceDo.SchemaUpdatePropUniqueIndex } do
+ * @property { AceMutateRequestItemSchemaUpdatePropUniqueIndexHow } how
+ * @typedef { { nodeOrRelationship: string, prop: string, uniqueIndex: boolean } } AceMutateRequestItemSchemaUpdatePropUniqueIndexProp
+ * @typedef { object } AceMutateRequestItemSchemaUpdatePropUniqueIndexHow
+ * @property { AceMutateRequestItemSchemaUpdatePropUniqueIndexProp[] } props
  *
  * @typedef { object } AceMutateRequestItemSchemaUpdateNodeName
  * @property { typeof enums.aceDo.SchemaUpdateNodeName } do

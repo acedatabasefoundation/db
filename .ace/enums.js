@@ -1,4 +1,4 @@
-/** @typedef { 'Empty' | 'BackupGet' | 'BackupLoad' | 'PluginInstall' | 'PluginUninstall' | 'SchemaGet' | 'SchemaAdd' | 'SchemaUpdateNodeName' | 'SchemaUpdateNodePropName' | 'SchemaUpdateRelationshipName' | 'SchemaUpdateRelationshipPropName' | 'SchemaDeleteNodes' | 'SchemaDeleteNodeProps' | 'SchemaDeleteRelationships' | 'SchemaDeleteRelationshipProps' | 'SchemaUpdatePropDefault' | 'SchemaUpdatePropMustBeDefined' | 'SchemaUpdateNodePropCascade' | 'SchemaUpdateNodePropHas' | 'NodeInsert' | 'NodeUpdate' | 'NodeUpsert' | 'NodeQuery' | 'NodeDelete' | 'NodePropDelete' | 'RelationshipInsert' | 'RelationshipUpdate' | 'RelationshipUpsert' | 'RelationshipQuery' | 'RelationshipDelete' | 'RelationshipPropDelete' } aceDo */
+/** @typedef { 'Empty' | 'BackupGet' | 'BackupLoad' | 'PluginInstall' | 'PluginUninstall' | 'SchemaGet' | 'SchemaAdd' | 'SchemaUpdateNodeName' | 'SchemaUpdateNodePropName' | 'SchemaUpdateRelationshipName' | 'SchemaUpdateRelationshipPropName' | 'SchemaDeleteNodes' | 'SchemaDeleteNodeProps' | 'SchemaDeleteRelationships' | 'SchemaDeleteRelationshipProps' | 'SchemaUpdatePropDefault' | 'SchemaUpdatePropMustBeDefined' | 'SchemaUpdatePropSortIndex' | 'SchemaUpdatePropUniqueIndex' | 'SchemaUpdateNodePropCascade' | 'SchemaUpdateNodePropHas' | 'NodeInsert' | 'NodeUpdate' | 'NodeUpsert' | 'NodeQuery' | 'NodeDelete' | 'NodePropDelete' | 'RelationshipInsert' | 'RelationshipUpdate' | 'RelationshipUpsert' | 'RelationshipQuery' | 'RelationshipDelete' | 'RelationshipPropDelete' } aceDo */
 export const aceDo = {
   Empty: /** @type { 'Empty' } */ ('Empty'),
   BackupGet: /** @type { 'BackupGet' } */ ('BackupGet'),
@@ -17,6 +17,8 @@ export const aceDo = {
   SchemaDeleteRelationshipProps: /** @type { 'SchemaDeleteRelationshipProps' } */ ('SchemaDeleteRelationshipProps'),
   SchemaUpdatePropDefault: /** @type { 'SchemaUpdatePropDefault' } */ ('SchemaUpdatePropDefault'),
   SchemaUpdatePropMustBeDefined: /** @type { 'SchemaUpdatePropMustBeDefined' } */ ('SchemaUpdatePropMustBeDefined'),
+  SchemaUpdatePropSortIndex: /** @type { 'SchemaUpdatePropSortIndex' } */ ('SchemaUpdatePropSortIndex'),
+  SchemaUpdatePropUniqueIndex: /** @type { 'SchemaUpdatePropUniqueIndex' } */ ('SchemaUpdatePropUniqueIndex'),
   SchemaUpdateNodePropCascade: /** @type { 'SchemaUpdateNodePropCascade' } */ ('SchemaUpdateNodePropCascade'),
   SchemaUpdateNodePropHas: /** @type { 'SchemaUpdateNodePropHas' } */ ('SchemaUpdateNodePropHas'),
   NodeInsert: /** @type { 'NodeInsert' } */ ('NodeInsert'),

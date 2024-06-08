@@ -107,8 +107,8 @@ async function populateInupNodesArray (jwks, reqItem, inupNodesArray) {
 
         if (schemaProp.options.dataType === 'hash') await hashMutationProp('node', reqItem.how.node, props, propName, props[propName], schemaProp, jwks, reqItem.how.$o?.privateJWK)
         if (schemaProp.options.dataType === 'isoString' && props[propName] === ADD_NOW_DATE) props[propName] = getNow()
-        if (schemaProp.options.uniqueIndex) write('upsert', getUniqueIndexKey(reqItem.how.node, propName, props[propName]), graphId)
-        if (schemaProp.options.sortIndex) addToSortIndexMap(graphId, schemaProp, reqItem.how.node, propName)
+        if (schemaProp.options.uniqueIndex && typeof props[propName] !== 'undefined') write('upsert', getUniqueIndexKey(reqItem.how.node, propName, props[propName]), graphId)
+        if (schemaProp.options.sortIndex) addToSortIndexMap(schemaProp, reqItem.how.node, propName, graphId)
       }
     }
 

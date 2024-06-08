@@ -87,6 +87,8 @@
     "src/schema/schemaUpdateNodePropHas.js",
     "src/schema/schemaUpdateNodePropName.js",
     "src/schema/schemaUpdatePropMustBeDefined.js",
+    "src/schema/schemaUpdatePropSortIndex.js",
+    "src/schema/schemaUpdatePropUniqueIndex.js",
     "src/schema/schemaUpdatePropDefault.js",
     "src/schema/schemaUpdateRelationshipName.js",
     "src/schema/schemaUpdateRelationshipPropName.js",
