@@ -16,7 +16,7 @@ import { emptyFile } from '../../empty/emptyFile.js'
 import { setSchema } from '../../schema/setSchema.js'
 import { writeSchema } from '../../schema/writeSchema.js'
 import { walMapInitialize } from '../../wal/walMapInitialize.js'
-import { addSortIndicesToGraph } from '../addSortIndicesToGraph.js'
+import { addSortIndicesToGraph } from '../mutate/addSortIndicesToGraph.js'
 import { validateMustBeDefined } from '../mutate/validateMustBeDefined.js'
 
 

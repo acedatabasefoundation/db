@@ -14,6 +14,8 @@ esbuild.build({ // // https://esbuild.github.io/api/
     './tsc/src/ace/id/enumIdToGraphId.js',
     './tsc/src/ace/id/getGraphId.js',
 
+    './tsc/src/ace/mutate/addSortIndicesToGraph.js',
+    './tsc/src/ace/mutate/addToSortIndexMap.js',
     './tsc/src/ace/mutate/applyDefaults.js',
     './tsc/src/ace/mutate/delete_IdsFromRelationshipIndex.js',
     './tsc/src/ace/mutate/delete_IdFromRelationshipProp.js',
@@ -21,6 +23,7 @@ esbuild.build({ // // https://esbuild.github.io/api/
     './tsc/src/ace/mutate/deleteNodesById.js',
     './tsc/src/ace/mutate/deleteRelationshipPropsById.js',
     './tsc/src/ace/mutate/deleteRelationshipsBy_Ids.js',
+    './tsc/src/ace/mutate/hashMutationProp.js',
     './tsc/src/ace/mutate/inupNode.js',
     './tsc/src/ace/mutate/inupRelationship.js',
     './tsc/src/ace/mutate/overwriteIds.js',
@@ -40,7 +43,6 @@ esbuild.build({ // // https://esbuild.github.io/api/
     './tsc/src/ace/txn/setTxnTimer.js',
 
     './tsc/src/ace/ace.js',
-    './tsc/src/ace/addSortIndicesToGraph.js',
     './tsc/src/ace/deligate.js',
     './tsc/src/ace/log.js',
     './tsc/src/ace/set$ace.js',

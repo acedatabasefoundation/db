@@ -1,22 +1,25 @@
-import { td, enums } from '#ace'
+import { td } from '#ace'
 import { Memory } from '../../objects/Memory.js'
 import { getGraphId } from '../id/getGraphId.js'
 import { overwriteIds } from './overwriteIds.js'
 import { applyDefaults } from './applyDefaults.js'
 import { AceError } from '../../objects/AceError.js'
 import { write, getOne } from '../../util/storage.js'
+import { hashMutationProp } from './hashMutationProp.js'
 import { enumIdToGraphId } from '../id/enumIdToGraphId.js'
+import { addToSortIndexMap } from './addToSortIndexMap.js'
 import { validatePropValue } from '../../util/validatePropValue.js'
 import { delete_IdFromRelationshipProp } from './delete_IdFromRelationshipProp.js'
 import { ENUM_ID_PREFIX, ADD_NOW_DATE, getNow, getRelationshipProp, getRelationshipIdsKey, getUniqueIndexKey } from '../../util/variables.js'
 
 
 /**
- * Insert / Update Relationships
+ * Insert, Update or Upsert Relationships
+ * @param { td.AceFnCryptoJWKs } jwks 
  * @param { td.AceMutateRequestItemRelationshipInup } reqItem 
  * @returns { Promise<void> }
  */
-export async function inupRelationship (reqItem) {
+export async function inupRelationship (jwks, reqItem) {
   if (Memory.txn.schema?.relationships?.[reqItem?.how?.relationship]) {
     const schemaRelationship = Memory.txn.schema?.relationships?.[reqItem.how.relationship]
 
@@ -63,7 +66,7 @@ export async function inupRelationship (reqItem) {
       reqItem.how.props = { ...graphNode.props, ...reqItem.how.props }
     }
 
-    await inupRelationshipPut(reqItem, schemaRelationship)
+    await inupRelationshipPut(jwks, reqItem, schemaRelationship)
   }
 }
 
@@ -87,28 +90,29 @@ async function updatePreviousRelationshipNode (isDifferent, deletedNodeId, reqIt
 
 
 /**
+ * @param { td.AceFnCryptoJWKs } jwks 
  * @param { td.AceMutateRequestItemRelationshipInup } reqItem 
  * @param { td.AceSchemaRelationshipValue } schemaRelationship 
  * @returns { Promise<void> }
  */
-async function inupRelationshipPut (reqItem, schemaRelationship) {
+async function inupRelationshipPut (jwks, reqItem, schemaRelationship) {
   const props = reqItem.how.props
 
   if (reqItem.do === 'RelationshipInsert') props._id = await getGraphId()
 
-  for (const relationshipPropName in props) {
-    const relationshipPropValue = props[relationshipPropName]
+  for (const propName in props) {
+    if (typeof props[propName] === 'string' && props[propName].startsWith(ENUM_ID_PREFIX)) overwriteIds(props, propName)
+    else if (propName !== '_id' && propName !== 'a' && propName !== 'b') {
+      const schemaProp = schemaRelationship.props?.[propName]
 
-    if (typeof relationshipPropValue === 'string' && relationshipPropValue.startsWith(ENUM_ID_PREFIX)) overwriteIds(props, relationshipPropName)
-    else if (relationshipPropName !== '_id' && relationshipPropName !== 'a' && relationshipPropName !== 'b') {
-      const schemaProp = schemaRelationship.props?.[relationshipPropName]
+      if (!schemaProp) throw AceError('aceFn__invalidRelationshipProp', `Please ensure when mutating relationships the relationship name and prop name exist in the schema. This is not happening yet for the relationship name: "${ reqItem.how.relationship }" and the prop name: "${ propName }"`, { reqItem })
 
-      if (schemaProp) {
-        validatePropValue(relationshipPropName, relationshipPropValue, schemaProp.options.dataType, reqItem.how.relationship, 'relationship', 'invalidPropValue', { reqItem })
+      validatePropValue(propName, props[propName], schemaProp.options.dataType, reqItem.how.relationship, 'relationship', 'invalidPropValue', { reqItem })
 
-        if (relationshipPropValue === ADD_NOW_DATE && schemaProp.options.dataType === enums.dataTypes.isoString) props[relationshipPropName] = getNow() // populate now timestamp
-        if (schemaProp.options.uniqueIndex) write('upsert', getUniqueIndexKey(reqItem.how.relationship, relationshipPropName, relationshipPropValue), reqItem.how.props._id)
-      }
+      if (schemaProp.options.dataType === 'hash') await hashMutationProp('relationship', reqItem.how.relationship, reqItem.how.props, propName, props[propName], schemaProp, jwks, reqItem.how.$o?.privateJWK)
+      if (schemaProp.options.dataType === 'isoString' && props[propName] === ADD_NOW_DATE) props[propName] = getNow() // populate now timestamp
+      if (schemaProp.options.uniqueIndex) write('upsert', getUniqueIndexKey(reqItem.how.relationship, propName, props[propName]), reqItem.how.props._id)
+      if (schemaProp.options.sortIndex) addToSortIndexMap(reqItem.how.props._id, schemaProp, reqItem.how.relationship, propName)
     }
   }
 

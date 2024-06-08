@@ -1,36 +1,38 @@
 import { td } from '#ace'
-import { sign } from '../../security/hash.js'
 import { Memory } from '../../objects/Memory.js'
 import { overwriteIds } from './overwriteIds.js'
 import { getGraphId } from '../id/getGraphId.js'
 import { applyDefaults } from './applyDefaults.js'
 import { AceError } from '../../objects/AceError.js'
 import { write, getOne } from '../../util/storage.js'
+import { hashMutationProp } from './hashMutationProp.js'
 import { enumIdToGraphId } from '../id/enumIdToGraphId.js'
+import { addToSortIndexMap } from './addToSortIndexMap.js'
 import { validatePropValue } from '../../util/validatePropValue.js'
-import { ENUM_ID_PREFIX, ADD_NOW_DATE, RELATIONSHIP_PREFIX, getUniqueIndexKey, getNow, getNodeIdsKey, getSortIndexKey } from '../../util/variables.js'
+import { ENUM_ID_PREFIX, ADD_NOW_DATE, RELATIONSHIP_PREFIX, getUniqueIndexKey, getNow, getNodeIdsKey } from '../../util/variables.js'
 
 
 
 /**
+ * Insert, Update or Upsert Nodes
  * @param { td.AceFnCryptoJWKs } jwks 
  * @param { td.AceMutateRequestItemNodeInsert | td.AceMutateRequestItemNodeUpdate | td.AceMutateRequestItemNodeUpsert } reqItem 
  * @returns { Promise<void> }
  */
 export async function inupNode (jwks, reqItem) {
   const inupNodesArray = /** @type { [ td.AceMutateRequestItemNodeInsert | td.AceMutateRequestItemNodeUpdate, string ][] } */ ([]) // In this array we keep track of meta data for all the items we want to add to the graph. We need to go though all the ids once first to fully populate newIdsMap
-  await populateInupNodesArray(reqItem, jwks, inupNodesArray)
+  await populateInupNodesArray(jwks, reqItem, inupNodesArray)
   await implementInupNodesArray(inupNodesArray)
 }
 
 
 /**
- * @param { td.AceMutateRequestItemNodeInsert | td.AceMutateRequestItemNodeUpdate | td.AceMutateRequestItemNodeUpsert } reqItem 
  * @param { td.AceFnCryptoJWKs } jwks 
+ * @param { td.AceMutateRequestItemNodeInsert | td.AceMutateRequestItemNodeUpdate | td.AceMutateRequestItemNodeUpsert } reqItem 
  * @param { [ td.AceMutateRequestItemNodeInsert | td.AceMutateRequestItemNodeUpdate, (string | number) ][] } inupNodesArray 
  * @returns { Promise<void> }
  */
-async function populateInupNodesArray (reqItem, jwks, inupNodesArray) {
+async function populateInupNodesArray (jwks, reqItem, inupNodesArray) {
   if (Memory.txn.schema?.nodes[reqItem?.how.node]) {
     const startsWithIdPrefix = typeof reqItem.how.props.id === 'string' && reqItem.how.props.id.startsWith(ENUM_ID_PREFIX)
 
@@ -92,38 +94,21 @@ async function populateInupNodesArray (reqItem, jwks, inupNodesArray) {
       write('upsert', getNodeIdsKey(reqItem.how.node), nodeIds)
     }
 
-    for (const nodePropName in reqItem.how.props) { // loop each request property => validate each property => IF invalid throw errors => IF valid do index things
-      const reqItemX = /** @type { { [k: string]: any } } */ (reqItem.how.props)
-      const nodePropValue = reqItemX[nodePropName]
-      const schemaProp = /** @type { td.AceSchemaProp } */ (Memory.txn.schema?.nodes?.[reqItem.how.node][nodePropName])
+    for (const propName in reqItem.how.props) { // loop each request property => validate each property => IF invalid throw errors => IF valid do index things
+      const props = reqItem.how.props
+      const schemaProp = /** @type { td.AceSchemaProp } */ (Memory.txn.schema?.nodes?.[reqItem.how.node][propName])
 
-      if (nodePropName !== 'id') {
-        if (schemaProp?.is !== 'Prop') throw AceError('aceFn__invalidSchemaProp', `Please ensure when mutating nodes the node name and prop name exist in the schema. This is not happening yet for the node name: ${ reqItem.how.node } and the prop name: ${ nodePropName }`, { reqItem, nodePropName })
+      if (propName !== 'id') {
+        if (schemaProp?.is !== 'Prop') throw AceError('aceFn__invalidNodeProp', `Please ensure when mutating nodes the node name and prop name exist in the schema. This is not happening yet for the node name: ${ reqItem.how.node } and the prop name: ${ propName }`, { reqItem, nodePropName: propName })
 
-        const _errorData = { schemaProp, reqItem, nodePropName, nodePropValue }
+        const _errorData = { schemaProp, reqItem, propName, propValue: props[propName] }
 
-        validatePropValue(nodePropName, nodePropValue, schemaProp.options.dataType, reqItem.how.node, 'node', 'invalidPropValue', _errorData)
+        validatePropValue(propName, props[propName], schemaProp.options.dataType, reqItem.how.node, 'node', 'invalidPropValue', _errorData)
 
-        if (schemaProp.options.dataType === 'hash') {
-          const jwkName = reqItem.how.$o?.privateJWK
-
-          if (!jwkName) throw AceError('aceFn__falsyOptionsPrivateJwk', `Please ensure the node name ${ reqItem.how.node } with the prop name ${ nodePropName } has a reqItem.how.$o PrivateJWK. Example: reqItem.how.$o: { privateJWK: 'password' }`, _errorData)
-          if (!jwks.private[jwkName]) throw AceError('aceFn__falsyRequestItemPrivateJwk', `Please ensure the node name ${ reqItem.how.node } with the prop name ${ nodePropName } has reqItem.how.props.$o[PrivateJWK].name aligned with any ace() options.jwks.private name`, _errorData)
-
-          reqItemX[nodePropName] = await sign(nodePropValue, jwks.private[jwkName])
-        }
-
-        if (schemaProp.options.uniqueIndex) write('upsert', getUniqueIndexKey(reqItem.how.node, nodePropName, nodePropValue), graphId)
-
-        if (schemaProp.options.sortIndex) {
-          const key = getSortIndexKey(reqItem.how.node, nodePropName)
-          const value = Memory.txn.sortIndexMap.get(key) || { propName: nodePropName, newIds: /** @type { string[] } */ ([]) }
-
-          value.newIds.push(graphId)
-          Memory.txn.sortIndexMap.set(key, value)
-        }
-
-        if (schemaProp.options.dataType === 'isoString' && nodePropValue === ADD_NOW_DATE) reqItemX[nodePropName] = getNow()
+        if (schemaProp.options.dataType === 'hash') await hashMutationProp('node', reqItem.how.node, props, propName, props[propName], schemaProp, jwks, reqItem.how.$o?.privateJWK)
+        if (schemaProp.options.dataType === 'isoString' && props[propName] === ADD_NOW_DATE) props[propName] = getNow()
+        if (schemaProp.options.uniqueIndex) write('upsert', getUniqueIndexKey(reqItem.how.node, propName, props[propName]), graphId)
+        if (schemaProp.options.sortIndex) addToSortIndexMap(graphId, schemaProp, reqItem.how.node, propName)
       }
     }
 

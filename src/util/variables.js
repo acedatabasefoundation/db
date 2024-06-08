@@ -115,23 +115,23 @@ export function getRelationshipNameFromProp (prop) {
 
 
 /**
- * @param { string } name - Node name or relationship name
+ * @param { string } nodeOrRelationshipName
  * @param { string } propKey
  * @param { string | boolean | number } propValue
  * @returns { string }
  */
-export function getUniqueIndexKey (name, propKey, propValue) {
-  return INDEX_UNIQUE + name + DELIMITER + propKey + DELIMITER + encodeURIComponent(String(propValue))
+export function getUniqueIndexKey (nodeOrRelationshipName, propKey, propValue) {
+  return INDEX_UNIQUE + nodeOrRelationshipName + DELIMITER + propKey + DELIMITER + encodeURIComponent(String(propValue))
 }
 
 
 /**
- * @param { string } name - Node name or relationship name
+ * @param { string } nodeOrRelationshipName
  * @param { string } propKey
  * @returns { string }
  */
-export function getSortIndexKey (name, propKey) {
-  return INDEX_SORT + name + DELIMITER + propKey
+export function getSortIndexKey (nodeOrRelationshipName, propKey) {
+  return INDEX_SORT + nodeOrRelationshipName + DELIMITER + propKey
 }
 
 

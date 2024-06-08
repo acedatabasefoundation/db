@@ -64,7 +64,7 @@ export async function deligate (req, res, jwks) {
       case 'RelationshipInsert':
       case 'RelationshipUpdate':
       case 'RelationshipUpsert':
-        await inupRelationship(/** @type { td.AceMutateRequestItemRelationshipInsert | td.AceMutateRequestItemRelationshipUpdate } */(req[iReq]))
+        await inupRelationship(jwks, /** @type { td.AceMutateRequestItemRelationshipInsert | td.AceMutateRequestItemRelationshipUpdate } */(req[iReq]))
         break
 
 
