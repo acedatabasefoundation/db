@@ -66,10 +66,11 @@ export async function validateDirectionProp (direction, node, relationship, prop
   const relationshipIds = graphNode[relationshipProp]
 
   if (relationshipIds?.length) {
+    /** @type { td.AceGraphRelationship[] } */
     const graphRelationships = await getMany(relationshipIds)
 
-    for (const entry of graphRelationships) {
-      if (entry[1].props[direction] === graphNode.props.id) {
+    for (const graphRelationship of graphRelationships) {
+      if (graphRelationship.props[direction] === graphNode.props.id) {
         isValid = true
         break
       }

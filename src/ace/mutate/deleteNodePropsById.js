@@ -12,14 +12,14 @@ export async function deleteNodePropsById (reqItem) {
   if (!Array.isArray(reqItem?.how?.props) || !reqItem.how.props.length) throw AceError('aceFn__deleteNodePropsById__invalidProps', 'Please ensure reqItem.how.props is an array with more then one item, this is not happening yet for the reqItem:', { reqItem })
   if (reqItem.how.props.includes('id')) throw AceError('aceFn__deleteNodePropsById__invalidId', 'Please ensure reqItem.how.props does not include id, this is not happening yet for the reqItem:', { reqItem })
 
-  /** @type { Map<string | number, td.AceGraphNode> } */
+  /** @type { td.AceGraphNode[] } */
   const graphNodes = await getMany(reqItem.how.ids)
 
-  for (const entry of graphNodes) {
+  for (const graphNode of graphNodes) {
     for (const propName of reqItem.how.props) {
-      if (typeof entry[1].props[propName] !== 'undefined') {
-        delete entry[1].props[propName]
-        write('update', entry[0], entry[1])
+      if (typeof graphNode.props[propName] !== 'undefined') {
+        delete graphNode.props[propName]
+        write('update', graphNode.props.id, graphNode)
       }
     }
   }

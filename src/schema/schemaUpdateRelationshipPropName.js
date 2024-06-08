@@ -2,7 +2,7 @@ import { td } from '#ace'
 import { Memory } from '../objects/Memory.js'
 import { AceError } from '../objects/AceError.js'
 import { doneSchemaUpdate } from './doneSchemaUpdate.js'
-import { write, getMany, getOne } from '../util/storage.js'
+import { write, getOne, getMany } from '../util/storage.js'
 import { getRelationshipIdsKey } from '../util/variables.js'
 
 
@@ -19,14 +19,14 @@ export async function schemaUpdateRelationshipPropName (reqItem) {
     const relationshipIds = await getOne(getRelationshipIdsKey(relationship))
 
     if (relationshipIds.length) {
-      /** @type { Map<string | number, td.AceGraphRelationship> } */
+      /** @type { td.AceGraphRelationship[] } */
       const graphRelationships = await getMany(relationshipIds)
 
-      for (const entry of graphRelationships) {
-        if (typeof entry[1].props[nowName] !== 'undefined') {
-          entry[1].props[newName] = entry[1].props[nowName]
-          delete entry[1].props[nowName]
-          write('update', entry[0], entry[1])
+      for (const graphRelationship of graphRelationships) {
+        if (typeof graphRelationship.props[nowName] !== 'undefined') {
+          graphRelationship.props[newName] = graphRelationship.props[nowName]
+          delete graphRelationship.props[nowName]
+          write('update', graphRelationship.props._id, graphRelationship)
         }
       }
     }

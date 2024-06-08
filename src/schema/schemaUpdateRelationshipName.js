@@ -2,7 +2,7 @@ import { td } from '#ace'
 import { Memory } from '../objects/Memory.js'
 import { AceError } from '../objects/AceError.js'
 import { doneSchemaUpdate } from './doneSchemaUpdate.js'
-import { write, getMany, getOne } from '../util/storage.js'
+import { write, getOne, getMany } from '../util/storage.js'
 import { getRelationshipIdsKey, getRelationshipProp } from '../util/variables.js'
 
 
@@ -23,28 +23,28 @@ export async function schemaUpdateRelationshipName (reqItem) {
     if (relationshipIds.length) {
       const graphNodeIds = [] // put a and b node ids here
 
-      /** @type { Map<string | number, td.AceGraphRelationship> } */
+      /** @type { td.AceGraphRelationship[] } */
       const graphRelationships = await getMany(relationshipIds)
 
       // update graphRelationship.relationship
-      for (const entry of graphRelationships) {
-        entry[1].relationship = newName
-        write('update', entry[0], entry[1])
-        graphNodeIds.push(entry[1].props.a)
-        graphNodeIds.push(entry[1].props.b)
+      for (const graphRelationship of graphRelationships) {
+        graphRelationship.relationship = newName
+        write('update', graphRelationship.props._id, graphRelationship)
+        graphNodeIds.push(graphRelationship.props.a)
+        graphNodeIds.push(graphRelationship.props.b)
       }
 
-      /** @type { Map<string | number, td.AceGraphNode> } */
+      /** @type { td.AceGraphNode[] } */
       const graphNodes = await getMany(graphNodeIds)
       const nowRelationshipProp = getRelationshipProp(nowName)
       const newRelationshipProp = getRelationshipProp(newName)
 
       // update graphNode.$r__[ nowName ]
-      for (const entry of graphNodes) {
-        if (entry[1][nowRelationshipProp]) {
-          entry[1][newRelationshipProp] = entry[1][nowRelationshipProp]
-          delete entry[1][nowRelationshipProp]
-          write('update', entry[0], entry[1])
+      for (const graphNode of graphNodes) {
+        if (graphNode[nowRelationshipProp]) {
+          graphNode[newRelationshipProp] = graphNode[nowRelationshipProp]
+          delete graphNode[nowRelationshipProp]
+          write('update', graphNode.props.id, graphNode)
         }
       }
     }

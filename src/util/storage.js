@@ -34,17 +34,17 @@ export async function getOne (key) {
 
 
 /**
- * map.get(key) is undefined if not found
+ * not added to array if undefined in graph
  * @param { (string | number)[] } keys
- * @returns { Promise<Map<(string | number), any>> }
+ * @returns { Promise<any[]> }
  */
 export async function getMany (keys) {
-  /** @type { Map<string | number, any> } */
-  const res = new Map()
+  /** @type { any[] } */
+  const res = []
 
   for (const key of keys) {
     const value = await getOne(key)
-    if (value) res.set(key, value)
+    if (value) res.push(value)
   }
 
   return res

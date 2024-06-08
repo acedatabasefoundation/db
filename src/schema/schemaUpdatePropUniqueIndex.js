@@ -46,18 +46,18 @@ export async function schemaUpdatePropUniqueIndex (reqItem) {
     const allNodeIds = await getOne(nodeIdsKey)
 
     if (Array.isArray(allNodeIds)) {
-      /** @type { Map<string | number, td.AceGraphNode> } */
+      /** @type { td.AceGraphNode[] } */
       const graphNodes = await getMany(allNodeIds)
 
-      for (const entry of graphNodes) {
+      for (const graphNode of graphNodes) {
         for (const { prop: reqProp, type } of props) {
-          if (typeof entry[1].props[reqProp.prop] !== 'undefined') {
+          if (typeof graphNode.props[reqProp.prop] !== 'undefined') {
             switch (type) {
               case 'add':
-                write('upsert', getUniqueIndexKey(reqProp.nodeOrRelationship, reqProp.prop, entry[1].props[reqProp.prop]), entry[0])
+                write('upsert', getUniqueIndexKey(reqProp.nodeOrRelationship, reqProp.prop, graphNode.props[reqProp.prop]), graphNode.props.id)
                 break
               case 'remove':
-                write('delete', getUniqueIndexKey(reqProp.nodeOrRelationship, reqProp.prop, entry[1].props[reqProp.prop]), entry[0])
+                write('delete', getUniqueIndexKey(reqProp.nodeOrRelationship, reqProp.prop, graphNode.props[reqProp.prop]), graphNode.props.id)
                 break
             }
           }
@@ -74,18 +74,18 @@ export async function schemaUpdatePropUniqueIndex (reqItem) {
     const allRelationshipIds = await getOne(relationshipIdsKey)
 
     if (Array.isArray(allRelationshipIds)) {
-      /** @type { Map<string | number, td.AceGraphRelationship> } */
+      /** @type { td.AceGraphRelationship[] } */
       const graphRelationships = await getMany(allRelationshipIds)
 
-      for (const entry of graphRelationships) {
+      for (const graphRelationship of graphRelationships) {
         for (const { prop: reqProp, type } of props) {
-          if (typeof entry[1].props[reqProp.prop] !== 'undefined') {
+          if (typeof graphRelationship.props[reqProp.prop] !== 'undefined') {
             switch (type) {
               case 'add':
-                write('upsert', getUniqueIndexKey(reqProp.nodeOrRelationship, reqProp.prop, entry[1].props[reqProp.prop]), entry[0])
+                write('upsert', getUniqueIndexKey(reqProp.nodeOrRelationship, reqProp.prop, graphRelationship.props[reqProp.prop]), graphRelationship.props._id)
                 break
               case 'remove':
-                write('delete', getUniqueIndexKey(reqProp.nodeOrRelationship, reqProp.prop, entry[1].props[reqProp.prop]), entry[0])
+                write('delete', getUniqueIndexKey(reqProp.nodeOrRelationship, reqProp.prop, graphRelationship.props[reqProp.prop]), graphRelationship.props._id)
                 break
             }
           }

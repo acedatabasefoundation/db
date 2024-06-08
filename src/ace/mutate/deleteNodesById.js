@@ -1,7 +1,7 @@
 import { td } from '#ace'
 import { Memory } from '../../objects/Memory.js'
 import { AceError } from '../../objects/AceError.js'
-import { getMany, getOne, write } from '../../util/storage.js'
+import { write, getOne, getMany } from '../../util/storage.js'
 import { delete_IdFromRelationshipProp } from './delete_IdFromRelationshipProp.js'
 import { delete_IdsFromRelationshipIndex } from './delete_IdsFromRelationshipIndex.js'
 import { RELATIONSHIP_PREFIX, getNodeIdsKey, getNodeNamePlusRelationshipNameToNodePropNameMapKey, getRelationshipNameFromProp } from '../../util/variables.js'
@@ -14,7 +14,7 @@ import { RELATIONSHIP_PREFIX, getNodeIdsKey, getNodeNamePlusRelationshipNameToNo
 export async function deleteNodesById (ids) {
   if (!Array.isArray(ids) || !ids.length) throw AceError('aceFn__deleteNodesById__invalidIds', 'Please ensure calls to deleteNodesById() includes an array of populated ids', { ids })
 
-  /** @type { Map<string | number, td.AceGraphNode> } */
+  /** @type { td.AceGraphNode[] } */
   const graphDeleteNodes = await getMany(ids)
 
   /** @type { Map<string, Set<string | number>>} Map<relationshipName, ids> Group node ids by node name*/
@@ -28,9 +28,9 @@ export async function deleteNodesById (ids) {
 
 
   // set byNode, byRelationship & relationshipIdsMap
-  for (const [ graphDeleteNodeId, graphDeleteNode ] of graphDeleteNodes) {
+  for (const graphDeleteNode of graphDeleteNodes) {
     const deleteNodeIds = byNode.get(graphDeleteNode.node) || new Set()
-    deleteNodeIds.add(graphDeleteNodeId)
+    deleteNodeIds.add(graphDeleteNode.props.id)
     byNode.set(graphDeleteNode.node, deleteNodeIds)
 
     for (const howKey in graphDeleteNode) {
@@ -44,7 +44,7 @@ export async function deleteNodesById (ids) {
           deleteRelationship_Ids.add(relationshipId)
           byRelationship.set(relationshipName, deleteRelationship_Ids)
 
-          relationshipIdsMap.set(relationshipId, { propName: howKey, relationshipName, cascade, graphDeleteNodeId })
+          relationshipIdsMap.set(relationshipId, { propName: howKey, relationshipName, cascade, graphDeleteNodeId: graphDeleteNode.props.id })
         }
       }
     }
@@ -85,11 +85,11 @@ export async function deleteNodesById (ids) {
 
   // set connectingNodes and cascadeIds
   for (const [ _, deleteRelationship_Ids ] of byRelationship) {
-    /** @type { Map<string | number, td.AceGraphRelationship> } */
+    /** @type { td.AceGraphRelationship[] } */
     const graphRelationships = await getMany([ ...deleteRelationship_Ids ])
 
-    for (const [ relationship_Id, graphRelationship ] of graphRelationships) {
-      const details = relationshipIdsMap.get(relationship_Id)
+    for (const graphRelationship of graphRelationships) {
+      const details = relationshipIdsMap.get(graphRelationship.props._id)
 
       if (graphRelationship.props.a === details?.graphDeleteNodeId) {
         if (details.cascade) cascadeIds.push(graphRelationship.props.b)
@@ -104,11 +104,11 @@ export async function deleteNodesById (ids) {
   }
 
 
-  /** @type { Map<string | number, td.AceGraphNode> } We need the graph node of connecting nodes so that we may remove relationship id's from the graph node */
+  /** @type { td.AceGraphNode[] } We need the graph node of connecting nodes so that we may remove relationship id's from the graph node */
   const graphConnectingNodes = await getMany([ ...connectingNodes.keys() ])
  
-  for (const [ graphConnectingNodeId, graphConnectingNode ] of graphConnectingNodes) {
-    const relationship_Id = connectingNodes.get(graphConnectingNodeId)
+  for (const graphConnectingNode of graphConnectingNodes) {
+    const relationship_Id = connectingNodes.get(graphConnectingNode.props.id)
 
     if (relationship_Id) {
       const details = relationshipIdsMap.get(relationship_Id)

@@ -83,16 +83,11 @@ async function getInitialIds (reqItem) {
         graphUniqueKeys.push(getUniqueIndexKey(detailedResValueSection.node || detailedResValueSection.relationship || '', unique.prop, unique.value))
       }
 
-      const graphUniqueNodeKeys = /** @type { Map<string, string | number> } */ (/** @type { * } */ (await getMany(graphUniqueKeys)))
+      /** @type { (string | number)[] } */
+      const graphUniqueNodeKeys = await getMany(graphUniqueKeys)
 
-      if (graphUniqueNodeKeys.size === 0) isValid = false
-      else {
-        ids = []
-
-        for (const entry of graphUniqueNodeKeys) {
-          ids.push(entry[1])
-        }
-      }
+      if (graphUniqueNodeKeys.length === 0) isValid = false
+      else ids = graphUniqueNodeKeys
     }
 
     if (isValid && !ids?.length) {
@@ -123,11 +118,11 @@ async function getInitialIds (reqItem) {
  * @returns { Promise<void> }
  */
 async function addNodesToResponse (detailedResValueSection, res, ids, isUsingSortIndex, jwks, iReq, graphRelationshipProps) {
-  /** @type { Map<string | number, td.AceGraphNode> } */
+  /** @type { td.AceGraphNode[] } */
   const graphNodes = await getMany(ids)
 
-  for (let i = 0; i < ids.length; i++) {
-    await addPropsToResponse(detailedResValueSection, res, { node: graphNodes.get(ids[i]) }, jwks, iReq, graphRelationshipProps?.[i])
+  for (let i = 0; i < graphNodes.length; i++) {
+    await addPropsToResponse(detailedResValueSection, res, { node: graphNodes[i] }, jwks, iReq, graphRelationshipProps?.[i])
   }
 
   await doQueryOptions(detailedResValueSection, res, isUsingSortIndex, jwks)
@@ -273,11 +268,11 @@ async function addRelationshipsToResponse (detailedResValueSection, res, ids, is
     }
   }
 
-  /** @type { Map<string | number, td.AceGraphRelationship> } */
+  /** @type { td.AceGraphRelationship[] } */
   const graphRelationships = await getMany(ids)
 
-  for (let i = 0; i < ids.length; i++) {
-    await addPropsToResponse(detailedResValueSection, res, { relationship: graphRelationships.get(ids[i]) }, jwks, iReq)
+  for (let i = 0; i < graphRelationships.length; i++) {
+    await addPropsToResponse(detailedResValueSection, res, { relationship: graphRelationships[i] }, jwks, iReq)
   }
 
   await doQueryOptions(detailedResValueSection, res, isUsingSortIndex, jwks)
@@ -316,23 +311,17 @@ async function addRelationshipPropsToResponse (id, relationshipIds, schemaNodePr
       }
     }
 
-    const uniqueIds = /** @type { string[] } */ ([])
+    /** @type { (string | number)[] } */
+    const uniqueIds = (uniqueKeys.length) ? await getMany(uniqueKeys) : []
 
-    if (uniqueKeys.length) {
-      const uniqueGraphNodes = await getMany(uniqueKeys)
-
-      for (const entry of uniqueGraphNodes) {
-        uniqueIds.push(entry[1])
-      }
-    }
-
-    const graphRelationshipsMap = /** @type { Map<string, td.AceGraphRelationship> } */ (await getMany(relationshipIds))
+    /** @type { td.AceGraphRelationship[] } */
+    const allGraphRelationships = await getMany(relationshipIds)
 
     switch (schemaNodeProp.is) {
       case 'ForwardRelationshipProp':
-        for (const entry of graphRelationshipsMap) {
-          if (id === entry[1]?.props.a) {
-            const rForward = validateAndPushIds(relationshipDetailedResValueSection, entry[1].props.b, graphRelationships, entry[1], entry[0], nodeIds, uniqueIds, findByIdFound, findByUniqueFound, findBy_IdFound)
+        for (const graphRelationship of allGraphRelationships) {
+          if (id === graphRelationship.props.a) {
+            const rForward = validateAndPushIds(relationshipDetailedResValueSection, graphRelationship.props.b, graphRelationships, graphRelationship, graphRelationship.props._id, nodeIds, uniqueIds, findByIdFound, findByUniqueFound, findBy_IdFound)
             if (rForward.findByIdFound) findByIdFound = true
             if (rForward.findByUniqueFound) findByUniqueFound = true
             if (rForward.findBy_IdFound) findBy_IdFound = true
@@ -340,9 +329,9 @@ async function addRelationshipPropsToResponse (id, relationshipIds, schemaNodePr
         }
         break
       case 'ReverseRelationshipProp':
-        for (const entry of graphRelationshipsMap) {
-          if (id === entry[1]?.props.b) {
-            const rReverse = validateAndPushIds(relationshipDetailedResValueSection, entry[1].props.a, graphRelationships, entry[1], entry[0], nodeIds, uniqueIds, findByIdFound, findByUniqueFound, findBy_IdFound)
+        for (const graphRelationship of allGraphRelationships) {
+          if (id === graphRelationship.props.b) {
+            const rReverse = validateAndPushIds(relationshipDetailedResValueSection, graphRelationship.props.a, graphRelationships, graphRelationship, graphRelationship.props._id, nodeIds, uniqueIds, findByIdFound, findByUniqueFound, findBy_IdFound)
             if (rReverse.findByIdFound) findByIdFound = true
             if (rReverse.findByUniqueFound) findByUniqueFound = true
             if (rReverse.findBy_IdFound) findBy_IdFound = true
@@ -350,8 +339,8 @@ async function addRelationshipPropsToResponse (id, relationshipIds, schemaNodePr
         }
         break
       case 'BidirectionalRelationshipProp':
-        for (const entry of graphRelationshipsMap) {
-          const rBi = validateAndPushIds(relationshipDetailedResValueSection, id === entry[1]?.props.a ? entry[1]?.props.b : entry[1]?.props.a, graphRelationships, entry[1], entry[0], nodeIds, uniqueIds, findByIdFound, findByUniqueFound, findBy_IdFound)
+        for (const graphRelationship of allGraphRelationships) {
+          const rBi = validateAndPushIds(relationshipDetailedResValueSection, id === graphRelationship.props.a ? graphRelationship.props.b : graphRelationship.props.a, graphRelationships, graphRelationship, graphRelationship.props._id, nodeIds, uniqueIds, findByIdFound, findByUniqueFound, findBy_IdFound)
           if (rBi.findByIdFound) findByIdFound = true
           if (rBi.findByUniqueFound) findByUniqueFound = true
           if (rBi.findBy_IdFound) findBy_IdFound = true
@@ -388,7 +377,7 @@ async function addRelationshipPropsToResponse (id, relationshipIds, schemaNodePr
  * @param { td.AceGraphRelationship } graphRelationship 
  * @param { string } graphRelationshipKey 
  * @param { (string | number)[] } nodeIds 
- * @param { string[] } uniqueIds 
+ * @param { (string | number)[] } uniqueIds 
  * @param { boolean } findByIdFound 
  * @param { boolean } findByUniqueFound 
  * @param { boolean } findBy_IdFound 

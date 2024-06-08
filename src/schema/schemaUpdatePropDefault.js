@@ -63,21 +63,21 @@ export async function schemaUpdatePropDefault (reqItem) {
     const allNodeIds = await getOne(nodeIdsKey)
 
     if (Array.isArray(allNodeIds)) {
-      /** @type { Map<string | number, td.AceGraphNode> } */
+      /** @type { td.AceGraphNode[] } */
       const graphNodes = await getMany(allNodeIds)
 
-      for (const entry of graphNodes) {
+      for (const graphNode of graphNodes) {
         let propUpdated = false
 
         for (const reqProp of props) {
-          if (typeof entry[1].props[reqProp.prop] === 'undefined') {
+          if (typeof graphNode.props[reqProp.prop] === 'undefined') {
             propUpdated = true
             schemaUpdated = true
-            entry[1].props[reqProp.prop] = reqProp.default
+            graphNode.props[reqProp.prop] = reqProp.default
           }
         }
 
-        if (propUpdated) write('update', entry[0], entry[1])
+        if (propUpdated) write('update', graphNode.props.id, graphNode)
       }
     }
   }
@@ -91,21 +91,21 @@ export async function schemaUpdatePropDefault (reqItem) {
     const allRelationshipIds = await getOne(relationshipIdsKey)
 
     if (Array.isArray(allRelationshipIds)) {
-      /** @type { Map<string | number, td.AceGraphNode> } */
+      /** @type { td.AceGraphRelationship[] } */
       const graphRelationships = await getMany(allRelationshipIds)
 
-      for (const entry of graphRelationships) {
+      for (const graphRelationship of graphRelationships) {
         let propUpdated = false
 
         for (const reqProp of props) {
-          if (typeof entry[1].props[reqProp.prop] === 'undefined') {
+          if (typeof graphRelationship.props[reqProp.prop] === 'undefined') {
             propUpdated = true
             schemaUpdated = true
-            entry[1].props[reqProp.prop] = reqProp.default
+            graphRelationship.props[reqProp.prop] = reqProp.default
           }
         }
 
-        if (propUpdated) write('update', entry[0], entry[1])
+        if (propUpdated) write('update', graphRelationship.props._id, graphRelationship)
       }
     }
   }

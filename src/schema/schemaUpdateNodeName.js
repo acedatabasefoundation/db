@@ -2,7 +2,7 @@ import { td } from '#ace'
 import { Memory } from '../objects/Memory.js'
 import { AceError } from '../objects/AceError.js'
 import { doneSchemaUpdate } from './doneSchemaUpdate.js'
-import { write, getMany, getOne } from '../util/storage.js'
+import { write, getOne, getMany } from '../util/storage.js'
 import { DELIMITER, getNodeIdsKey } from '../util/variables.js'
 
 
@@ -22,12 +22,12 @@ export async function schemaUpdateNodeName (reqItem) {
     const nodeIds = await getOne(nodeIdsKey)
 
     if (nodeIds.length) {
-      /** @type { Map<string | number, td.AceGraphNode> } */
+      /** @type { td.AceGraphNode[] } */
       const graphNodes = await getMany(nodeIds)
 
-      for (const entry of graphNodes) {
-        entry[1].node = newName
-        write('update', entry[0], entry[1])
+      for (const graphNode of graphNodes) {
+        graphNode.node = newName
+        write('update', graphNode.props.id, graphNode)
       }
     }
 

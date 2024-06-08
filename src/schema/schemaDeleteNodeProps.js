@@ -3,7 +3,7 @@ import { Memory } from '../objects/Memory.js'
 import { AceError } from '../objects/AceError.js'
 import { getNodeIdsKey } from '../util/variables.js'
 import { doneSchemaUpdate } from './doneSchemaUpdate.js'
-import { getMany, getOne, write } from '../util/storage.js'
+import { write, getOne, getMany } from '../util/storage.js'
 
 
 /** 
@@ -21,13 +21,13 @@ export async function schemaDeleteNodeProps (reqItem) {
     const nodeIds = await getOne(nodeIdsKey)
 
     if (nodeIds.length) {
-      /** @type { Map<string|number, td.AceGraphNode> } */
+      /** @type {td.AceGraphNode[] } */
       const graphNodes = await getMany(nodeIds)
 
-      for (const entry of graphNodes) {
-        if (typeof entry[1].props[prop] !== 'undefined') {
-          delete entry[1].props[prop]
-          write('update', entry[0], entry[1])
+      for (const graphNode of graphNodes) {
+        if (typeof graphNode.props[prop] !== 'undefined') {
+          delete graphNode.props[prop]
+          write('update', graphNode.props.id, graphNode)
         }
       }
     }
