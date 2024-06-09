@@ -14,7 +14,7 @@ export async function writeSchema (options) {
     if (!Memory.txn.env) throw AceError('aceFn__missingEnv', 'Please ensure Memory.txn.env is a truthy when calling writeSchema()', {})
     if (!Memory.txn.schemaNowDetails) throw AceError('writeSchema__falsySchemaNowDetails', 'Please ensure memory.txn.schemaNowDetails is truthy when calling writeSchema()', {})
 
-    const paths = getPaths(options.path, [ 'dir', 'schemas', 'schemaDetails' ])
+    const paths = getPaths(options.dir, [ 'dir', 'schemas', 'schemaDetails' ])
 
     await initPaths(paths, [ 'dir', 'schemas' ])
 

@@ -110,7 +110,7 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceMemory
 /** AceFn
  *
  * @typedef { object } AceFnOptions
- * @property { string } path - Path of graph file relative to your package.json file
+ * @property { string } dir - Directory that holds graph information, relative to your package.json file
  * @property { string } env - Your process.env.NODE_ENV. Env allows different schema versions in different environments (eg: local, qa, production)
  * @property { AceFnRequest } [ req ]
  * @property { AceFnOptionsTxn } [ txn ]
@@ -407,7 +407,7 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceMemory
  * @typedef { ${ typedefs.mutate.NodeUpdatePropsTypes || typedefs.mutate.DefaultNodeUpPropsTypes  } } AceMutateRequestItemNodeUpdateProps
  * @typedef { ${ typedefs.mutate.NodeUpsertPropsTypes || typedefs.mutate.DefaultNodeUpPropsTypes } } AceMutateRequestItemNodeUpsertProps
  *
- * @typedef { ${ typedefs.mutate.RelationshipInsertPropsTypes || '{ a: string, b: string, [propName: string]: any }' } } AceMutateRequestItemRelationshipInsertProps
+ * @typedef { ${ typedefs.mutate.RelationshipInsertPropsTypes || '{ a: string | number, b: string | number, [propName: string]: any }' } } AceMutateRequestItemRelationshipInsertProps
  * @typedef { ${ typedefs.mutate.RelationshipUpdatePropsTypes || typedefs.mutate.DefaultRelationshipUpPropsTypes  } } AceMutateRequestItemRelationshipUpdateProps
  * @typedef { ${ typedefs.mutate.RelationshipUpsertPropsTypes || typedefs.mutate.DefaultRelationshipUpPropsTypes } } AceMutateRequestItemRelationshipUpsertProps
  * 
@@ -887,8 +887,8 @@ function getSchemaTypedefs (schema) {
  * @property { AceMutateRequestOptions } [ $o ] - Mutation insert options
  * @typedef { ${ schemaRelationshipName }MutateRequestItemRelationshipInsertPropsTemp & { [propName:string]: any  } } ${ schemaRelationshipName }MutateRequestItemRelationshipInsertProps
  * @typedef { object } ${ schemaRelationshipName }MutateRequestItemRelationshipInsertPropsTemp
- * @property { string } a - ${ abDescription }
- * @property { string } b - ${ abDescription }`
+ * @property { string | number } a - ${ abDescription }
+ * @property { string | number } b - ${ abDescription }`
 
       typedefs.mutate.RelationshipUpdateTypes += `\n *
  * @typedef { object } ${ schemaRelationshipName }MutateRequestItemRelationshipUpdate
@@ -900,9 +900,9 @@ function getSchemaTypedefs (schema) {
  * @property { AceMutateRequestOptions } [ $o ] - Mutation update options
  * @typedef { ${ schemaRelationshipName }MutateRequestItemRelationshipUpdatePropsTemp & { [propName:string]: any  } } ${ schemaRelationshipName }MutateRequestItemRelationshipUpdateProps
  * @typedef { object } ${ schemaRelationshipName }MutateRequestItemRelationshipUpdatePropsTemp
- * @property { string } _id - The relationship _id you would love to update
- * @property { string } [ a ] - ${ abDescription }
- * @property { string } [ b ] - ${ abDescription }`
+ * @property { string | number } _id - The relationship _id you would love to update
+ * @property { string | number } [ a ] - ${ abDescription }
+ * @property { string | number } [ b ] - ${ abDescription }`
   
       typedefs.mutate.RelationshipUpsertTypes += `\n *
  * @typedef { object } ${ schemaRelationshipName }MutateRequestItemRelationshipUpsert
@@ -914,9 +914,9 @@ function getSchemaTypedefs (schema) {
  * @property { AceMutateRequestOptions } [ $o ] - Mutation upsert options
  * @typedef { ${schemaRelationshipName }MutateRequestItemRelationshipUpsertPropsTemp & { [propName:string]: any  } } ${ schemaRelationshipName }MutateRequestItemRelationshipUpsertProps
  * @typedef { object } ${schemaRelationshipName }MutateRequestItemRelationshipUpsertPropsTemp
- * @property { string } _id - The relationship _id you would love to upsert
- * @property { string } [ a ] - ${ abDescription }
- * @property { string } [ b ] - ${ abDescription }`
+ * @property { string | number } _id - The relationship _id you would love to upsert
+ * @property { string | number } [ a ] - ${ abDescription }
+ * @property { string | number } [ b ] - ${ abDescription }`
 
       if (schema.relationships[schemaRelationshipName]?.props) {
         for (const schemaRelationshipPropName in schema.relationships[schemaRelationshipName].props) {

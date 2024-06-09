@@ -25,9 +25,19 @@ ace trash:empty ./ace
 ace types
 ace types ./ace local
   - Create types (TS) and typedefs (JSDoc)
-  - Path is optional, it's relative to your package.json and is what your folder name is
-  - Env is optinal and it's your process.env.NODE_ENV. Env allows different schema versions in different environments (eg: local, qa, prod)
-  - If path & env are included, types are schema specific
+  - First property (optional), is the "directory" that holds your graph
+  - Second property (optional), is the "environment" that we are in
+  - If "directory" & "environment" are included, types are schema specific
+
+
+ace schema:push ./ace production 1,2,3
+  - If local schema updated to version 3, we push to production and now we want the production schema to go from version 1 to version 3
+  - First property (required), is the "directory" that holds your graph
+  - Second property (required), is the "environment" that we are in
+  - Thrid property (required), is the "version movement". Examples:
+      - Version 8 to Version 9 is 8,9
+      - Version 2 to Version 1 is 2,1
+      - Version 7 to Version 8 to Version 9 is 7,8,9
 
 
 ace -v

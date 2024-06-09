@@ -99,7 +99,7 @@ import * as enums from './enums.js'
 /** AceFn
  *
  * @typedef { object } AceFnOptions
- * @property { string } path - Path of graph file relative to your package.json file
+ * @property { string } dir - Directory that holds graph information, relative to your package.json file
  * @property { string } env - Your process.env.NODE_ENV. Env allows different schema versions in different environments (eg: local, qa, production)
  * @property { AceFnRequest } [ req ]
  * @property { AceFnOptionsTxn } [ txn ]
@@ -444,7 +444,7 @@ import * as enums from './enums.js'
  * @typedef { { id: string | number, [propName: string]: any } } AceMutateRequestItemNodeUpdateProps
  * @typedef { { id: string | number, [propName: string]: any } } AceMutateRequestItemNodeUpsertProps
  *
- * @typedef { { a: string, b: string, [propName: string]: any } } AceMutateRequestItemRelationshipInsertProps
+ * @typedef { { a: string | number, b: string | number, [propName: string]: any } } AceMutateRequestItemRelationshipInsertProps
  * @typedef { { id: string | number, a: string, b: string, [propName: string]: any } } AceMutateRequestItemRelationshipUpdateProps
  * @typedef { { id: string | number, a: string, b: string, [propName: string]: any } } AceMutateRequestItemRelationshipUpsertProps
  * 

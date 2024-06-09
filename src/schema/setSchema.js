@@ -14,7 +14,7 @@ import { SchemaDataStructures } from '../objects/SchemaDataStructures.js'
  */
 export async function setSchema (options) {
   let schema = /** @type { null | td.AceSchema } */ (null)
-  const paths = getPaths(options.path, [ 'dir', 'schemas', 'schemaDetails' ])
+  const paths = getPaths(options.dir, [ 'dir', 'schemas', 'schemaDetails' ])
 
   await initPaths(paths, [ 'dir', 'schemas' ])
 

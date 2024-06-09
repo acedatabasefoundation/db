@@ -21,7 +21,7 @@ export async function appendWal (options) {
  * @returns { Promise<void> }
  */
 async function toFile (options) {
-  const paths = getPaths(options.path, ['dir', 'wal'])
+  const paths = getPaths(options.dir, ['dir', 'wal'])
 
   if (!await doesPathExist(paths.dir)) await mkdir(paths.dir)
   if (!Memory.wal.filehandle) Memory.wal.filehandle = await open(paths.wal, 'a+')

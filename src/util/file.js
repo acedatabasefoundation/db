@@ -5,46 +5,46 @@ import { mkdir, stat, writeFile } from 'node:fs/promises'
 
 
 /**
- * @param { string } path
+ * @param { string } dir
  * @param { td.AceFileGetPathsTypes } types
  * @returns { td.AceFilePaths }
  */
-export function getPaths (path, types) {
+export function getPaths (dir, types) {
   const res = {}
-  const start = (path.endsWith('/')) ? path.slice(0, -1) : path
-  const dir = relativeToAbsolutePath(start)
+  const start = (dir.endsWith('/')) ? dir.slice(0, -1) : dir
+  const dirAbsolute = relativeToAbsolutePath(start)
 
   for (const type of types) {
     switch (type) {
       case 'dir':
-        res.dir = dir
+        res.dir = dirAbsolute
         break
       case 'wal':
-        res.wal = dir + '/wal.txt'
+        res.wal = dirAbsolute + '/wal.txt'
         break
       case 'trash':
-        res.trash = dir + '/trash'
+        res.trash = dirAbsolute + '/trash'
         break
       case 'graphs':
-        res.graphs = dir + '/graphs'
+        res.graphs = dirAbsolute + '/graphs'
         break
       case 'schemas':
-        res.schemas = dir + '/schemas'
+        res.schemas = dirAbsolute + '/schemas'
         break
       case 'schemaDetails':
-        res.schemaDetails = dir + '/schemas/details.json'
+        res.schemaDetails = dirAbsolute + '/schemas/details.json'
         break
       case 'trashNow':
-        res.trashNow = dir + '/trash/' + Memory.txn.emptyTimestamp
+        res.trashNow = dirAbsolute + '/trash/' + Memory.txn.emptyTimestamp
         break
       case 'trashNowWal':
-        res.trashNowWal = dir + '/trash/' + Memory.txn.emptyTimestamp + '/wal.txt'
+        res.trashNowWal = dirAbsolute + '/trash/' + Memory.txn.emptyTimestamp + '/wal.txt'
         break
       case 'trashNowGraphs':
-        res.trashNowGraphs = dir + '/trash/' + Memory.txn.emptyTimestamp + '/graphs'
+        res.trashNowGraphs = dirAbsolute + '/trash/' + Memory.txn.emptyTimestamp + '/graphs'
         break
       case 'trashNowSchemas':
-        res.trashNowSchemas = dir + '/trash/' + Memory.txn.emptyTimestamp + '/schemas'
+        res.trashNowSchemas = dirAbsolute + '/trash/' + Memory.txn.emptyTimestamp + '/schemas'
         break
     }
   }
@@ -85,12 +85,12 @@ export async function initPaths (paths, types) {
 
 
 /**
- * @param { string } item - The path, but not called path b/c we import path into this file
+ * @param { string } path
  * @returns { Promise<boolean> }
  */
-export async function doesPathExist (item) {
+export async function doesPathExist (path) {
   try {
-    await stat(item)
+    await stat(path)
     return true
   } catch (e) {
     return false

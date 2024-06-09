@@ -7,9 +7,9 @@ import { td } from '#ace'
  */
 export function log (options) {
   try {
-    /** @type { { path: string, req?: { do: string } | ({ do: string } | string)[] | undefined } } */
+    /** @type { { dir: string, req?: { do: string } | ({ do: string } | string)[] | undefined } } */
     const formatted = {
-      path: options.path,
+      dir: options.dir,
     }
 
     if (Array.isArray(options.req)) {

@@ -80,7 +80,13 @@ import { ace } from '@ace/db'
 
 
 await ace({
-  path: './ace',
+  // directory that holds graph information
+  dir: './ace',
+
+  // current environment (helps for having different schema versions in different environements)
+  env: 'local',
+
+  // array order is order that graph will be updated
   req: [
     // empty any existing items in the graph
     { do: 'Empty' },
@@ -106,13 +112,13 @@ await ace({
 2. View updates in `schemas` folder
     * Navigate to `./ace/schemas/` and view `details.json` and `1.json`
     * Each schema alteration will create a new file in this directory with the updated schema and update the `details.json`
-2. In bash do: `ace types ./ace`
+2. In bash do: `ace types ./ace local`
     * This will update your types to include your updated schema
 2. Mutate and Query Graph
     * Press `Control+Space` to get intellisense
 ```js
 const res = await ace({
-  path: './ace',
+  dir: './ace',
   req: [
     // insert nodes
     { do: 'NodeInsert', how: { node: 'User', props: { id: '_:Alpha',  name: 'Alpha' } } },
@@ -177,119 +183,6 @@ console.log(res)
 }
 ```
 
-## Create an Instagram Graph
-```js
-import { ace } from '@ace/db'
-
-
-const res = await ace({
-  path: './ace',
-  req: [
-    // empty any existing items in the graph
-    { do: 'Empty' },
-
-    // add these nodes, relationships and props to schema
-    {
-      do: 'SchemaAdd',
-      how: {
-        nodes: {
-          User: {
-            name: { is: 'Prop', options: { dataType: 'string', mustBeDefined: true } },
-            following: { is: 'ForwardRelationshipProp', options: { has: 'many', node: 'User', relationship: 'isFollowing' } },
-            followers: { is: 'ReverseRelationshipProp', options: { has: 'many', node: 'User', relationship: 'isFollowing' } },
-          },
-        },
-        relationships: {
-          isFollowing: { is: 'ManyToMany' },
-        }
-      }
-    },
-
-    // insert nodes
-    { do: 'NodeInsert', how: { node: 'User', props: { id: '_:Source', name: 'Source' } } },
-    { do: 'NodeInsert', how: { node: 'User', props: { id: '_:Helios', name: 'Helios' } } },
-    { do: 'NodeInsert', how: { node: 'User', props: { id: '_:Vesta', name: 'Vesta' } } },
-
-    // insert relationships
-    { do: 'RelationshipInsert', how: { relationship: 'isFollowing', props: { a: '_:Helios', b: '_:Source' } } },
-    { do: 'RelationshipInsert', how: { relationship: 'isFollowing', props: { a: '_:Vesta', b: '_:Source' } } },
-
-    // query users
-    {
-      do: 'NodeQuery',
-      how: {
-        node: 'User',
-        resKey: 'users',
-        resValue: {
-          id: true,
-          name: true,
-          followers: {
-            id: true,
-            name: true,
-          },
-          following: {
-            id: true,
-            name: true,
-          }
-        }
-      }
-    }
-
-  ]
-})
-
-
-console.log(res)
-
-
-{
-  "$ace": {
-    "enumIds": {
-      "_:Source": 1,
-      "_:Helios": 2,
-      "_:Vesta": 3
-    },
-  },
-  "users": [
-    {
-      "id": 1,
-      "name": "Source",
-      "followers": [
-        {
-          "id": 2,
-          "name": "Helios"
-        },
-        {
-          "id": 3,
-          "name": "Vesta"
-        }
-      ]
-    },
-    {
-      "id": 2,
-      "name": "Helios",
-      "following": [
-        {
-          "id": 1,
-          "name": "Source"
-        }
-      ]
-    },
-    {
-      "id": 3,
-      "name": "Vesta",
-      "following": [
-        {
-          "id": 1,
-          "name": "Source"
-        }
-      ]
-    }
-  ]
-}
-```
-
-
 ## Embeded
 * Data is stored in memory and in the directory you specify on your application server
 ```js
@@ -322,16 +215,16 @@ await ace({ path: './ace', req: [ ... ] }) // path = the directory, starting fro
 import { ace } from '@ace/db'
 
 // start txn
-const res = await ace({ txn: { do: 'Start' }, path: './ace', req: { ... } })
+const res = await ace({ txn: { do: 'Start' }, dir: './ace', req: { ... } })
 
 // continue txn
-await ace({ txn: { id: res.$ace.txnId }, path: './ace', req: { ... } })
+await ace({ txn: { id: res.$ace.txnId }, dir: './ace', req: { ... } })
 
 // cancel txn
-await ace({ txn: { id: res.$ace.txnId, do: 'Cancel' }, path: './ace' })
+await ace({ txn: { id: res.$ace.txnId, do: 'Cancel' }, dir: './ace' })
 
 // complete txn
-await ace({ txn: { id: res.$ace.txnId, do: 'Complete' }, path: './ace', req: { ... } })
+await ace({ txn: { id: res.$ace.txnId, do: 'Complete' }, dir: './ace', req: { ... } })
 
 // completing a txn after cancelling it does not make sense btw, above is just to show all available txn options
 ```
@@ -377,10 +270,21 @@ ace trash:empty ./ace
 
 
 ace types
-ace types ./ace
+ace types ./ace local
   - Create types (TS) and typedefs (JSDoc)
-  - Path is optional, it's relative to your package.json and is what your folder name is
-  - If path is included, types are schema specific
+  - First property (optional), is the "directory" that holds your graph
+  - Second property (optional), is the "environment" that we are in
+  - If "directory" & "environment" are included, types are schema specific
+
+
+ace schema:push ./ace production 1,2,3
+  - If local schema updated to version 3, we push to production and now we want the production schema to go from version 1 to version 3
+  - First property (required), is the "directory" that holds your graph
+  - Second property (required), is the "environment" that we are in
+  - Thrid property (required), is the "version movement". Examples:
+      - Version 8 to Version 9 is 8,9
+      - Version 2 to Version 1 is 2,1
+      - Version 7 to Version 8 to Version 9 is 7,8,9
 
 
 ace -v

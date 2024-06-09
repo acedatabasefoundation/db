@@ -13,7 +13,7 @@ export async function revertWriteSchema (options) {
   if (Memory.txn.schemaOriginalDetails) {
     if (!Memory.txn.env) throw AceError('aceFn__missingEnv', 'Please ensure Memory.txn.env is a truthy when calling revertWriteSchema()', { options })
 
-    const paths = getPaths(options.path, [ 'dir', 'schemas', 'schemaDetails' ])
+    const paths = getPaths(options.dir, [ 'dir', 'schemas', 'schemaDetails' ])
 
     await initPaths(paths, [ 'dir', 'schemas' ])
     await writeFile(paths.schemaDetails, JSON.stringify(Memory.txn.schemaOriginalDetails), 'utf-8')

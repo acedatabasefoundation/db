@@ -10,7 +10,7 @@ import { mkdir, rename, writeFile } from 'node:fs/promises'
  */
 export async function emptyFile (options) {
   if (Memory.txn.step === 'lastReq' && Memory.txn.emptyTimestamp) {
-    const paths = getPaths(options.path, [ 'dir', 'wal', 'trash', 'graphs', 'schemas', 'trashNow', 'trashNowWal', 'trashNowGraphs', 'trashNowSchemas' ])
+    const paths = getPaths(options.dir, [ 'dir', 'wal', 'trash', 'graphs', 'schemas', 'trashNow', 'trashNowWal', 'trashNowGraphs', 'trashNowSchemas' ])
 
     await initPaths(paths, [ 'dir', 'trash', 'graphs', 'schemas', 'wal', 'trashNow' ])
 

@@ -10,7 +10,7 @@ import { doesPathExist, getByteAmount, getPaths } from '../util/file.js'
  * @returns { Promise<void> }
  */
 export async function walMapInitialize (options) {
-  const paths  = getPaths(options.path, [ 'wal' ])
+  const paths  = getPaths(options.dir, [ 'wal' ])
 
   if (await doesPathExist(paths.wal)) {
     return new Promise(async (resolve, reject) => {

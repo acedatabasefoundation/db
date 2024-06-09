@@ -10,7 +10,7 @@ import { getPaths, doesPathExist } from '../util/file.js'
  */
 export async function revertEmptyFile (options) {
   if (Memory.txn.emptyTimestamp) {
-    const paths = getPaths(options.path, [ 'wal', 'graphs', 'schemas', 'trashNow', 'trashNowWal', 'trashNowGraphs', 'trashNowSchemas' ])
+    const paths = getPaths(options.dir, [ 'wal', 'graphs', 'schemas', 'trashNow', 'trashNowWal', 'trashNowGraphs', 'trashNowSchemas' ])
 
     if (await doesPathExist(paths.trashNow)) { // has a trashNow folder been created
       if (await doesPathExist(paths.trashNowWal)) await rename(paths.trashNowWal, paths.wal) // renaming a file if the file already exists does not throw an error
