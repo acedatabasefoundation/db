@@ -6,7 +6,7 @@ Create maintain and enhance, the Best database, for JavaScript Developers!
 
 
 ## Why Ace?
-* A graph is a natural data storage technique, that connects nodes (neurons) with relationships (synapses)
+* A graph is a **natural** data storage technique, that connects nodes **(neurons)** with relationships **(synapses)**
 * Ace is an open source graph database, that unites the following lovely features, from impressive database leaders:
     * [Redis](https://redis.io/): Fast memory storage
     * [SQLite](https://www.sqlite.org/): No network latency between the application server & the database
@@ -83,10 +83,10 @@ await ace({
   // directory that holds graph information
   dir: './ace',
 
-  // current environment (helps for having different schema versions in different environements)
+  // current environment (allows the ability to have different schema versions in different environements) (recommend something like process.env.NODE_ENV here)
   env: 'local',
 
-  // array order is order that graph will be updated
+  // req array order is the order the graph will be updated
   req: [
     // empty any existing items in the graph
     { do: 'Empty' },
@@ -192,17 +192,18 @@ await ace({ path: './ace', req: [ ... ] }) // path = the directory, starting fro
 
 ## Storage
 * Memory
-    * Max `new Map()` size allowed in v8 is 1GB
-    * Most recent 21MB's of writes (estimated 300,000 to 1 million graph items) are stored in an in memory map
-    * Querying the in memory map allows 1-20ms queries, even if 600,000 items are in the map
+    * The max size v8 allows for a `new Map()` is 1 gigabyte
+    * Ace puts the most recent 45 megabytes of writes (estimated 3+ million graph items) into an in memory map
+    * Querying the in memory map allows 1-9ms queries at its max size
     * If the application server restarts, the map is rebuilt thanks to the write ahead log
 * File
     * To the specified directory:
         * When a request or a transaction is succesful, data updates are:
             * Appended to the write ahead log (file)
+                * Writes are fast b/c file append is fast
             * Added to the write ahead log map (memory)
-        * When the write ahead log map reaches 21MB's
-            * Keys are sorted (to allow binary searching) and written to an immutable file (10-50ms average reads)
+        * When the write ahead log map reaches 45 megabytes
+            * Keys are sorted (to allow binary searching) and written to an immutable file
             * Write ahead log map is cleared
             * Write ahead log file is cleared
 
@@ -265,8 +266,8 @@ ace jwks
 
 ace trash:empty ./ace
   - Empty trash folder
-  - This is where we put the contents of your ./ace folder when you call Empty w/ ace()
-  - Path is required, it's relative to your package.json and is what your folder name is
+  - Where we put items when ace() Empty is called
+  - First property (required), is the "directory" that holds your graph
 
 
 ace types
@@ -282,9 +283,9 @@ ace schema:push ./ace production 1,2,3
   - First property (required), is the "directory" that holds your graph
   - Second property (required), is the "environment" that we are in
   - Thrid property (required), is the "version movement". Examples:
-      - Version 8 to Version 9 is 8,9
-      - Version 2 to Version 1 is 2,1
-      - Version 7 to Version 8 to Version 9 is 7,8,9
+      - Version 8 to Version 9 -> 8,9
+      - Version 2 to Version 1 -> 2,1
+      - Version 7 to Version 8 to Version 9 -> 7,8,9
 
 
 ace -v

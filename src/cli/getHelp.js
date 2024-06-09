@@ -18,8 +18,8 @@ ace jwks
 
 ace trash:empty ./ace
   - Empty trash folder
-  - This is where we put the contents of your ./ace folder when you call Empty w/ ace()
-  - Path is required, it's relative to your package.json and is what your folder name is
+  - Where we put items when ace() Empty is called
+  - First property (required), is the "directory" that holds your graph
 
 
 ace types
@@ -35,9 +35,9 @@ ace schema:push ./ace production 1,2,3
   - First property (required), is the "directory" that holds your graph
   - Second property (required), is the "environment" that we are in
   - Thrid property (required), is the "version movement". Examples:
-      - Version 8 to Version 9 is 8,9
-      - Version 2 to Version 1 is 2,1
-      - Version 7 to Version 8 to Version 9 is 7,8,9
+      - Version 8 to Version 9 -> 8,9
+      - Version 2 to Version 1 -> 2,1
+      - Version 7 to Version 8 to Version 9 -> 7,8,9
 
 
 ace -v
