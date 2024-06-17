@@ -34,7 +34,7 @@ export async function enterReqGateway (resolve, reject, options) {
   setTxnEnv(options)
 
   if (options.txn?.do === 'Cancel') await cancelTxn(res, resolve, options)
-  else if (!options.req) throw AceError('aceFn__missingWhat', 'Please ensure options.req is not falsy. The only time options.req may be falsy is if options.txn.do is "Cancel".', { options })
+  else if (!options.req) throw AceError('missingWhat', 'Please ensure options.req is not falsy. The only time options.req may be falsy is if options.txn.do is "Cancel".', { options })
   else {
     setTxnTimer(reject, options)
 
@@ -55,15 +55,15 @@ export async function enterReqGateway (resolve, reject, options) {
     if (options.jwks) await setJWKs(jwks, options)
     if (!Memory.txn.schema) await setSchema(options)
 
-    await deligate(req, res, jwks)
+    await deligate(options, req, res, jwks)
     await addSortIndicesToGraph()
     set$ace(res, options)
 
     if (Memory.txn.step === 'lastReq') {
       await validateMustBeDefined()
-      if (Memory.txn.emptyTimestamp) await emptyFile(options)
-      if (Memory.txn.writeStr) await appendWal(options)
-      if (Memory.txn.schemaUpdated && Memory.txn.schema) await writeSchema(options)
+      await emptyFile(options) // do this b4 appendWal() so that new appended stuff does not get emptied
+      await appendWal(options)
+      await writeSchema(options)
     }
 
     await doneReqGateway({ res, resolve, options })

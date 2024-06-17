@@ -3,20 +3,21 @@ import { Memory } from '../objects/Memory.js'
 import { getOne, write } from '../util/storage.js'
 import { doneSchemaUpdate } from './doneSchemaUpdate.js'
 import { DELIMITER, getNodeIdsKey } from '../util/variables.js'
-import { deleteNodesById } from '../ace/mutate/deleteNodesById.js'
+import { deleteNodes } from '../ace/mutate/deleteNodes.js'
 
 
 /** 
  * @param { td.AceMutateRequestItemSchemaDeleteNodes } reqItem
+ * @param { boolean } [ isSourceSchemaPush ]
  * @returns { Promise<void> }
  */
-export async function schemaDeleteNodes (reqItem) {
-  for (const node of reqItem.how.nodes) {
+export async function schemaDeleteNodes (reqItem, isSourceSchemaPush) {
+  for (const node of reqItem.how) {
     await deleteData(node)
     deleteFromSchema(node)
   }
 
-  doneSchemaUpdate()
+  doneSchemaUpdate(isSourceSchemaPush)
 }
 
 
@@ -31,7 +32,7 @@ async function deleteData (node) {
   const nodeIds = await getOne(nodeIdsKey)
 
   if (nodeIds?.length) {
-    await deleteNodesById(nodeIds)
+    await deleteNodes(nodeIds)
     write('delete', nodeIdsKey)
   }
 }
@@ -52,4 +53,7 @@ function deleteFromSchema (node) {
       delete Memory.txn.schema?.nodes[split[0]][split[1]]
     }
   }
+
+  delete Memory.txn.schema?.nodes?.[node]
+  console.log('\n')
 }

@@ -1,10 +1,9 @@
 import { td } from '#ace'
-import { Memory } from '../../objects/Memory.js'
 import { approachReqGateway } from './approachReqGateway.js'
 import { revertAppendWal } from '../../wal/revertAppendWal.js'
 import { revertEmptyFile } from '../../empty/revertEmptyFile.js'
 import { revertWriteSchema } from '../../schema/revertWriteSchema.js'
-import { SchemaDataStructures } from '../../objects/SchemaDataStructures.js'
+import { Memory, doneReqGatewayReset } from '../../objects/Memory.js'
 
 
 /**
@@ -17,9 +16,9 @@ export async function doneReqGateway ({ res, error, resolve, reject, options }) 
     await revertAppendWal()
     await revertEmptyFile(options)
 
-    Memory.wal.byteAmount -= Memory.wal.revert.byteAmount
+    Memory.wal.byteAmount -= Memory.txn.revertWalDetails.byteAmount
 
-    for (const [ key, value ] of Memory.wal.revert.map) {
+    for (const [ key, value ] of Memory.txn.revertWalDetails.map) {
       if (typeof value === 'undefined') Memory.wal.map.delete(key)
       else Memory.wal.map.set(key, value)
     }
@@ -34,7 +33,7 @@ export async function doneReqGateway ({ res, error, resolve, reject, options }) 
   if (reject || Memory.txn.step === 'lastReq' || res?.now?.$ace?.txnCancelled) { // IF last request in txn
     if (Memory.txn.timeoutId) clearTimeout(Memory.txn.timeoutId)
 
-    resetMemory()
+    doneReqGatewayReset()
 
     if (Memory.queue.length) { // if more txn's are in the queue => start the next one
       const next = Memory.queue.shift()
@@ -42,35 +41,5 @@ export async function doneReqGateway ({ res, error, resolve, reject, options }) 
     }
   } else {
     Memory.txn.step = 'respondedAndWaiting'
-  }
-}
-
-
-/**
- * We want to preserve some values from one txn to the next
- * Preserve txn.schema, txn.schemaDataStructures, txn.lastId, wal.byteAmount, wal.fileSize, wal.map and maybe wal.filehandle
- */
-async function resetMemory () {
-  Memory.txn.id = undefined
-  Memory.txn.env = undefined
-  Memory.txn.timeoutId = undefined
-  Memory.txn.step = 'preEnter'
-  Memory.txn.schema = null
-  Memory.txn.schemaDataStructures = SchemaDataStructures(null)
-  Memory.txn.schemaUpdated = false
-  Memory.txn.schemaNowDetails = undefined
-  Memory.txn.schemaOriginalDetails = undefined
-  Memory.txn.hasUpdates = false
-  Memory.txn.emptyTimestamp = undefined
-  Memory.txn.enumGraphIdsMap.clear()
-  Memory.txn.writeMap.clear()
-  Memory.txn.writeStr = ''
-  Memory.txn.sortIndexMap.clear()
-
-  Memory.wal.revert = { byteAmount: 0, map: new Map() }
-
-  if (!Memory.queue.length && Memory.wal.filehandle) {
-    await Memory.wal.filehandle.close()
-    Memory.wal.filehandle = undefined // in other functions, to know if the filehandle is closed, we falsy check
   }
 }

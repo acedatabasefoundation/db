@@ -10,8 +10,8 @@ import { delete_IdsFromRelationshipIndex } from './delete_IdsFromRelationshipInd
  * @param { (string | number)[] } _ids
  * @returns { Promise<void> }
  */
-export async function deleteRelationshipsBy_Ids (_ids) {
-  if (!Array.isArray(_ids) || !_ids.length) throw AceError('aceFn__deleteRelationshipsBy_Ids__invalidIds', 'Please ensure _ids to deleteRelationshipsBy_Ids() is a populated array, this is not happening yet for the _ids:', { _ids })
+export async function deleteRelationships (_ids) {
+  if (!Array.isArray(_ids) || !_ids.length) throw AceError('deleteRelationships__invalidIds', 'Please ensure _ids to deleteRelationships() is a populated array, this is not happening yet for the _ids:', { _ids })
 
   /** @type { td.AceGraphRelationship[] } */
   const graphRelationships = await getMany(_ids)

@@ -326,8 +326,8 @@ async function isHashValid (qw, left, right, sideIndex, detailedResValueSection,
   const jwkProp = detailedResValueSection.resValue?.$o?.publicJWKs?.[/** @type {'findByOr'} */ (option)]
   const publicJWK = jwkProp ? jwks.public[jwkProp] : null
 
-  if (!jwkProp) throw AceError('aceFn__falsyHashPublicKey', `Please ensure $o.publicJWKs[${ option }] is truthy`, { $o: detailedResValueSection.resValue?.$o })
-  if (!publicJWK) throw AceError('aceFn__invalidHashPublicKey', `Please ensure $o.publicJWKs[${ option }] is also in ace() options.jwks.public[${ option }]`, { qw })
+  if (!jwkProp) throw AceError('isHashValid__falsyHashPublicKey', `Please ensure $o.publicJWKs[${ option }] is truthy`, { $o: detailedResValueSection.resValue?.$o })
+  if (!publicJWK) throw AceError('isHashValid__invalidHashPublicKey', `Please ensure $o.publicJWKs[${ option }] is also in ace() options.jwks.public[${ option }]`, { qw })
 
   return sideIndex ?
     await verify(left.value, right.value, publicJWK) :
@@ -354,7 +354,7 @@ function getGroupItemOption (option, group, groupItem) {
     else groupItemOption = startsWith + 'PropValue'
   } else if (/** @type { td.AceQueryWhereDefined } */(groupItem)?.isPropDefined) groupItemOption = startsWith + 'Defined'
   else if (/** @type { td.AceQueryWhereUndefined } */(groupItem)?.isPropUndefined) groupItemOption = startsWith + 'Undefined'
-  else throw AceError('aceFn__invalidQuerySearch', `Please ensure ${ type } is fomatted correctly`, { [type]: group })
+  else throw AceError('getGroupItemOption__invalidQuerySearch', `Please ensure ${ type } is fomatted correctly`, { [type]: group })
   
   return /** @type { enums.queryOptions } */ (groupItemOption)
 }

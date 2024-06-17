@@ -3,29 +3,30 @@ import { Memory } from '../objects/Memory.js'
 import { AceError } from '../objects/AceError.js'
 import { doneSchemaUpdate } from './doneSchemaUpdate.js'
 import { write, getOne, getMany } from '../util/storage.js'
-import { getNodeIdsKey, getRelationshipIdsKey, getUniqueIndexKey } from '../util/variables.js'
+import { getNodeIdsKey, getRelationship_IdsKey, getUniqueIndexKey } from '../util/variables.js'
 
 
 /** 
  * @param { td.AceMutateRequestItemSchemaUpdatePropUniqueIndex } reqItem
+ * @param { boolean } [ isSourceSchemaPush ]
  * @returns { Promise<void> }
  */
-export async function schemaUpdatePropUniqueIndex (reqItem) {
+export async function schemaUpdatePropUniqueIndex (reqItem, isSourceSchemaPush) {
   let schemaUpdated = false
 
-  /** @type { Map<string, { type: 'add' | 'remove', prop: td.AceMutateRequestItemSchemaUpdatePropUniqueIndexProp }[]> } Map<nodeName, { reqProp, type }[]>  */
+  /** @type { Map<string, { type: 'add' | 'remove', prop: td.AceMutateRequestItemSchemaUpdatePropUniqueIndexItem }[]> } Map<nodeName, { reqProp, type }[]>  */
   const propsByNode = new Map()
 
-  /** @type { Map<string, { type: 'add' | 'remove', prop: td.AceMutateRequestItemSchemaUpdatePropUniqueIndexProp }[]> } Map<relationshipName, { reqProp, type }[]>  */
+  /** @type { Map<string, { type: 'add' | 'remove', prop: td.AceMutateRequestItemSchemaUpdatePropUniqueIndexItem }[]> } Map<relationshipName, { reqProp, type }[]>  */
   const propsByRelationship = new Map()
 
-  for (const prop of reqItem.how.props) {
+  for (const prop of reqItem.how) {
     const schemaProp = Memory.txn.schema?.nodes[prop.nodeOrRelationship]?.[prop.prop] || Memory.txn.schema?.relationships?.[prop.nodeOrRelationship]?.props?.[prop.prop]
 
     // validate reqItem
-    if (!schemaProp) throw AceError('aceFn__schemaUpdatePropUniqueIndex__invalidReq', `Please ensure when attempting to update node or relationship "uniqueIndex", the node or relationship and prop are defined in your schema. This is not happening yet for the node or relationship: "${ prop.nodeOrRelationship }" and prop: "${ prop.prop }"`, { reqItemProp: prop })
-    if (typeof prop.uniqueIndex !== 'boolean') throw AceError('aceFn__schemaUpdatePropUniqueIndex__invalidType', `Please ensure when attempting to update node or relationship "uniqueIndex", the typeof reqItemProp.uniqueIndex is "boolean". This is not happening yet for the node or relationship: "${ prop.nodeOrRelationship }" and prop: "${ prop.prop }"`, { reqItemProp: prop })
-    if (schemaProp.is !== 'Prop' && schemaProp.is !== 'RelationshipProp') throw AceError('aceFn__schemaUpdatePropUniqueIndex__invalidProp', `Please ensure when attempting to node or relationship "uniqueIndex", schemaProp.is is "Prop" or "RelationshipProp". This is not happening yet for the node or relationship: "${ prop.nodeOrRelationship }" and prop: "${ prop.prop }"`, { reqItemProp: prop })
+    if (!schemaProp) throw AceError('schemaUpdatePropUniqueIndex__invalidReq', `Please ensure when attempting to update node or relationship "uniqueIndex", the node or relationship and prop are defined in your schema. This is not happening yet for the node or relationship: "${ prop.nodeOrRelationship }" and prop: "${ prop.prop }"`, { reqItemProp: prop })
+    if (typeof prop.uniqueIndex !== 'boolean') throw AceError('schemaUpdatePropUniqueIndex__invalidType', `Please ensure when attempting to update node or relationship "uniqueIndex", the typeof reqItemProp.uniqueIndex is "boolean". This is not happening yet for the node or relationship: "${ prop.nodeOrRelationship }" and prop: "${ prop.prop }"`, { reqItemProp: prop })
+    if (schemaProp.is !== 'Prop' && schemaProp.is !== 'RelationshipProp') throw AceError('schemaUpdatePropUniqueIndex__invalidProp', `Please ensure when attempting to node or relationship "uniqueIndex", schemaProp.is is "Prop" or "RelationshipProp". This is not happening yet for the node or relationship: "${ prop.nodeOrRelationship }" and prop: "${ prop.prop }"`, { reqItemProp: prop })
   
     if (schemaProp.options.uniqueIndex && !prop.uniqueIndex) { // remove uniqueIndex
       schemaUpdated = true
@@ -68,14 +69,14 @@ export async function schemaUpdatePropUniqueIndex (reqItem) {
 
   // update schema relationships
   for (const [ relationshipName, props ] of propsByRelationship) {
-    const relationshipIdsKey = getRelationshipIdsKey(relationshipName)
+    const relationship_IdsKey = getRelationship_IdsKey(relationshipName)
 
     /** @type { (string | number)[] } */
-    const allRelationshipIds = await getOne(relationshipIdsKey)
+    const allRelationship_Ids = await getOne(relationship_IdsKey)
 
-    if (Array.isArray(allRelationshipIds)) {
+    if (Array.isArray(allRelationship_Ids)) {
       /** @type { td.AceGraphRelationship[] } */
-      const graphRelationships = await getMany(allRelationshipIds)
+      const graphRelationships = await getMany(allRelationship_Ids)
 
       for (const graphRelationship of graphRelationships) {
         for (const { prop: reqProp, type } of props) {
@@ -94,16 +95,16 @@ export async function schemaUpdatePropUniqueIndex (reqItem) {
     }
   }
 
-  if (schemaUpdated) doneSchemaUpdate()
+  if (schemaUpdated) doneSchemaUpdate(isSourceSchemaPush)
 }
 
 
 /**
  * @param { 'add' | 'remove' } type 
  * @param { td.AceSchemaProp | td.AceSchemaRelationshipProp } schemaProp 
- * @param { Map<string, { type: 'add' | 'remove', prop: td.AceMutateRequestItemSchemaUpdatePropUniqueIndexProp }[]> } propsByNode 
- * @param { Map<string, { type: 'add' | 'remove', prop: td.AceMutateRequestItemSchemaUpdatePropUniqueIndexProp }[]> } propsByRelationship 
- * @param { td.AceMutateRequestItemSchemaUpdatePropUniqueIndexProp } prop 
+ * @param { Map<string, { type: 'add' | 'remove', prop: td.AceMutateRequestItemSchemaUpdatePropUniqueIndexItem }[]> } propsByNode 
+ * @param { Map<string, { type: 'add' | 'remove', prop: td.AceMutateRequestItemSchemaUpdatePropUniqueIndexItem }[]> } propsByRelationship 
+ * @param { td.AceMutateRequestItemSchemaUpdatePropUniqueIndexItem } prop 
  */
 function addToMaps (type, schemaProp, propsByNode, propsByRelationship, prop) {
   if (schemaProp.is === 'Prop') { // add to propsByNode

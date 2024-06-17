@@ -3,28 +3,29 @@ import { Memory } from '../objects/Memory.js'
 import { AceError } from '../objects/AceError.js'
 import { doneSchemaUpdate } from './doneSchemaUpdate.js'
 import { write, getOne, getMany } from '../util/storage.js'
-import { getRelationshipIdsKey, getRelationshipProp } from '../util/variables.js'
+import { getRelationship_IdsKey, getRelationshipProp } from '../util/variables.js'
 
 
 /** 
- * @param { td.AceMutateRequestItemSchemaUpdateRelationshipName } reqItem
+ * @param { td.AceMutateRequestItemSchemaRenameRelationship } reqItem
+ * @param { boolean } [ isSourceSchemaPush ]
  * @returns { Promise<void> }
  */
-export async function schemaUpdateRelationshipName (reqItem) {
-  for (const { nowName, newName } of reqItem.how.relationships) {
-    if (!Memory.txn.schema?.relationships?.[nowName]) throw AceError('aceFn__schemaUpdateRelationshipName__invalidNowName', `Please ensure that when updating a relationship name, the nowName is defined as a relationship in your schea, this is not happening yet for the nowName: ${ nowName }`, { nowName, newName })
+export async function schemaRenameRelationship (reqItem, isSourceSchemaPush) {
+  for (const { nowName, newName } of reqItem.how) {
+    if (!Memory.txn.schema?.relationships?.[nowName]) throw AceError('schemaRenameRelationship__invalidNowName', `Please ensure that when updating a relationship name, the nowName is defined as a relationship in your schea, this is not happening yet for the nowName: ${ nowName }`, { nowName, newName })
 
     // update relationship on each graphRelationship
-    const relationshipIdsKey = getRelationshipIdsKey(nowName)
+    const relationship_IdsKey = getRelationship_IdsKey(nowName)
 
     /** @type { (string | number)[] } */
-    const relationshipIds = await getOne(relationshipIdsKey)
+    const relationship_Ids = await getOne(relationship_IdsKey) || []
 
-    if (relationshipIds.length) {
+    if (relationship_Ids.length) {
       const graphNodeIds = [] // put a and b node ids here
 
       /** @type { td.AceGraphRelationship[] } */
-      const graphRelationships = await getMany(relationshipIds)
+      const graphRelationships = await getMany(relationship_Ids)
 
       // update graphRelationship.relationship
       for (const graphRelationship of graphRelationships) {
@@ -49,10 +50,10 @@ export async function schemaUpdateRelationshipName (reqItem) {
       }
     }
 
-    // update relationshipIdsKey
-    const newRelationshipIdsKey = getRelationshipIdsKey(newName)
-    write('update', newRelationshipIdsKey, relationshipIds)
-    write('delete', relationshipIdsKey)
+    // update relationship_IdsKey
+    const newRelationship_IdsKey = getRelationship_IdsKey(newName)
+    write('update', newRelationship_IdsKey, relationship_Ids)
+    write('delete', relationship_IdsKey)
 
     // update schema relationship
     Memory.txn.schema.relationships[newName] = Memory.txn.schema.relationships[nowName]
@@ -68,6 +69,6 @@ export async function schemaUpdateRelationshipName (reqItem) {
       }
     }
 
-    doneSchemaUpdate()
+    doneSchemaUpdate(isSourceSchemaPush)
   }
 }

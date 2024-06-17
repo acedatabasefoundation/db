@@ -4,7 +4,7 @@ import { doQueryOptions } from './doQueryOptions.js'
 import { getOne, getMany } from '../../util/storage.js'
 import { isObjectPopulated } from '../../util/isObjectPopulated.js'
 import { getDetailedResValueSectionByParent, getDetailedResValueSectionById } from './getDetailedResValue.js'
-import { getRelationshipProp, getSortIndexKey, getUniqueIndexKey, getNodeIdsKey, getRelationshipIdsKey } from '../../util/variables.js'
+import { getRelationshipProp, getSortIndexKey, getUniqueIndexKey, getNodeIdsKey, getRelationship_IdsKey } from '../../util/variables.js'
 
 
 /**
@@ -93,7 +93,7 @@ async function getInitialIds (reqItem) {
     if (isValid && !ids?.length) {
       ids = reqItem.do === 'NodeQuery' ?
         !detailedResValueSection.node ? [] : await getOne(getNodeIdsKey(detailedResValueSection.node)) :
-        !detailedResValueSection.relationship ? [] : await getOne(getRelationshipIdsKey(detailedResValueSection.relationship))
+        !detailedResValueSection.relationship ? [] : await getOne(getRelationship_IdsKey(detailedResValueSection.relationship))
 
       if (!ids) ids = []
     }
@@ -209,8 +209,8 @@ async function addPropsToResponse (detailedResValueSection, res, item, jwks, iRe
             resOriginalItem[resValueItemValue.alias] = graphRelationshipProps[reqResKey]
           }
         } else if (parentNodeOptions.schemaNodeProp?.is === 'ForwardRelationshipProp' || parentNodeOptions.schemaNodeProp?.is === 'ReverseRelationshipProp' || parentNodeOptions.schemaNodeProp?.is === 'BidirectionalRelationshipProp') { // this prop is defined @ schema.nodes and is a SchemaRelationshipProp
-          const relationshipIds = graphItem[getRelationshipProp(parentNodeOptions.schemaNodeProp.options.relationship)]
-          await addRelationshipPropsToResponse(id, relationshipIds, parentNodeOptions.schemaNodeProp, reqResKey, resValueItemValue, detailedResValueSection, resNowItem, resOriginalItem, jwks, iReq)
+          const relationship_Ids = graphItem[getRelationshipProp(parentNodeOptions.schemaNodeProp.options.relationship)]
+          await addRelationshipPropsToResponse(id, relationship_Ids, parentNodeOptions.schemaNodeProp, reqResKey, resValueItemValue, detailedResValueSection, resNowItem, resOriginalItem, jwks, iReq)
         } else if (item.relationship && relationshipPropsMap) {
           const r = relationshipPropsMap.get(reqResKey)
           const schemaNodeProp = r?.propValue
@@ -220,12 +220,12 @@ async function addPropsToResponse (detailedResValueSection, res, item, jwks, iRe
             const ids = [ resOriginalItem.a, resOriginalItem.b ]
             await addNodesToResponse(relationshipDetailedResValueSection, { now: resNowItem, original: resOriginalItem }, ids, false, jwks, iReq, [ resOriginalItem, resOriginalItem ])
           } else {
-            let relationshipId
-            if (schemaNodeProp?.is === 'ForwardRelationshipProp') relationshipId = resOriginalItem.b
-            else if (schemaNodeProp?.is === 'ReverseRelationshipProp') relationshipId = resOriginalItem.a
+            let relationship_Id
+            if (schemaNodeProp?.is === 'ForwardRelationshipProp') relationship_Id = resOriginalItem.b
+            else if (schemaNodeProp?.is === 'ReverseRelationshipProp') relationship_Id = resOriginalItem.a
 
-            if (relationshipId) {
-              await addPropsToResponse(relationshipDetailedResValueSection, { now: resNowItem, original: resOriginalItem }, { id: relationshipId }, jwks, iReq, resOriginalItem)
+            if (relationship_Id) {
+              await addPropsToResponse(relationshipDetailedResValueSection, { now: resNowItem, original: resOriginalItem }, { id: relationship_Id }, jwks, iReq, resOriginalItem)
               
               if (resNowItem[relationshipDetailedResValueSection.resKey]?.length) resNowItem[relationshipDetailedResValueSection.resKey] = resNowItem[relationshipDetailedResValueSection.resKey][0]
               if (resOriginalItem[relationshipDetailedResValueSection.resKey]?.length) resOriginalItem[relationshipDetailedResValueSection.resKey] = resOriginalItem[relationshipDetailedResValueSection.resKey][0]
@@ -282,7 +282,7 @@ async function addRelationshipsToResponse (detailedResValueSection, res, ids, is
 
  /**
  * @param { string } id
- * @param { string[] } relationshipIds
+ * @param { string[] } relationship_Ids
  * @param { td.AceSchemaForwardRelationshipProp | td.AceSchemaReverseRelationshipProp | td.AceSchemaBidirectionalRelationshipProp | td.AceSchemaProp } schemaNodeProp
  * @param { string } reqResKey 
  * @param { any } resValueItemValue 
@@ -293,8 +293,8 @@ async function addRelationshipsToResponse (detailedResValueSection, res, ids, is
  * @param { number } iReq
  * @returns { Promise<void> }
  */
-async function addRelationshipPropsToResponse (id, relationshipIds, schemaNodeProp, reqResKey, resValueItemValue, detailedResValueSection, resNowItem, resOriginalItem, jwks, iReq) {
-  if (id && schemaNodeProp && relationshipIds?.length) {
+async function addRelationshipPropsToResponse (id, relationship_Ids, schemaNodeProp, reqResKey, resValueItemValue, detailedResValueSection, resNowItem, resOriginalItem, jwks, iReq) {
+  if (id && schemaNodeProp && relationship_Ids?.length) {
     let findByIdFound = false
     let findBy_IdFound = false
     let findByUniqueFound = false
@@ -315,7 +315,7 @@ async function addRelationshipPropsToResponse (id, relationshipIds, schemaNodePr
     const uniqueIds = (uniqueKeys.length) ? await getMany(uniqueKeys) : []
 
     /** @type { td.AceGraphRelationship[] } */
-    const allGraphRelationships = await getMany(relationshipIds)
+    const allGraphRelationships = await getMany(relationship_Ids)
 
     switch (schemaNodeProp.is) {
       case 'ForwardRelationshipProp':

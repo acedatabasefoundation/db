@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 
 
+import { stdout } from 'node:process'
 import { getHelp } from './getHelp.js'
-import { logJWKs } from './logJWKs.js'
+import { writeJWKs } from './writeJWKs.js'
 import { emptyTrash } from './trash.js'
 import { fileURLToPath } from 'node:url'
 import { cliTypes } from './cliTypes.js'
+import { writeToken } from './writeToken.js'
 import { getVersion } from './getVersion.js'
 import { dirname, resolve } from 'node:path'
+import { schemaPush } from './schemaPush.js'
 
 
 (async function cli () {
@@ -24,27 +27,36 @@ import { dirname, resolve } from 'node:path'
         break
 
 
-      case '-v':
       case 'version':
-        console.log(await getVersion(packageDotJson))
+        stdout.write(await getVersion(packageDotJson))
         break
 
 
       case 'jwks':
-        await logJWKs()
+        await writeJWKs()
+        break
+
+
+      case 'token':
+        writeToken()
         break
 
 
       case 'types':
-        await cliTypes(process.argv[3], process.argv[4])
+        await cliTypes()
         break
 
 
       case 'trash:empty':
-        await emptyTrash(process.argv[3])
+        await emptyTrash()
+        break
+
+
+      case 'schema:push':
+        await schemaPush()
         break
     }
   } catch (error) {
-    console.log('error', error)
+    console.log('error:', error)
   }
 })()

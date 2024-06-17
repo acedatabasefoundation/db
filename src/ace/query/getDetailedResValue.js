@@ -1,9 +1,9 @@
 import { td } from '#ace'
 import { Memory } from '../../objects/Memory.js'
+import { SCHEMA_ID } from '../../util/variables.js'
 import { AceError } from '../../objects/AceError.js'
 import { enumIdToGraphId } from '../id/enumIdToGraphId.js'
 import { isObjectPopulated } from '../../util/isObjectPopulated.js'
-import { SCHEMA_ID } from '../../util/variables.js'
 
 
 /**
@@ -11,15 +11,15 @@ import { SCHEMA_ID } from '../../util/variables.js'
  * @returns { td.AceQueryRequestItemDetailedResValueSection }
  */
 export function getDetailedResValueSectionById (reqItem) {
-  if (reqItem.do !== 'NodeQuery' && reqItem.do !== 'RelationshipQuery') throw AceError('aceFn__query__invalidId', `Please ensure the reqItem.do: ${ /** @type {*} */ (reqItem).id } is NodeQuery or RelationshipQuery`, { reqItem })
+  if (reqItem.do !== 'NodeQuery' && reqItem.do !== 'RelationshipQuery') throw AceError('query__invalidId', `Please ensure the reqItem.do: ${ /** @type {*} */ (reqItem).id } is NodeQuery or RelationshipQuery`, { reqItem })
 
   const item = {}
 
   if (reqItem.do === 'NodeQuery') {
-    if (!Memory.txn.schema?.nodes[reqItem.how.node]) throw AceError('aceFn__query__invalidNode', `Please ensure the reqItem.node of: ${ reqItem.how.node } is a node in the schema`, { reqItem })
+    if (!Memory.txn.schema?.nodes[reqItem.how.node]) throw AceError('query__invalidNode', `Please ensure the reqItem.node of: "${ reqItem.how.node }" is a node in the schema`, { reqItem })
     item.node = reqItem.how.node
   } else {
-    if (!Memory.txn.schema?.relationships?.[reqItem.how.relationship]) throw AceError('aceFn__query__invalidRelationship', `Please ensure the reqItem.relationship of: ${ reqItem.how.relationship }  is a relationship in the schema`, { reqItem })
+    if (!Memory.txn.schema?.relationships?.[reqItem.how.relationship]) throw AceError('query__invalidRelationship', `Please ensure the reqItem.relationship of: "${ reqItem.how.relationship }"  is a relationship in the schema`, { reqItem })
     item.relationship = reqItem.how.relationship
   }
 
@@ -66,7 +66,7 @@ export function getDetailedResValueSectionByParent (reqResValue, reqResKey, deta
     }
   }
 
-  if (!schemaPropValue || schemaPropValue.is === 'Prop') throw AceError('aceFn__query__schemaPropValue', `Please ensure your query includes a prop in your resValue that is in the schema as a ForwardRelationshipProp, ReverseRelationshipProp or BidirectionalRelationshipProp. This is not happening yet at the prop: "${ reqResKey }"`, { prop: reqResKey, reqValue: reqResValue })
+  if (!schemaPropValue || schemaPropValue.is === 'Prop') throw AceError('query__schemaPropValue', `Please ensure your query includes a prop in your resValue that is in the schema as a ForwardRelationshipProp, ReverseRelationshipProp or BidirectionalRelationshipProp. This is not happening yet at the prop: "${ reqResKey }"`, { prop: reqResKey, reqValue: reqResValue })
 
   const resValue = updateWhereIds(fill(reqResValue, item))
 

@@ -7,12 +7,13 @@ import { DELIMITER, getNodeIdsKey } from '../util/variables.js'
 
 
 /** 
- * @param { td.AceMutateRequestItemSchemaUpdateNodeName } reqItem
+ * @param { td.AceMutateRequestItemSchemaRenameNode } reqItem
+ * @param { boolean } [ isSourceSchemaPush ]
  * @returns { Promise<void> }
  */
-export async function schemaUpdateNodeName (reqItem) {
-  for (const { nowName, newName } of reqItem.how.nodes) {
-    if (!Memory.txn.schema?.nodes[nowName]) throw AceError('aceFn__schemaUpdateNodeName__invalidNowName', `Please ensure each nowName is defined in the schema, this is not happening yet for the nowName: ${ nowName } @ the reqItem:`, { reqItem, nowName, newName })
+export async function schemaRenameNode (reqItem, isSourceSchemaPush) {
+  for (const { nowName, newName } of reqItem.how) {
+    if (!Memory.txn.schema?.nodes[nowName]) throw AceError('schemaRenameNode__invalidNowName', `Please ensure each nowName is defined in the schema, this is not happening yet for the nowName: ${ nowName } @ the reqItem:`, { reqItem, nowName, newName })
 
 
     // update node on each graphNode
@@ -21,7 +22,7 @@ export async function schemaUpdateNodeName (reqItem) {
     /** @type { string[] } */
     const nodeIds = await getOne(nodeIdsKey)
 
-    if (nodeIds.length) {
+    if (nodeIds?.length) {
       /** @type { td.AceGraphNode[] } */
       const graphNodes = await getMany(nodeIds)
 
@@ -55,6 +56,6 @@ export async function schemaUpdateNodeName (reqItem) {
     Memory.txn.schema.nodes[newName] = Memory.txn.schema.nodes[nowName]
     delete Memory.txn.schema.nodes[nowName]
 
-    doneSchemaUpdate()
+    doneSchemaUpdate(isSourceSchemaPush)
   }
 }

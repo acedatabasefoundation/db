@@ -5,41 +5,37 @@
 Create maintain and enhance, the Best database, for JavaScript Developers!
 
 
-## Why Ace?
-* A graph is a **natural** data storage technique, that connects nodes **(neurons)** with relationships **(synapses)**
-* Ace is an open source graph database, that unites the following lovely features, from impressive database leaders:
-    * [Redis](https://redis.io/): Fast memory storage
-    * [SQLite](https://www.sqlite.org/): No network latency between the application server & the database
-    * [Drizzle](https://orm.drizzle.team/): Helpful schema lead intellisense
-    * [Dgraph](https://dgraph.io/): Perform multiple interrelated mutations & queries in one request
-    * [PlanetScale](https://planetscale.com/): Simple & powerful migrations
-
-
-## Ace Features
-1. [Embeded](#embeded)
-1. [Memory Storage](#storage)
-1. [File Storage](#storage)
-1. [Transactions](#transactions)
-1. [Queue](#queue)
-1. [Schema](#schema)
-1. [Migrations](#migrations)
-1. [TypeScript and JSDoc](#typescript-and-jsdoc)
-1. [CLI](#cli)
-1. [Data Types](#data-types)
+## 🧐 Why Ace?
+* A graph is a **natural** data storage technique, that connects nodes **(neurons)** with relationships **(synapses)** 🧠
+* Ace unites the following lovely features, in an optionally [sponsored](#sponsor-ace) or optionally free 🙌, open source graph db:
+    1. **[Embeded](#embeded)** (no latency between application server and database)
+    1. **[Memory Storage](#storage)** (query millions of nodes in 1ms 😳)
+    1. **[File Storage](#storage)** (append memory storage to files)
+    1. **[Transactions](#transactions)** (start, continue, cancel or complete txn's)
+    1. **[Queue](#queue)** (povides read and write concurrency)
+    1. **[Schema](#schema)** (define data shape w/ JSON)
+    1. **[Migrations](#migrations)** (simple and powerful schema migrations within and between environments)
+    1. **[Backups](#backups)** (multiple locations and frequencies available)
+    1. **[TypeScript and JSDoc](#typescript-and-jsdoc)** (based on schema to provide helpful editor intellisense)
+    1. **[CLI](#cli)** (geneate types, perform migrations and much more)
+    1. **[Data Types](#data-types)** (string, number, boolean, iso, hash, encrypt)
+    1. **[ORM](#orm)** (unite the query language and the ORM with the function `ace()`, that allows multiple, interrelated and typesafe, queries and mutations)
 
 
 ## ☁️ Getting Stated
 1. Download Ace
     * Have an existing NodeJS application, or in bash start a new one with `npm init` or `npm create vite@latest`
-    * In bash navigate to the folder where you `package.json` is and `npm i @ace/db`
+    * In bash navigate to the folder where the `package.json` is and `npm i @ace/db`
     * This will download `v0.0.1`
     * Ace will be production recommended when we release `v1.0.0`
     * No migrations scripts are planned for any version between now and `v1.0.0`
 1. Create a Graph
-    * [Create a Facebook Graph](#create-a-facebook-graph)
+    * [Create a WhatsApp Graph](#create-a-whatsapp-graph)
     * [Create an Instagram Graph](#create-an-instagram-graph)
-    * [Create a Blog Graph](#create-a-blog-graph)
+    * [Create a Stack Overflow Graph](#create-a-sessions-graph)
+    * [Create a Sessions Graph](#create-a-sessions-graph)
     * [Create an eCommerce Graph](#create-an-ecommerce-graph)
+    * [Create a Blog Graph](#create-a-blog-graph)
 
 
 ## Examples
@@ -73,7 +69,7 @@ Create maintain and enhance, the Best database, for JavaScript Developers!
 1. [Multi Graph Support](#multi-graph-support)
 
 
-## Create a Facebook Graph
+## Create a WhatsApp Graph
 1. Create the schema
 ```js
 import { ace } from '@ace/db'
@@ -89,7 +85,7 @@ await ace({
   // req array order is the order the graph will be updated
   req: [
     // empty any existing items in the graph
-    { do: 'Empty' },
+    { do: 'EmptyGraph' },
 
     // add nodes, relationships and props to schema
     {
@@ -185,8 +181,9 @@ console.log(res)
 
 ## Embeded
 * Data is stored in memory and in the directory you specify on your application server
+* This allows for no network latency between your application server and your database
 ```js
-await ace({ path: './ace', req: [ ... ] }) // path = the directory, starting from your applications package.json
+await ace({ dir: './ace', req: [ ... ] }) // dir = the directory, starting from your applications package.json
 ```
 
 
@@ -194,7 +191,7 @@ await ace({ path: './ace', req: [ ... ] }) // path = the directory, starting fro
 * Memory
     * The max size v8 allows for a `new Map()` is 1 gigabyte
     * Ace puts the most recent 45 megabytes of writes (estimated 3+ million graph items) into an in memory map
-    * Querying the in memory map allows 1-9ms queries at its max size
+    * Querying the in memory map allows 1ms queries at its max size
     * If the application server restarts, the map is rebuilt thanks to the write ahead log
 * File
     * To the specified directory:
@@ -261,34 +258,39 @@ ace help
 ace jwks
   - A jwk (JSON Web Key) is like a password. JWKs helps Ace do cryptography
   - Use ACE_PRIVATE_JWK to create a hash, use ACE_PUBLIC_JWK to verify a hash and use ACE_CRYPT_JWK to encrypt and decrypt information
-  - Ace recommends storing JWKs in your .env file as a string
+  - Ace recommends storing JWKs in your .env file as a string and then closing this terminal window
 
 
-ace trash:empty ./ace
+ace trash:empty
   - Empty trash folder
-  - Where we put items when ace() Empty is called
-  - First property (required), is the "directory" that holds your graph
+  - When ace() EmptyGraph is called, items are moved into the trash folder: [ directory ]/trash/[ timestamp ]
+
+
+ace token
+  - The Ace CLI could read and write to the directory that holds your graph without calling your server
+  - But the server holds a request queue that ensures all requests happen one at a time, in the order they are recieved
+  - So the Ace CLI calls your graph by calling an endpoint on your server, so that the CLI requests goes into the queue
+  - To ensure the endpoint to your graph, on your server, is only accessible to the ClI, use this token
+  - Ace recommends storing this token in your .env file as a string and then closing this terminal window
 
 
 ace types
-ace types ./ace local
-  - Create types (TS) and typedefs (JSDoc)
-  - First property (optional), is the "directory" that holds your graph
-  - Second property (optional), is the "environment" that we are in
-  - If "directory" & "environment" are included, types are schema specific
+  - Creates enums, types (TS) and typedefs (JSDoc)
+  - To access in your application
+    - import { td, enums } from "@ace/db"
 
 
-ace schema:push ./ace production 1,2,3
-  - If local schema updated to version 3, we push to production and now we want the production schema to go from version 1 to version 3
-  - First property (required), is the "directory" that holds your graph
-  - Second property (required), is the "environment" that we are in
-  - Thrid property (required), is the "version movement". Examples:
-      - Version 8 to Version 9 -> 8,9
-      - Version 2 to Version 1 -> 2,1
-      - Version 7 to Version 8 to Version 9 -> 7,8,9
+ace schema:push
+  - Example:
+    - Local schema version is 3
+    - Local application code is pushed to production and includes [ directory ]/schemas/[1,2,3].json
+    - Goal: Set production schema from version 1 to version 3
+    - Bash: ace schema:push
+      - First Ace will update graph data to reflect [ directory ]/schemas/2.json
+      - Then Ace will update graph data to reflect [ directory ]/schemas/3.json
+    - Aim version can be above or below the current version
 
 
-ace -v
 ace version
   - Prints your currently downloaded Ace Graph Database Version
 ```
@@ -298,7 +300,7 @@ ace version
 * string
 * number
 * boolean
-* isoString
+* iso
     * Equivalent to: `(new Date()).toISOString()`
 * hash
     * Get jwks via `ace jwks`

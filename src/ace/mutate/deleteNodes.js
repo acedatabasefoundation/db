@@ -11,8 +11,8 @@ import { RELATIONSHIP_PREFIX, getNodeIdsKey, getNodeNamePlusRelationshipNameToNo
  * @param { (string | number)[] } ids
  * @returns { Promise<void> }
  */
-export async function deleteNodesById (ids) {
-  if (!Array.isArray(ids) || !ids.length) throw AceError('aceFn__deleteNodesById__invalidIds', 'Please ensure calls to deleteNodesById() includes an array of populated ids', { ids })
+export async function deleteNodes (ids) {
+  if (!Array.isArray(ids) || !ids.length) throw AceError('deleteNodes__invalidIds', 'Please ensure calls to deleteNodes() includes an array of populated ids', { ids })
 
   /** @type { td.AceGraphNode[] } */
   const graphDeleteNodes = await getMany(ids)
@@ -23,11 +23,11 @@ export async function deleteNodesById (ids) {
   /** @type { Map<string, Set<string | number>>} Map<relationshipName, _ids> Group relationship _ids by relationship name*/
   const byRelationship = new Map()
 
-  /** @type { Map<string | number, { propName: string, relationshipName: string, cascade: boolean, graphDeleteNodeId: string | number }> } <relationshipId, { propName, relationshipName, cascade }> */
-  const relationshipIdsMap = new Map()
+  /** @type { Map<string | number, { propName: string, relationshipName: string, cascade: boolean, graphDeleteNodeId: string | number }> } <relationship_Id, { propName, relationshipName, cascade }> */
+  const relationship_IdsMap = new Map()
 
 
-  // set byNode, byRelationship & relationshipIdsMap
+  // set byNode, byRelationship & relationship_IdsMap
   for (const graphDeleteNode of graphDeleteNodes) {
     const deleteNodeIds = byNode.get(graphDeleteNode.node) || new Set()
     deleteNodeIds.add(graphDeleteNode.props.id)
@@ -39,12 +39,12 @@ export async function deleteNodesById (ids) {
         const schemaPropName = Memory.txn.schemaDataStructures.nodeNamePlusRelationshipNameToNodePropNameMap?.get(getNodeNamePlusRelationshipNameToNodePropNameMapKey(graphDeleteNode.node, relationshipName))
         const cascade = schemaPropName ? (Memory.txn.schemaDataStructures.cascade?.get(graphDeleteNode.node)?.has(schemaPropName) || false) : false
 
-        for (const relationshipId of graphDeleteNode[howKey]) {
+        for (const relationship_Id of graphDeleteNode[howKey]) {
           const deleteRelationship_Ids = byRelationship.get(relationshipName) || new Set()
-          deleteRelationship_Ids.add(relationshipId)
+          deleteRelationship_Ids.add(relationship_Id)
           byRelationship.set(relationshipName, deleteRelationship_Ids)
 
-          relationshipIdsMap.set(relationshipId, { propName: howKey, relationshipName, cascade, graphDeleteNodeId: graphDeleteNode.props.id })
+          relationship_IdsMap.set(relationship_Id, { propName: howKey, relationshipName, cascade, graphDeleteNodeId: graphDeleteNode.props.id })
         }
       }
     }
@@ -72,14 +72,14 @@ export async function deleteNodesById (ids) {
   /** We have nodes to be deleted "graphDeleteNodes" and we have the relationships of those nodes "byRelationship".
    * Each relationship in "byRelationship" is between a node to be deleted and a connecting node.
    * Ensure on the connecting node, the relationship is deleted by puting the connecting nodes in connectingNodes.
-   * @type { Map<string | number, string | number> } <nodeId, relationshipId> */
+   * @type { Map<string | number, string | number> } <nodeId, relationship_Id> */
   const connectingNodes = new Map()
 
 
   /** We have nodes to be deleted "graphDeleteNodes" and we have the relationships of those nodes "byRelationship".
    * Each relationship in "byRelationship" is between a node to be deleted and a connecting node.
    * If these relationship asks us to cascade delete connecting nodes, add the connecting node to cascadeIds.
-   * @type { (string | number)[] } <nodeId, relationshipId> */
+   * @type { (string | number)[] } <nodeId, relationship_Id> */
   const cascadeIds = []
 
 
@@ -89,7 +89,7 @@ export async function deleteNodesById (ids) {
     const graphRelationships = await getMany([ ...deleteRelationship_Ids ])
 
     for (const graphRelationship of graphRelationships) {
-      const details = relationshipIdsMap.get(graphRelationship.props._id)
+      const details = relationship_IdsMap.get(graphRelationship.props._id)
 
       if (graphRelationship.props.a === details?.graphDeleteNodeId) {
         if (details.cascade) cascadeIds.push(graphRelationship.props.b)
@@ -111,7 +111,7 @@ export async function deleteNodesById (ids) {
     const relationship_Id = connectingNodes.get(graphConnectingNode.props.id)
 
     if (relationship_Id) {
-      const details = relationshipIdsMap.get(relationship_Id)
+      const details = relationship_IdsMap.get(relationship_Id)
 
       if (details) {
         delete_IdFromRelationshipProp(details.propName, relationship_Id, graphConnectingNode)
@@ -137,5 +137,5 @@ export async function deleteNodesById (ids) {
 
 
   // delete ids that are cascade
-  if (cascadeIds.length) await deleteNodesById(cascadeIds)
+  if (cascadeIds.length) await deleteNodes(cascadeIds)
 }

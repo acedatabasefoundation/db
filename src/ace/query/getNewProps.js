@@ -70,7 +70,7 @@ function getSymbol (newPropsGroup) {
   else if (newPropsGroup.subtract) symbol = 'subtract'
   else if (newPropsGroup.multiply) symbol = 'multiply'
   else if (newPropsGroup.divide) symbol = 'divide'
-  else throw AceError('aceFn__invalidNewPropsSymbol', 'Please include add, subtract, multiply or divide when using newProps', { current: newPropsGroup, example: { newProps: { fullName: { add: [ { prop: 'firstName' }, ' ', { prop: 'lastName' } ] } } } } )
+  else throw AceError('getNewProps__invalidNewPropsSymbol', 'Please include add, subtract, multiply or divide when using newProps', { current: newPropsGroup, example: { newProps: { fullName: { add: [ { prop: 'firstName' }, ' ', { prop: 'lastName' } ] } } } } )
 
   return symbol
 }

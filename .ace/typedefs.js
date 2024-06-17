@@ -13,9 +13,56 @@ import * as enums from './enums.js'
  * @prop { number } [ fileSize ] - filehandle.stat() on the wal file
  * @prop { Map<string | number, { do: enums.writeDo, value: any }> } map
  * @prop { import('node:fs/promises').FileHandle } [ filehandle ]
- * @prop { { byteAmount: number, map: Map<string | number, any> } } revert
  *
  * @typedef { [ string | number, number, number, number ] } AceMemoryMiniIndexItem
+ */
+
+
+/** AceTxn
+ *
+ * @typedef { object } AceTxn
+ * @property { string } [ id ]
+ * @property { string } [ env ]
+ * @property { NodeJS.Timeout } [ timeoutId ]
+ * @property { enums.txnSteps } step
+ * @property { AceSchema | null } schema
+ * @property { AceTxnSchemaDataStructures } schemaDataStructures
+ * @property { boolean } [ schemaUpdated ]
+ * @property { boolean } [ schemaPushRequested ]
+ * @property { boolean } [ schemaPushRequestedThenSchemaUpdated ]
+ * @property { AceSchemaDetails } [ schemaNowDetails ]
+ * @property { AceSchemaDetails } [ schemaOriginalDetails ]
+ * @property { number } [ lastId ]
+ * @property { boolean } [ hasUpdates ]
+ * @property { string } [ emptyTimestamp ]
+ * @property { Map<string | number, number> } enumGraphIdsMap
+ * @property { Map<string | number, { do: enums.writeDo, value: * }> } writeMap
+ * @property { string } writeStr
+ * @property { { byteAmount: number, map: Map<string | number, any> } } revertWalDetails
+ * @property { Map<string, { schemaProp: AceSchemaProp | AceSchemaRelationshipProp, nodeOrRelationshipName: string, propName: string, newIds: (string | number)[] }> } sortIndexMap - If we add a node and prop and that node+prop has a sort index, put the newly created nodes in here
+ *
+ * @typedef { object } AceTxnSchemaDataStructures
+ * @property { Map<string, AceTxnSchemaDataStructuresDefaultItem[]> } defaults
+ * @property { Map<string, Set<string>> } cascade
+ * @property { Map<string, Set<string>> } nodeRelationshipPropsMap
+ * @property { Map<string, string> } nodeNamePlusRelationshipNameToNodePropNameMap
+ * @property { Map<number, { node?: string, relationship?: string, prop?: string }> } byAceId
+ * @property { Map<string, Map<string, { propNode: string, propValue: AceSchemaForwardRelationshipProp | AceSchemaReverseRelationshipProp | AceSchemaBidirectionalRelationshipProp }>> } relationshipPropsMap
+ * @property { Map<string, Map<string, (AceSchemaProp | AceSchemaRelationshipProp | AceSchemaForwardRelationshipProp | AceSchemaReverseRelationshipProp | AceSchemaBidirectionalRelationshipProp)>> } mustPropsMap
+ *
+ * @typedef { object } AceTxnSchemaDataStructuresDefaultItem
+ * @property { string } prop
+ * @property { any } [ value ]
+ * @property { 'setIsoNow' } [ do ]
+ */
+
+
+/** AceQueue
+ *
+ * @typedef { object } AceQueueItem
+ * @property { (res: AceFnResponse) => void } resolve
+ * @property { AcePromiseReject } reject
+ * @property { AceFnOptions } options
  */
 
 
@@ -43,50 +90,6 @@ import * as enums from './enums.js'
  *
  * @typedef { { id: string, detail: string, [errorItemKey: string]: any} } AceError
  * @typedef { { node?: string, relationship?: string, prop?: string, schema?: boolean } } AceAuthErrorOptions
- */
-
-
-/** AceQueue
- * 
- * @typedef { object } AceQueueItem
- * @property { (res: AceFnResponse) => void } resolve
- * @property { AcePromiseReject } reject
- * @property { AceFnOptions } options
- */
-
-
-/** AceTxn
- * 
- * @typedef { object } AceTxn
- * @property { string } [ id ]
- * @property { string } [ env ]
- * @property { NodeJS.Timeout } [ timeoutId ]
- * @property { enums.txnSteps } step
- * @property { AceSchema | null } schema
- * @property { AceTxnSchemaDataStructures } schemaDataStructures
- * @property { boolean } schemaUpdated
- * @property { AceSchemaDetails } [ schemaNowDetails ]
- * @property { AceSchemaDetails } [ schemaOriginalDetails ]
- * @property { number } [ lastId ]
- * @property { boolean } hasUpdates
- * @property { string } [ emptyTimestamp ]
- * @property { Map<string | number, number> } enumGraphIdsMap
- * @property { Map<string | number, { do: enums.writeDo, value: * }> } writeMap
- * @property { string } writeStr
- * @property { Map<string, { schemaProp: AceSchemaProp | AceSchemaRelationshipProp, nodeOrRelationshipName: string, propName: string, newIds: (string | number)[] }> } sortIndexMap - If we add a node and prop and that node+prop has a sort index, put the newly created nodes in here
- *
- * @typedef { object } AceTxnSchemaDataStructures
- * @property { Map<string, AceTxnSchemaDataStructuresDefaultItem[]> } defaults
- * @property { Map<string, Set<string>> } cascade
- * @property { Map<string, Set<string>> } nodeRelationshipPropsMap
- * @property { Map<string, string> } nodeNamePlusRelationshipNameToNodePropNameMap
- * @property { Map<string, Map<string, { propNode: string, propValue: AceSchemaForwardRelationshipProp | AceSchemaReverseRelationshipProp | AceSchemaBidirectionalRelationshipProp }>> } relationshipPropsMap
- * @property { Map<string, Map<string, (AceSchemaProp | AceSchemaRelationshipProp | AceSchemaForwardRelationshipProp | AceSchemaReverseRelationshipProp | AceSchemaBidirectionalRelationshipProp)>> } mustPropsMap
- *
- * @typedef { object } AceTxnSchemaDataStructuresDefaultItem
- * @property { string } prop
- * @property { any } [ value ]
- * @property { 'setIsoNow' } [ do ]
  */
 
 
@@ -137,7 +140,7 @@ import * as enums from './enums.js'
  * @typedef { AceFnRequestItem | (AceFnRequestItem)[] } AceFnRequest
  * @typedef { { [prop: string]: any, $ace?: AceFn$ } } AceFnResponse
  * @typedef { { now: AceFnResponse, original: { [k: string]: any } } } AceFnFullResponse
- * @typedef { { success: true } } AceFnEmptyResponse
+ * @typedef { { success: true } } AceFnEmptyGraphResponse
  *
  * @typedef { { [name: string]: { type: 'private' | 'public' | 'crypt', jwk: string } } } AceFnStringJWKs
  * @typedef { { [name: string]: CryptoKey } } AceFnCryptoJWK
@@ -149,9 +152,18 @@ import * as enums from './enums.js'
  */
 
 
+/** AceSecure
+ *
+ * @typedef { object } AceSecureParams
+ * @property { AceFnOptions } options
+ * @property { { correct: string, req: string } } token
+ */
+
+
 /** AceSchema
  * 
- * @typedef { { [env: string]: { lastCreatedVersion: number, currentVersion: number } } } AceSchemaDetails
+ * @typedef { { lastId: number, nowId: number } } AceSchemaDetail
+ * @typedef { { [env: string]: AceSchemaDetail } } AceSchemaDetails
  *
  * @typedef { { lastId: number, nodes: { [nodeName: string]: AceSchemaNodeValue & { $aceId: number } }, relationships?: { [relationshipName: string]: AceSchemaRelationshipValue & { $aceId: number } } } } AceSchema
  * @typedef { { [nodePropName: string]: AceSchemaProp | AceSchemaForwardRelationshipProp | AceSchemaReverseRelationshipProp | AceSchemaBidirectionalRelationshipProp } } AceSchemaNodeValue
@@ -273,7 +285,7 @@ import * as enums from './enums.js'
 /** AceMutate
  *
  * @typedef { AceMutateRequestItemEmpty | AceMutateRequestItemBackupLoad | AceMutateRequestItemSchema | AceMutateRequestItemNode | AceMutateRequestItemRelationship } AceMutateRequestItem
- * @typedef { AceMutateRequestItemSchemaAdd | AceMutateRequestItemSchemaUpdateNodeName | AceMutateRequestItemSchemaUpdateNodePropName | AceMutateRequestItemSchemaUpdateRelationshipName | AceMutateRequestItemSchemaUpdateRelationshipPropName | AceMutateRequestItemSchemaDeleteNodes | AceMutateRequestItemSchemaDeleteNodeProps | AceMutateRequestItemSchemaUpdateNodePropHas | AceMutateRequestItemSchemaUpdateNodePropCascade | AceMutateRequestItemSchemaUpdatePropDefault | AceMutateRequestItemSchemaUpdatePropMustBeDefined | AceMutateRequestItemSchemaUpdatePropSortIndex | AceMutateRequestItemSchemaUpdatePropUniqueIndex } AceMutateRequestItemSchema
+ * @typedef { AceMutateRequestItemSchemaAdd | AceMutateRequestItemSchemaRenameNode | AceMutateRequestItemSchemaRenameNodeProp | AceMutateRequestItemSchemaRenameRelationship | AceMutateRequestItemSchemaRenameRelationshipProp | AceMutateRequestItemSchemaDeleteNodes | AceMutateRequestItemSchemaDeleteNodeProps | AceMutateRequestItemSchemaUpdateNodePropHas | AceMutateRequestItemSchemaUpdateNodePropCascade | AceMutateRequestItemSchemaUpdatePropDefault | AceMutateRequestItemSchemaUpdatePropMustBeDefined | AceMutateRequestItemSchemaUpdatePropSortIndex | AceMutateRequestItemSchemaUpdatePropUniqueIndex | AceMutateRequestItemSchemaPush } AceMutateRequestItemSchema
  * @typedef { AceMutateRequestItemNodeInsert | AceMutateRequestItemNodeUpdate | AceMutateRequestItemNodeUpsert | AceMutateRequestItemNodeDelete | AceMutateRequestItemNodePropDelete | AceMutateRequestItemSchemaDeleteNodes | AceMutateRequestItemSchemaDeleteNodeProps } AceMutateRequestItemNode
  * @typedef { AceMutateRequestItemRelationshipInsert | AceMutateRequestItemRelationshipUpdate | AceMutateRequestItemRelationshipUpsert | AceMutateRequestItemRelationshipDelete | AceMutateRequestItemRelationshipPropDelete } AceMutateRequestItemRelationship
  *
@@ -284,8 +296,13 @@ import * as enums from './enums.js'
  * @property { string } backup
  * @property { boolean } [ skipDataDelete ]
  *
- * @typedef { object } AceMutateRequestItemEmpty
- * @property { typeof enums.aceDo.Empty } do - Delete schema and all datamfrom graph
+ * @typedef { AceMutateRequestItemEmptyGraph | AceMutateRequestItemEmptyTrash } AceMutateRequestItemEmpty
+ *
+ * @typedef { object } AceMutateRequestItemEmptyGraph
+ * @property { typeof enums.aceDo.EmptyGraph } do - Delete schema and all datamfrom graph
+ *
+ * @typedef { object } AceMutateRequestItemEmptyTrash
+ * @property { typeof enums.aceDo.EmptyTrash } do - Delete all folders in trash
  *
  * @typedef { object } AceMutateRequestItemNodeInsert
  * @property { typeof enums.aceDo.NodeInsert } do
@@ -334,11 +351,11 @@ import * as enums from './enums.js'
  * @property { string } relationship
  * @property { AceMutateRequestItemRelationshipUpsertProps } props
  * @property { AceMutateRequestOptions } [ $o ]
- * 
+ *
  * @typedef { AceMutateRequestItemRelationshipInsert | AceMutateRequestItemRelationshipUpdate | AceMutateRequestItemRelationshipUpsert } AceMutateRequestItemRelationshipInup
- * 
+ *
  * @typedef { AceMutateRequestItemNodeUpdate & { [relationshipProp: string]: string[] } } AceMutateRequestItemNodeWithRelationships
- * 
+ *
  * @typedef { object } AceMutateRequestItemNodeDelete
  * @property { typeof enums.aceDo.NodeDelete } do
  * @property { (string | number)[] } how - The ids you'd love deleted. To cascade delete, add cascade to the schema
@@ -355,87 +372,83 @@ import * as enums from './enums.js'
  * @property { typeof enums.aceDo.RelationshipPropDelete } do
  * @property { { _ids: (string | number)[], props: string[] } } how
  *
- * @typedef { string } AceMutateRequestItemSchemaDeleteNodesNode
- * 
  * @typedef { object } AceMutateRequestItemSchemaDeleteNodes
  * @property { typeof enums.aceDo.SchemaDeleteNodes } do
- * @property { AceMutateRequestItemSchemaDeleteNodesHow } how
- * @typedef { object } AceMutateRequestItemSchemaDeleteNodesHow
- * @property { AceMutateRequestItemSchemaDeleteNodesNode[] } nodes
+ * @property { AceMutateRequestItemSchemaDeleteNodesItem[] } how
+ * @typedef { string } AceMutateRequestItemSchemaDeleteNodesItem
+ *
+ * @typedef { object } AceMutateRequestItemSchemaDeleteRelationships
+ * @property { typeof enums.aceDo.SchemaDeleteRelationships } do
+ * @property { AceMutateRequestItemSchemaDeleteRelationshipsItem[] } how
+ * @typedef { string } AceMutateRequestItemSchemaDeleteRelationshipsItem
+ *
+ * @typedef { object } AceMutateRequestItemSchemaDeleteRelationshipProps
+ * @property { typeof enums.aceDo.SchemaDeleteRelationshipProps } do
+ * @property { AceMutateRequestItemSchemaDeleteRelationshipPropsItem[] } how
+ * @typedef { { relationship: string, prop: string } } AceMutateRequestItemSchemaDeleteRelationshipPropsItem
  *
  * @typedef { object } AceMutateRequestItemSchemaDeleteNodeProps
  * @property { typeof enums.aceDo.SchemaDeleteNodeProps } do
- * @property { AceMutateRequestItemSchemaDeleteNodePropsHow } how
- * @typedef { object } AceMutateRequestItemSchemaDeleteNodePropsHow
- * @property { { node: string, prop: string }[] } props
+ * @property { AceMutateRequestItemSchemaDeleteNodePropsItem[] } how
+ * @typedef { { node: string, prop: string } } AceMutateRequestItemSchemaDeleteNodePropsItem
  *
  * @typedef { object } AceMutateRequestItemSchemaUpdatePropDefault - To remove "default" from a prop in the schema, in the props array, "default" must be undefined
  * @property { typeof enums.aceDo.SchemaUpdatePropDefault } do - To remove "default" from a prop in the schema, in the props array, "default" must be undefined
- * @property { AceMutateRequestItemSchemaUpdatePropDefaultHow } how - To remove "default" from a prop in the schema, in the props array, "default" must be undefined
- * @typedef { { nodeOrRelationship: string, prop: string, default?: any } } AceMutateRequestItemSchemaUpdatePropDefaultProp - To remove "default" from a prop in the schema, in the props array, "default" must be undefined
- * @typedef { object } AceMutateRequestItemSchemaUpdatePropDefaultHow - To remove "default" from a prop in the schema, in the props array, "default" must be undefined
- * @property { AceMutateRequestItemSchemaUpdatePropDefaultProp[] } props - To remove "default" from a prop in the schema, in the props array, "default" must be undefined
+ * @property {  AceMutateRequestItemSchemaUpdatePropDefaultItem[] } how - To remove "default" from a prop in the schema, in the props array, "default" must be undefined
+ * @typedef { { nodeOrRelationship: string, prop: string, default?: any } } AceMutateRequestItemSchemaUpdatePropDefaultItem - To remove "default" from a prop in the schema, in the props array, "default" must be undefined
  *
  * @typedef { object } AceMutateRequestItemSchemaUpdatePropMustBeDefined
  * @property { typeof enums.aceDo.SchemaUpdatePropMustBeDefined } do
- * @property { AceMutateRequestItemSchemaUpdatePropMustBeDefinedHow } how
- * @typedef { { nodeOrRelationship: string, prop: string, mustBeDefined: boolean } } AceMutateRequestItemSchemaUpdatePropMustBeDefinedProp
- * @typedef { object } AceMutateRequestItemSchemaUpdatePropMustBeDefinedHow
- * @property { AceMutateRequestItemSchemaUpdatePropMustBeDefinedProp[] } props
+ * @property { AceMutateRequestItemSchemaUpdatePropMustBeDefinedItem[] } how
+ * @typedef { { nodeOrRelationship: string, prop: string, mustBeDefined: boolean } } AceMutateRequestItemSchemaUpdatePropMustBeDefinedItem
  *
  * @typedef { object } AceMutateRequestItemSchemaUpdatePropSortIndex
  * @property { typeof enums.aceDo.SchemaUpdatePropSortIndex } do
- * @property { AceMutateRequestItemSchemaUpdatePropSortIndexHow } how
- * @typedef { { nodeOrRelationship: string, prop: string, sortIndex: boolean } } AceMutateRequestItemSchemaUpdatePropSortIndexProp
- * @typedef { object } AceMutateRequestItemSchemaUpdatePropSortIndexHow
- * @property { AceMutateRequestItemSchemaUpdatePropSortIndexProp[] } props
+ * @property { AceMutateRequestItemSchemaUpdatePropSortIndexItem[] } how
+ * @typedef { { nodeOrRelationship: string, prop: string, sortIndex: boolean } } AceMutateRequestItemSchemaUpdatePropSortIndexItem
  *
  * @typedef { object } AceMutateRequestItemSchemaUpdatePropUniqueIndex
  * @property { typeof enums.aceDo.SchemaUpdatePropUniqueIndex } do
- * @property { AceMutateRequestItemSchemaUpdatePropUniqueIndexHow } how
- * @typedef { { nodeOrRelationship: string, prop: string, uniqueIndex: boolean } } AceMutateRequestItemSchemaUpdatePropUniqueIndexProp
- * @typedef { object } AceMutateRequestItemSchemaUpdatePropUniqueIndexHow
- * @property { AceMutateRequestItemSchemaUpdatePropUniqueIndexProp[] } props
+ * @property { AceMutateRequestItemSchemaUpdatePropUniqueIndexItem[] } how
+ * @typedef { { nodeOrRelationship: string, prop: string, uniqueIndex: boolean } } AceMutateRequestItemSchemaUpdatePropUniqueIndexItem
  *
- * @typedef { object } AceMutateRequestItemSchemaUpdateNodeName
- * @property { typeof enums.aceDo.SchemaUpdateNodeName } do
- * @property { AceMutateRequestItemSchemaUpdateNodeNameHow } how
- * @typedef { object } AceMutateRequestItemSchemaUpdateNodeNameHow
- * @property { { nowName: string, newName: string }[] } nodes
+ * @typedef { object } AceMutateRequestItemSchemaRenameNode
+ * @property { typeof enums.aceDo.SchemaRenameNode } do
+ * @property { AceMutateRequestItemSchemaRenameNodeItem[] } how
+ * @typedef { { nowName: string, newName: string } } AceMutateRequestItemSchemaRenameNodeItem
  *
- * @typedef { object } AceMutateRequestItemSchemaUpdateNodePropName
- * @property { typeof enums.aceDo.SchemaUpdateNodePropName } do
- * @property { AceMutateRequestItemSchemaUpdateNodePropNameHow } how
- * @typedef { object } AceMutateRequestItemSchemaUpdateNodePropNameHow
- * @property { { node: string, nowName: string, newName: string }[] } props
+ * @typedef { object } AceMutateRequestItemSchemaRenameNodeProp
+ * @property { typeof enums.aceDo.SchemaRenameNodeProp } do
+ * @property { AceMutateRequestItemSchemaRenameNodePropItem[] } how
+ * @typedef { { node: string, nowName: string, newName: string } } AceMutateRequestItemSchemaRenameNodePropItem
  *
  * @typedef { object } AceMutateRequestItemSchemaUpdateNodePropHas
  * @property { typeof enums.aceDo.SchemaUpdateNodePropHas } do
- * @property { AceMutateRequestItemSchemaUpdateNodePropHasHow } how
- * @typedef { object } AceMutateRequestItemSchemaUpdateNodePropHasHow
- * @property { { node: string, prop: string, has: enums.schemaHas }[] } props
- * 
+ * @property { AceMutateRequestItemSchemaUpdateNodePropHasItem[] } how
+ * @typedef { { node: string, prop: string, has: enums.schemaHas } } AceMutateRequestItemSchemaUpdateNodePropHasItem
+ *
  * @typedef { object } AceMutateRequestItemSchemaUpdateNodePropCascade
  * @property { typeof enums.aceDo.SchemaUpdateNodePropCascade } do
- * @property { AceMutateRequestItemSchemaUpdateNodePropCascadeHow } how
- * @typedef { object } AceMutateRequestItemSchemaUpdateNodePropCascadeHow
- * @property { { node: string, prop: string, cascade: boolean }[] } props
+ * @property { AceMutateRequestItemSchemaUpdateNodePropCascadeItem[] } how
+ * @typedef { { node: string, prop: string, cascade: boolean } } AceMutateRequestItemSchemaUpdateNodePropCascadeItem
  *
- * @typedef { object } AceMutateRequestItemSchemaUpdateRelationshipName
- * @property { typeof enums.aceDo.SchemaUpdateRelationshipName } do
- * @property { AceMutateRequestItemSchemaUpdateRelationshipNameHow } how
- * @typedef { object } AceMutateRequestItemSchemaUpdateRelationshipNameHow
- * @property { { nowName: string, newName: string }[] } relationships
+ * @typedef { object } AceMutateRequestItemSchemaRenameRelationship
+ * @property { typeof enums.aceDo.SchemaRenameRelationship } do
+ * @property { AceMutateRequestItemSchemaRenameRelationshipItem[] } how
+ * @typedef { { nowName: string, newName: string } } AceMutateRequestItemSchemaRenameRelationshipItem
  *
- * @typedef { object } AceMutateRequestItemSchemaUpdateRelationshipPropName
- * @property { typeof enums.aceDo.SchemaUpdateRelationshipPropName } do
- * @property { AceMutateRequestItemSchemaUpdateRelationshipPropNameHow } how
- * @typedef { object } AceMutateRequestItemSchemaUpdateRelationshipPropNameHow
- * @property { { relationship: string, nowName: string, newName: string }[] } props
+ * @typedef { object } AceMutateRequestItemSchemaRenameRelationshipProp
+ * @property { typeof enums.aceDo.SchemaRenameRelationshipProp } do
+ * @property { AceMutateRequestItemSchemaRenameRelationshipPropItem[] } how
+ * @typedef { { relationship: string, nowName: string, newName: string } } AceMutateRequestItemSchemaRenameRelationshipPropItem
  *
  * @typedef { object } AceMutateRequestItemSchemaAdd
  * @property { typeof enums.aceDo.SchemaAdd } do
  * @property { AceSchemaAddition } how
+ *
+ * @typedef { object } AceMutateRequestItemSchemaPush
+ * @property { typeof enums.aceDo.SchemaPush } do
+ * @property { number } how - Aim version number
  *
  * @typedef { object } AceMutateRequestOptions
  * @property { string } [ privateJWK ]
@@ -447,7 +460,7 @@ import * as enums from './enums.js'
  * @typedef { { a: string | number, b: string | number, [propName: string]: any } } AceMutateRequestItemRelationshipInsertProps
  * @typedef { { id: string | number, a: string, b: string, [propName: string]: any } } AceMutateRequestItemRelationshipUpdateProps
  * @typedef { { id: string | number, a: string, b: string, [propName: string]: any } } AceMutateRequestItemRelationshipUpsertProps
- * 
+ *
  * @typedef { AceMutateRequestItemRelationshipInsertProps | AceMutateRequestItemRelationshipUpdateProps | AceMutateRequestItemRelationshipUpsertProps } AceMutateRequestItemRelationshipInUpProps
  */
 
@@ -687,4 +700,14 @@ import * as enums from './enums.js'
 /** AcePromise
  * 
  * @typedef { (reason?: any) => void  } AcePromiseReject
+ */
+
+
+/** AceCLI
+ *
+ * @typedef { object } AceCLIPromptSwitchCallbacks
+ * @property { function(any): Promise<void> } onEnter - Called when the input is a newline or end-of-transmission character.
+ * @property { function(any): void } onControlC - Called when the input is the interrupt character (Ctrl+C).
+ * @property { function(any): void } onBackspace - Called when the input is a backspace character.
+ * @property { function(any): void } onCharacter - Called for any other input.
  */

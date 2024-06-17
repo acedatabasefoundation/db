@@ -1,6 +1,6 @@
 import { AceError } from '../../objects/AceError.js'
 import { write, getOne } from '../../util/storage.js'
-import { getRelationshipIdsKey } from '../../util/variables.js'
+import { getRelationship_IdsKey } from '../../util/variables.js'
 
 
 /**
@@ -9,18 +9,18 @@ import { getRelationshipIdsKey } from '../../util/variables.js'
  * @returns { Promise<void> }
  */
 export async function delete_IdsFromRelationshipIndex (relationshipName, _ids) {
-  if (!relationshipName) throw AceError('aceFn__delete_IdsFromRelationshipIndex__falsyRelationshipName', `Please ensure a relationshipName is truthy when attempting delete_IdsFromRelationshipIndex() this is not happening yet for the _id: ${ _ids }`, { relationshipName, _id: _ids })
+  if (!relationshipName) throw AceError('delete_IdsFromRelationshipIndex__falsyRelationshipName', `Please ensure a relationshipName is truthy when attempting delete_IdsFromRelationshipIndex() this is not happening yet for the _id: ${ _ids }`, { relationshipName, _id: _ids })
 
   let deletedCount = 0
-  const relationshipIdsKey = getRelationshipIdsKey(relationshipName)
+  const relationship_IdsKey = getRelationship_IdsKey(relationshipName)
 
   /** @type { (string | number)[] } */
-  const relationshipIds = await getOne(relationshipIdsKey) || []
+  const relationship_Ids = await getOne(relationship_IdsKey) || []
 
-  if (relationshipIds.length) {
-    for (let i = relationshipIds.length - 1; i >= 0; i--) {
-      if (_ids.has(relationshipIds[i])) {
-        relationshipIds.splice(i, 1)
+  if (relationship_Ids.length) {
+    for (let i = relationship_Ids.length - 1; i >= 0; i--) {
+      if (_ids.has(relationship_Ids[i])) {
+        relationship_Ids.splice(i, 1)
         deletedCount++
 
         if (deletedCount === _ids.size) break // if all deleted => can stop looping
@@ -28,6 +28,6 @@ export async function delete_IdsFromRelationshipIndex (relationshipName, _ids) {
     }
   }
 
-  if (relationshipIds.length) write('update', relationshipIdsKey, relationshipIds)
-  else write('delete', relationshipIdsKey)
+  if (relationship_Ids.length) write('update', relationship_IdsKey, relationship_Ids)
+  else write('delete', relationship_IdsKey)
 }

@@ -37,8 +37,8 @@ function toMemory () {
     const byteAmount = (getByteAmount(entry[0]) + getByteAmount(entry[1]))
     const ogWalValue = Memory.wal.map.get(entry[0])
 
-    Memory.wal.revert.map.set(entry[0], ogWalValue)
-    Memory.wal.revert.byteAmount += byteAmount
+    Memory.txn.revertWalDetails.map.set(entry[0], ogWalValue)
+    Memory.txn.revertWalDetails.byteAmount += byteAmount
 
     Memory.wal.map.set(entry[0], entry[1])
     Memory.wal.byteAmount += byteAmount

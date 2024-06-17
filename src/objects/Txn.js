@@ -8,11 +8,10 @@ export function Txn () {
     writeStr: '',
     schema: null,
     step: 'preEnter',
-    hasUpdates: false,
     writeMap: new Map(),
-    schemaUpdated: false,
     sortIndexMap: new Map(),
     enumGraphIdsMap: new Map(),
     schemaDataStructures: SchemaDataStructures(null),
+    revertWalDetails: { byteAmount: 0, map: new Map() },
   }
 }

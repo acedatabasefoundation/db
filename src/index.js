@@ -1,9 +1,10 @@
 import { sign, verify } from './security/hash.js'
+import { secureAce } from './security/secureAce.js'
 import { createJWKs } from './security/createJWKs.js'
 import { encrypt, decrypt } from './security/crypt.js'
 import { getRandomBase64 } from './security/getRandomBase64.js'
 
-const security = { sign, verify, encrypt, decrypt, createJWKs, getRandomBase64 }
+const security = { sign, verify, encrypt, decrypt, createJWKs, getRandomBase64, ace: secureAce }
 
 export { security }
 export { td, enums } from '#ace'

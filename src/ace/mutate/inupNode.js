@@ -69,7 +69,7 @@ async function populateInupNodesArray (jwks, reqItem, inupNodesArray) {
         graphNode = await getOne(reqItem.how.props.id)
       }
 
-      if (!graphNode) throw AceError('aceFn__invalidUpdateId', `Please ensure each reqItem.how.props.id is defined in your graph, this is not happening yet for the reqItem.how.props.id: ${ reqItem.how.props.id }`, { reqItem })
+      if (!graphNode) throw AceError('inupNode__invalidUpdateId', `Please ensure each reqItem.how.props.id is defined in your graph, this is not happening yet for the reqItem.how.props.id: ${ reqItem.how.props.id }`, { reqItem })
 
       for (const propName in graphNode) {
         if (propName.startsWith(RELATIONSHIP_PREFIX)) { // transfer all $r from graphNode into reqItem
@@ -99,14 +99,14 @@ async function populateInupNodesArray (jwks, reqItem, inupNodesArray) {
       const schemaProp = /** @type { td.AceSchemaProp } */ (Memory.txn.schema?.nodes?.[reqItem.how.node][propName])
 
       if (propName !== 'id') {
-        if (schemaProp?.is !== 'Prop') throw AceError('aceFn__invalidNodeProp', `Please ensure when mutating nodes the node name and prop name exist in the schema. This is not happening yet for the node name: ${ reqItem.how.node } and the prop name: ${ propName }`, { reqItem, nodePropName: propName })
+        if (schemaProp?.is !== 'Prop') throw AceError('inupNode__invalidNodeProp', `The node name: "${ reqItem.how.node }" and the prop name: "${ propName }" do not exist in the schema. Please ensure when mutating nodes the node name and prop name exist in the schema.`, { reqItem, nodePropName: propName })
 
         const _errorData = { schemaProp, reqItem, propName, propValue: props[propName] }
 
         validatePropValue(propName, props[propName], schemaProp.options.dataType, reqItem.how.node, 'node', 'invalidPropValue', _errorData)
 
         if (schemaProp.options.dataType === 'hash') await hashMutationProp('node', reqItem.how.node, props, propName, props[propName], schemaProp, jwks, reqItem.how.$o?.privateJWK)
-        if (schemaProp.options.dataType === 'isoString' && props[propName] === ADD_NOW_DATE) props[propName] = getNow()
+        if (schemaProp.options.dataType === 'iso' && props[propName] === ADD_NOW_DATE) props[propName] = getNow()
         if (schemaProp.options.uniqueIndex && typeof props[propName] !== 'undefined') write('upsert', getUniqueIndexKey(reqItem.how.node, propName, props[propName]), graphId)
         if (schemaProp.options.sortIndex) addToSortIndexMap(schemaProp, reqItem.how.node, propName, graphId)
       }
@@ -146,11 +146,11 @@ async function getGraphIdAndAddToMapIds (reqId, startsWithIdPrefix) {
   /** This will be the id that is added to the graph */
   let graphId
 
-  if (typeof reqId !== 'string' && typeof reqId !== 'number') throw AceError('aceFn__idInvalidType', `Please ensure the reqId is of type number or string, this is not happening yet for the reqId: ${ reqId }`, { reqId })
+  if (typeof reqId !== 'string' && typeof reqId !== 'number') throw AceError('inupNode__idInvalidType', `Please ensure the reqId is of type number or string, this is not happening yet for the reqId: ${ reqId }`, { reqId })
 
   if (!startsWithIdPrefix) graphId = reqId
   else {
-    if (Memory.txn.enumGraphIdsMap.get(reqId)) throw AceError('aceFn__duplicateId', `Please ensure enumId's are not the same for multiple nodes. The enumId: ${ reqId } is being used as the id for multiple nodes`, { enumId: reqId })
+    if (Memory.txn.enumGraphIdsMap.get(reqId)) throw AceError('inupNode__duplicateId', `Please ensure enumId's are not the same for multiple nodes. The enumId: ${ reqId } is being used as the id for multiple nodes`, { enumId: reqId })
 
     graphId = await getGraphId()
     Memory.txn.enumGraphIdsMap.set(reqId, graphId)

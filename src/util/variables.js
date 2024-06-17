@@ -148,7 +148,7 @@ export function getNodeIdsKey (nodeName) {
  * @param { string } relationshipName
  * @returns { string }
  */
-export function getRelationshipIdsKey (relationshipName) {
+export function getRelationship_IdsKey (relationshipName) {
   return INDEX_RELATIONSHIP_IDS_PREFIX + relationshipName
 }
 

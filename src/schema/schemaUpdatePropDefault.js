@@ -4,29 +4,30 @@ import { AceError } from '../objects/AceError.js'
 import { doneSchemaUpdate } from './doneSchemaUpdate.js'
 import { write, getMany, getOne } from '../util/storage.js'
 import { validatePropValue } from '../util/validatePropValue.js'
-import { getNodeIdsKey, getRelationshipIdsKey } from '../util/variables.js'
+import { getNodeIdsKey, getRelationship_IdsKey } from '../util/variables.js'
 
 
 /** 
  * @param { td.AceMutateRequestItemSchemaUpdatePropDefault } reqItem
+ * @param { boolean } [ isSourceSchemaPush ]
  * @returns { Promise<void> }
  */
-export async function schemaUpdatePropDefault (reqItem) {
+export async function schemaUpdatePropDefault (reqItem, isSourceSchemaPush) {
   let schemaUpdated = false
 
-  /** @type { Map<string, td.AceMutateRequestItemSchemaUpdatePropDefaultProp[]> } Map<nodeName, reqProp[]>  */
+  /** @type { Map<string, td.AceMutateRequestItemSchemaUpdatePropDefaultItem[]> } Map<nodeName, reqProp[]>  */
   const propsByNode = new Map()
 
-  /** @type { Map<string, td.AceMutateRequestItemSchemaUpdatePropDefaultProp[]> } Map<relationshipName, reqProp[]>  */
+  /** @type { Map<string, td.AceMutateRequestItemSchemaUpdatePropDefaultItem[]> } Map<relationshipName, reqProp[]>  */
   const propsByRelationship = new Map()
 
-  for (const prop of reqItem.how.props) {
+  for (const prop of reqItem.how) {
     const schemaProp = Memory.txn.schema?.nodes[prop.nodeOrRelationship]?.[prop.prop] || Memory.txn.schema?.relationships?.[prop.nodeOrRelationship]?.props?.[prop.prop]
 
 
     // validate reqItem
-    if (!schemaProp) throw AceError('aceFn__schemaUpdatePropDefault__invalidReq', `Please ensure when attempting to update node or relationship prop default, the node or relationship and prop are defined in your schema. This is not happening yet for the node or relationship: ${ prop.nodeOrRelationship } and prop: ${ prop.prop }`, { reqItemProp: prop })
-    if (schemaProp.is !== 'Prop' && schemaProp.is !== 'RelationshipProp') throw AceError('aceFn__schemaUpdatePropDefault__invalidProp', `Please ensure when attempting to update node or relationship prop default, the prop or relationship has an "is" in your schema of "Prop" or "RelationshipProp". This is not happening yet for the node or relationship: ${ prop.nodeOrRelationship } and prop: ${ prop.prop }`, { reqItemProp: prop })
+    if (!schemaProp) throw AceError('schemaUpdatePropDefault__invalidReq', `Please ensure when attempting to update node or relationship prop default, the node or relationship and prop are defined in your schema. This is not happening yet for the node or relationship: ${ prop.nodeOrRelationship } and prop: ${ prop.prop }`, { reqItemProp: prop })
+    if (schemaProp.is !== 'Prop' && schemaProp.is !== 'RelationshipProp') throw AceError('schemaUpdatePropDefault__invalidProp', `Please ensure when attempting to update node or relationship prop default, the prop or relationship has an "is" in your schema of "Prop" or "RelationshipProp". This is not happening yet for the node or relationship: ${ prop.nodeOrRelationship } and prop: ${ prop.prop }`, { reqItemProp: prop })
     if (typeof prop.default !== 'undefined') validatePropValue(prop.prop, prop.default, schemaProp.options.dataType, prop.nodeOrRelationship, 'node or relationship', 'schemaUpdatePropDefault', { reqItemProp: prop })
 
 
@@ -85,14 +86,14 @@ export async function schemaUpdatePropDefault (reqItem) {
 
   // update schema relationships
   for (const [ relationshipName, props ] of propsByRelationship) {
-    const relationshipIdsKey = getRelationshipIdsKey(relationshipName)
+    const relationship_IdsKey = getRelationship_IdsKey(relationshipName)
 
     /** @type { (string | number)[] } */
-    const allRelationshipIds = await getOne(relationshipIdsKey)
+    const allRelationship_Ids = await getOne(relationship_IdsKey)
 
-    if (Array.isArray(allRelationshipIds)) {
+    if (Array.isArray(allRelationship_Ids)) {
       /** @type { td.AceGraphRelationship[] } */
-      const graphRelationships = await getMany(allRelationshipIds)
+      const graphRelationships = await getMany(allRelationship_Ids)
 
       for (const graphRelationship of graphRelationships) {
         let propUpdated = false
@@ -111,5 +112,5 @@ export async function schemaUpdatePropDefault (reqItem) {
   }
 
 
-  if (schemaUpdated) doneSchemaUpdate()
+  if (schemaUpdated) doneSchemaUpdate(isSourceSchemaPush)
 }

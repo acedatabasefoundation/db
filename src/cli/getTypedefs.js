@@ -24,9 +24,56 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceMemory
  * @prop { number } [ fileSize ] - filehandle.stat() on the wal file
  * @prop { Map<string | number, { do: enums.writeDo, value: any }> } map
  * @prop { import('node:fs/promises').FileHandle } [ filehandle ]
- * @prop { { byteAmount: number, map: Map<string | number, any> } } revert
  *
  * @typedef { [ string | number, number, number, number ] } AceMemoryMiniIndexItem
+ */
+
+
+/** AceTxn
+ *
+ * @typedef { object } AceTxn
+ * @property { string } [ id ]
+ * @property { string } [ env ]
+ * @property { NodeJS.Timeout } [ timeoutId ]
+ * @property { enums.txnSteps } step
+ * @property { AceSchema | null } schema
+ * @property { AceTxnSchemaDataStructures } schemaDataStructures
+ * @property { boolean } [ schemaUpdated ]
+ * @property { boolean } [ schemaPushRequested ]
+ * @property { boolean } [ schemaPushRequestedThenSchemaUpdated ]
+ * @property { AceSchemaDetails } [ schemaNowDetails ]
+ * @property { AceSchemaDetails } [ schemaOriginalDetails ]
+ * @property { number } [ lastId ]
+ * @property { boolean } [ hasUpdates ]
+ * @property { string } [ emptyTimestamp ]
+ * @property { Map<string | number, number> } enumGraphIdsMap
+ * @property { Map<string | number, { do: enums.writeDo, value: * }> } writeMap
+ * @property { string } writeStr
+ * @property { { byteAmount: number, map: Map<string | number, any> } } revertWalDetails
+ * @property { Map<string, { schemaProp: AceSchemaProp | AceSchemaRelationshipProp, nodeOrRelationshipName: string, propName: string, newIds: (string | number)[] }> } sortIndexMap - If we add a node and prop and that node+prop has a sort index, put the newly created nodes in here
+ *
+ * @typedef { object } AceTxnSchemaDataStructures
+ * @property { Map<string, AceTxnSchemaDataStructuresDefaultItem[]> } defaults
+ * @property { Map<string, Set<string>> } cascade
+ * @property { Map<string, Set<string>> } nodeRelationshipPropsMap
+ * @property { Map<string, string> } nodeNamePlusRelationshipNameToNodePropNameMap
+ * @property { Map<number, { node?: string, relationship?: string, prop?: string }> } byAceId
+ * @property { Map<string, Map<string, { propNode: string, propValue: AceSchemaForwardRelationshipProp | AceSchemaReverseRelationshipProp | AceSchemaBidirectionalRelationshipProp }>> } relationshipPropsMap
+ * @property { Map<string, Map<string, (AceSchemaProp | AceSchemaRelationshipProp | AceSchemaForwardRelationshipProp | AceSchemaReverseRelationshipProp | AceSchemaBidirectionalRelationshipProp)>> } mustPropsMap
+ *
+ * @typedef { object } AceTxnSchemaDataStructuresDefaultItem
+ * @property { string } prop
+ * @property { any } [ value ]
+ * @property { 'setIsoNow' } [ do ]
+ */
+
+
+/** AceQueue
+ *
+ * @typedef { object } AceQueueItem
+ * @property { (res: AceFnResponse) => void } resolve
+ * @property { AcePromiseReject } reject
+ * @property { AceFnOptions } options
  */
 
 
@@ -54,50 +101,6 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceMemory
  *
  * @typedef { { id: string, detail: string, [errorItemKey: string]: any} } AceError
  * @typedef { { node?: string, relationship?: string, prop?: string, schema?: boolean } } AceAuthErrorOptions
- */
-
-
-/** AceQueue
- * 
- * @typedef { object } AceQueueItem
- * @property { (res: AceFnResponse) => void } resolve
- * @property { AcePromiseReject } reject
- * @property { AceFnOptions } options
- */
-
-
-/** AceTxn
- * 
- * @typedef { object } AceTxn
- * @property { string } [ id ]
- * @property { string } [ env ]
- * @property { NodeJS.Timeout } [ timeoutId ]
- * @property { enums.txnSteps } step
- * @property { AceSchema | null } schema
- * @property { AceTxnSchemaDataStructures } schemaDataStructures
- * @property { boolean } schemaUpdated
- * @property { AceSchemaDetails } [ schemaNowDetails ]
- * @property { AceSchemaDetails } [ schemaOriginalDetails ]
- * @property { number } [ lastId ]
- * @property { boolean } hasUpdates
- * @property { string } [ emptyTimestamp ]
- * @property { Map<string | number, number> } enumGraphIdsMap
- * @property { Map<string | number, { do: enums.writeDo, value: * }> } writeMap
- * @property { string } writeStr
- * @property { Map<string, { schemaProp: AceSchemaProp | AceSchemaRelationshipProp, nodeOrRelationshipName: string, propName: string, newIds: (string | number)[] }> } sortIndexMap - If we add a node and prop and that node+prop has a sort index, put the newly created nodes in here
- *
- * @typedef { object } AceTxnSchemaDataStructures
- * @property { Map<string, AceTxnSchemaDataStructuresDefaultItem[]> } defaults
- * @property { Map<string, Set<string>> } cascade
- * @property { Map<string, Set<string>> } nodeRelationshipPropsMap
- * @property { Map<string, string> } nodeNamePlusRelationshipNameToNodePropNameMap
- * @property { Map<string, Map<string, { propNode: string, propValue: AceSchemaForwardRelationshipProp | AceSchemaReverseRelationshipProp | AceSchemaBidirectionalRelationshipProp }>> } relationshipPropsMap
- * @property { Map<string, Map<string, (AceSchemaProp | AceSchemaRelationshipProp | AceSchemaForwardRelationshipProp | AceSchemaReverseRelationshipProp | AceSchemaBidirectionalRelationshipProp)>> } mustPropsMap
- *
- * @typedef { object } AceTxnSchemaDataStructuresDefaultItem
- * @property { string } prop
- * @property { any } [ value ]
- * @property { 'setIsoNow' } [ do ]
  */
 
 
@@ -148,7 +151,7 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceMemory
  * @typedef { AceFnRequestItem | (AceFnRequestItem)[] } AceFnRequest
  * @typedef { { [prop: string]: any, $ace?: AceFn$ } } AceFnResponse
  * @typedef { { now: AceFnResponse, original: { [k: string]: any } } } AceFnFullResponse
- * @typedef { { success: true } } AceFnEmptyResponse
+ * @typedef { { success: true } } AceFnEmptyGraphResponse
  *
  * @typedef { { [name: string]: { type: 'private' | 'public' | 'crypt', jwk: string } } } AceFnStringJWKs
  * @typedef { { [name: string]: CryptoKey } } AceFnCryptoJWK
@@ -160,9 +163,18 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceMemory
  */
 
 
+/** AceSecure
+ *
+ * @typedef { object } AceSecureParams
+ * @property { AceFnOptions } options
+ * @property { { correct: string, req: string } } token
+ */
+
+
 /** AceSchema
  * 
- * @typedef { { [env: string]: { lastCreatedVersion: number, currentVersion: number } } } AceSchemaDetails
+ * @typedef { { lastId: number, nowId: number } } AceSchemaDetail
+ * @typedef { { [env: string]: AceSchemaDetail } } AceSchemaDetails
  *
  * @typedef { { lastId: number, nodes: { [nodeName: string]: AceSchemaNodeValue & { $aceId: number } }, relationships?: { [relationshipName: string]: AceSchemaRelationshipValue & { $aceId: number } } } } AceSchema
  * @typedef { { [nodePropName: string]: AceSchemaProp | AceSchemaForwardRelationshipProp | AceSchemaReverseRelationshipProp | AceSchemaBidirectionalRelationshipProp } } AceSchemaNodeValue
@@ -284,7 +296,7 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceMemory
 /** AceMutate
  *
  * @typedef { AceMutateRequestItemEmpty | AceMutateRequestItemBackupLoad | AceMutateRequestItemSchema | AceMutateRequestItemNode | AceMutateRequestItemRelationship } AceMutateRequestItem
- * @typedef { AceMutateRequestItemSchemaAdd | AceMutateRequestItemSchemaUpdateNodeName | AceMutateRequestItemSchemaUpdateNodePropName | AceMutateRequestItemSchemaUpdateRelationshipName | AceMutateRequestItemSchemaUpdateRelationshipPropName | AceMutateRequestItemSchemaDeleteNodes | AceMutateRequestItemSchemaDeleteNodeProps | AceMutateRequestItemSchemaUpdateNodePropHas | AceMutateRequestItemSchemaUpdateNodePropCascade | AceMutateRequestItemSchemaUpdatePropDefault | AceMutateRequestItemSchemaUpdatePropMustBeDefined | AceMutateRequestItemSchemaUpdatePropSortIndex | AceMutateRequestItemSchemaUpdatePropUniqueIndex } AceMutateRequestItemSchema
+ * @typedef { AceMutateRequestItemSchemaAdd | AceMutateRequestItemSchemaRenameNode | AceMutateRequestItemSchemaRenameNodeProp | AceMutateRequestItemSchemaRenameRelationship | AceMutateRequestItemSchemaRenameRelationshipProp | AceMutateRequestItemSchemaDeleteNodes | AceMutateRequestItemSchemaDeleteNodeProps | AceMutateRequestItemSchemaUpdateNodePropHas | AceMutateRequestItemSchemaUpdateNodePropCascade | AceMutateRequestItemSchemaUpdatePropDefault | AceMutateRequestItemSchemaUpdatePropMustBeDefined | AceMutateRequestItemSchemaUpdatePropSortIndex | AceMutateRequestItemSchemaUpdatePropUniqueIndex | AceMutateRequestItemSchemaPush } AceMutateRequestItemSchema
  * @typedef { AceMutateRequestItemNodeInsert | AceMutateRequestItemNodeUpdate | AceMutateRequestItemNodeUpsert | AceMutateRequestItemNodeDelete | AceMutateRequestItemNodePropDelete | AceMutateRequestItemSchemaDeleteNodes | AceMutateRequestItemSchemaDeleteNodeProps } AceMutateRequestItemNode
  * @typedef { AceMutateRequestItemRelationshipInsert | AceMutateRequestItemRelationshipUpdate | AceMutateRequestItemRelationshipUpsert | AceMutateRequestItemRelationshipDelete | AceMutateRequestItemRelationshipPropDelete } AceMutateRequestItemRelationship
  *
@@ -295,13 +307,18 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceMemory
  * @property { string } backup
  * @property { boolean } [ skipDataDelete ]
  *
- * @typedef { object } AceMutateRequestItemEmpty
- * @property { typeof enums.aceDo.Empty } do - Delete schema and all datamfrom graph${ typedefs.mutate.NodeInsertType }${ typedefs.mutate.RelationshipInsertType }${ typedefs.mutate.NodeUpdateType }${ typedefs.mutate.RelationshipUpdateType }${ typedefs.mutate.NodeUpsertType }${ typedefs.mutate.RelationshipUpsertType }
- * 
+ * @typedef { AceMutateRequestItemEmptyGraph | AceMutateRequestItemEmptyTrash } AceMutateRequestItemEmpty
+ *
+ * @typedef { object } AceMutateRequestItemEmptyGraph
+ * @property { typeof enums.aceDo.EmptyGraph } do - Delete schema and all datamfrom graph
+ *
+ * @typedef { object } AceMutateRequestItemEmptyTrash
+ * @property { typeof enums.aceDo.EmptyTrash } do - Delete all folders in trash${ typedefs.mutate.NodeInsertType }${ typedefs.mutate.RelationshipInsertType }${ typedefs.mutate.NodeUpdateType }${ typedefs.mutate.RelationshipUpdateType }${ typedefs.mutate.NodeUpsertType }${ typedefs.mutate.RelationshipUpsertType }
+ *
  * @typedef { AceMutateRequestItemRelationshipInsert | AceMutateRequestItemRelationshipUpdate | AceMutateRequestItemRelationshipUpsert } AceMutateRequestItemRelationshipInup
- * 
+ *
  * @typedef { AceMutateRequestItemNodeUpdate & { [relationshipProp: string]: string[] } } AceMutateRequestItemNodeWithRelationships
- * 
+ *
  * @typedef { object } AceMutateRequestItemNodeDelete
  * @property { typeof enums.aceDo.NodeDelete } do
  * @property { (string | number)[] } how - The ids you'd love deleted. To cascade delete, add cascade to the schema
@@ -318,87 +335,83 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceMemory
  * @property { typeof enums.aceDo.RelationshipPropDelete } do
  * @property { { _ids: (string | number)[], props: string[] } } how
  *
- * @typedef { ${ typedefs.mutate.SchemaDeleteNodesType || 'string' } } AceMutateRequestItemSchemaDeleteNodesNode
- * 
  * @typedef { object } AceMutateRequestItemSchemaDeleteNodes
  * @property { typeof enums.aceDo.SchemaDeleteNodes } do
- * @property { AceMutateRequestItemSchemaDeleteNodesHow } how
- * @typedef { object } AceMutateRequestItemSchemaDeleteNodesHow
- * @property { AceMutateRequestItemSchemaDeleteNodesNode[] } nodes
+ * @property { AceMutateRequestItemSchemaDeleteNodesItem[] } how
+ * @typedef { ${ typedefs.mutate.SchemaDeleteNodesType || 'string' } } AceMutateRequestItemSchemaDeleteNodesItem
+ *
+ * @typedef { object } AceMutateRequestItemSchemaDeleteRelationships
+ * @property { typeof enums.aceDo.SchemaDeleteRelationships } do
+ * @property { AceMutateRequestItemSchemaDeleteRelationshipsItem[] } how
+ * @typedef { ${ typedefs.mutate.SchemaDeleteRelationshipsType || 'string' } } AceMutateRequestItemSchemaDeleteRelationshipsItem
+ *
+ * @typedef { object } AceMutateRequestItemSchemaDeleteRelationshipProps
+ * @property { typeof enums.aceDo.SchemaDeleteRelationshipProps } do
+ * @property { AceMutateRequestItemSchemaDeleteRelationshipPropsItem[] } how
+ * @typedef { ${ typedefs.mutate.SchemaDeleteRelationshipPropsType || '{ relationship: string, prop: string }' } } AceMutateRequestItemSchemaDeleteRelationshipPropsItem
  *
  * @typedef { object } AceMutateRequestItemSchemaDeleteNodeProps
  * @property { typeof enums.aceDo.SchemaDeleteNodeProps } do
- * @property { AceMutateRequestItemSchemaDeleteNodePropsHow } how
- * @typedef { object } AceMutateRequestItemSchemaDeleteNodePropsHow
- * @property { ${ typedefs.mutate.SchemaDeleteNodePropsType || '{ node: string, prop: string }[]' } } props
+ * @property { AceMutateRequestItemSchemaDeleteNodePropsItem[] } how
+ * @typedef { ${ typedefs.mutate.SchemaDeleteNodePropsType || '{ node: string, prop: string }' } } AceMutateRequestItemSchemaDeleteNodePropsItem
  *
  * @typedef { object } AceMutateRequestItemSchemaUpdatePropDefault - ${ typedefs.description.SchemaUpdatePropDefault }
  * @property { typeof enums.aceDo.SchemaUpdatePropDefault } do - ${ typedefs.description.SchemaUpdatePropDefault }
- * @property { AceMutateRequestItemSchemaUpdatePropDefaultHow } how - ${ typedefs.description.SchemaUpdatePropDefault }
- * @typedef { ${ typedefs.mutate.SchemaUpdatePropDefaultType || '{ nodeOrRelationship: string, prop: string, default?: any }'} } AceMutateRequestItemSchemaUpdatePropDefaultProp - ${ typedefs.description.SchemaUpdatePropDefault }
- * @typedef { object } AceMutateRequestItemSchemaUpdatePropDefaultHow - ${ typedefs.description.SchemaUpdatePropDefault }
- * @property { AceMutateRequestItemSchemaUpdatePropDefaultProp[] } props - ${ typedefs.description.SchemaUpdatePropDefault }
+ * @property {  AceMutateRequestItemSchemaUpdatePropDefaultItem[] } how - ${ typedefs.description.SchemaUpdatePropDefault }
+ * @typedef { ${ typedefs.mutate.SchemaUpdatePropDefaultType || '{ nodeOrRelationship: string, prop: string, default?: any }'} } AceMutateRequestItemSchemaUpdatePropDefaultItem - ${ typedefs.description.SchemaUpdatePropDefault }
  *
  * @typedef { object } AceMutateRequestItemSchemaUpdatePropMustBeDefined
  * @property { typeof enums.aceDo.SchemaUpdatePropMustBeDefined } do
- * @property { AceMutateRequestItemSchemaUpdatePropMustBeDefinedHow } how
- * @typedef { ${ typedefs.mutate.SchemaUpdatePropMustBeDefinedType || '{ nodeOrRelationship: string, prop: string, mustBeDefined: boolean }'} } AceMutateRequestItemSchemaUpdatePropMustBeDefinedProp
- * @typedef { object } AceMutateRequestItemSchemaUpdatePropMustBeDefinedHow
- * @property { AceMutateRequestItemSchemaUpdatePropMustBeDefinedProp[] } props
+ * @property { AceMutateRequestItemSchemaUpdatePropMustBeDefinedItem[] } how
+ * @typedef { ${ typedefs.mutate.SchemaUpdatePropMustBeDefinedType || '{ nodeOrRelationship: string, prop: string, mustBeDefined: boolean }'} } AceMutateRequestItemSchemaUpdatePropMustBeDefinedItem
  *
  * @typedef { object } AceMutateRequestItemSchemaUpdatePropSortIndex
  * @property { typeof enums.aceDo.SchemaUpdatePropSortIndex } do
- * @property { AceMutateRequestItemSchemaUpdatePropSortIndexHow } how
- * @typedef { ${ typedefs.mutate.SchemaUpdatePropSortIndexType || '{ nodeOrRelationship: string, prop: string, sortIndex: boolean }'} } AceMutateRequestItemSchemaUpdatePropSortIndexProp
- * @typedef { object } AceMutateRequestItemSchemaUpdatePropSortIndexHow
- * @property { AceMutateRequestItemSchemaUpdatePropSortIndexProp[] } props
+ * @property { AceMutateRequestItemSchemaUpdatePropSortIndexItem[] } how
+ * @typedef { ${ typedefs.mutate.SchemaUpdatePropSortIndexType || '{ nodeOrRelationship: string, prop: string, sortIndex: boolean }'} } AceMutateRequestItemSchemaUpdatePropSortIndexItem
  *
  * @typedef { object } AceMutateRequestItemSchemaUpdatePropUniqueIndex
  * @property { typeof enums.aceDo.SchemaUpdatePropUniqueIndex } do
- * @property { AceMutateRequestItemSchemaUpdatePropUniqueIndexHow } how
- * @typedef { ${ typedefs.mutate.SchemaUpdatePropUniqueIndexType || '{ nodeOrRelationship: string, prop: string, uniqueIndex: boolean }'} } AceMutateRequestItemSchemaUpdatePropUniqueIndexProp
- * @typedef { object } AceMutateRequestItemSchemaUpdatePropUniqueIndexHow
- * @property { AceMutateRequestItemSchemaUpdatePropUniqueIndexProp[] } props
+ * @property { AceMutateRequestItemSchemaUpdatePropUniqueIndexItem[] } how
+ * @typedef { ${ typedefs.mutate.SchemaUpdatePropUniqueIndexType || '{ nodeOrRelationship: string, prop: string, uniqueIndex: boolean }'} } AceMutateRequestItemSchemaUpdatePropUniqueIndexItem
  *
- * @typedef { object } AceMutateRequestItemSchemaUpdateNodeName
- * @property { typeof enums.aceDo.SchemaUpdateNodeName } do
- * @property { AceMutateRequestItemSchemaUpdateNodeNameHow } how
- * @typedef { object } AceMutateRequestItemSchemaUpdateNodeNameHow
- * @property { ${ typedefs.mutate.SchemaUpdateNodeNameType || '{ nowName: string, newName: string }[]' } } nodes
+ * @typedef { object } AceMutateRequestItemSchemaRenameNode
+ * @property { typeof enums.aceDo.SchemaRenameNode } do
+ * @property { AceMutateRequestItemSchemaRenameNodeItem[] } how
+ * @typedef { ${ typedefs.mutate.SchemaRenameNodeType || '{ nowName: string, newName: string }' } } AceMutateRequestItemSchemaRenameNodeItem
  *
- * @typedef { object } AceMutateRequestItemSchemaUpdateNodePropName
- * @property { typeof enums.aceDo.SchemaUpdateNodePropName } do
- * @property { AceMutateRequestItemSchemaUpdateNodePropNameHow } how
- * @typedef { object } AceMutateRequestItemSchemaUpdateNodePropNameHow
- * @property { ${ typedefs.mutate.SchemaUpdateNodePropNameType || '{ node: string, nowName: string, newName: string }[]' } } props
+ * @typedef { object } AceMutateRequestItemSchemaRenameNodeProp
+ * @property { typeof enums.aceDo.SchemaRenameNodeProp } do
+ * @property { AceMutateRequestItemSchemaRenameNodePropItem[] } how
+ * @typedef { ${ typedefs.mutate.SchemaRenameNodePropType || '{ node: string, nowName: string, newName: string }' } } AceMutateRequestItemSchemaRenameNodePropItem
  *
  * @typedef { object } AceMutateRequestItemSchemaUpdateNodePropHas
  * @property { typeof enums.aceDo.SchemaUpdateNodePropHas } do
- * @property { AceMutateRequestItemSchemaUpdateNodePropHasHow } how
- * @typedef { object } AceMutateRequestItemSchemaUpdateNodePropHasHow
- * @property { ${ typedefs.mutate.SchemaUpdateNodePropHasType || '{ node: string, prop: string, has: enums.schemaHas }[]' } } props
- * 
+ * @property { AceMutateRequestItemSchemaUpdateNodePropHasItem[] } how
+ * @typedef { ${ typedefs.mutate.SchemaUpdateNodePropHasType || '{ node: string, prop: string, has: enums.schemaHas }' } } AceMutateRequestItemSchemaUpdateNodePropHasItem
+ *
  * @typedef { object } AceMutateRequestItemSchemaUpdateNodePropCascade
  * @property { typeof enums.aceDo.SchemaUpdateNodePropCascade } do
- * @property { AceMutateRequestItemSchemaUpdateNodePropCascadeHow } how
- * @typedef { object } AceMutateRequestItemSchemaUpdateNodePropCascadeHow
- * @property { ${ typedefs.mutate.SchemaUpdateNodePropCascadeType || '{ node: string, prop: string, cascade: boolean }[]' } } props
+ * @property { AceMutateRequestItemSchemaUpdateNodePropCascadeItem[] } how
+ * @typedef { ${ typedefs.mutate.SchemaUpdateNodePropCascadeType || '{ node: string, prop: string, cascade: boolean }' } } AceMutateRequestItemSchemaUpdateNodePropCascadeItem
  *
- * @typedef { object } AceMutateRequestItemSchemaUpdateRelationshipName
- * @property { typeof enums.aceDo.SchemaUpdateRelationshipName } do
- * @property { AceMutateRequestItemSchemaUpdateRelationshipNameHow } how
- * @typedef { object } AceMutateRequestItemSchemaUpdateRelationshipNameHow
- * @property { ${ typedefs.mutate.SchemaUpdateRelationshipNameType || '{ nowName: string, newName: string }[]' } } relationships
+ * @typedef { object } AceMutateRequestItemSchemaRenameRelationship
+ * @property { typeof enums.aceDo.SchemaRenameRelationship } do
+ * @property { AceMutateRequestItemSchemaRenameRelationshipItem[] } how
+ * @typedef { ${ typedefs.mutate.SchemaRenameRelationshipType || '{ nowName: string, newName: string }' } } AceMutateRequestItemSchemaRenameRelationshipItem
  *
- * @typedef { object } AceMutateRequestItemSchemaUpdateRelationshipPropName
- * @property { typeof enums.aceDo.SchemaUpdateRelationshipPropName } do
- * @property { AceMutateRequestItemSchemaUpdateRelationshipPropNameHow } how
- * @typedef { object } AceMutateRequestItemSchemaUpdateRelationshipPropNameHow
- * @property { ${ typedefs.mutate.SchemaUpdateRelationshipPropNameType || '{ relationship: string, nowName: string, newName: string }[]' } } props
+ * @typedef { object } AceMutateRequestItemSchemaRenameRelationshipProp
+ * @property { typeof enums.aceDo.SchemaRenameRelationshipProp } do
+ * @property { AceMutateRequestItemSchemaRenameRelationshipPropItem[] } how
+ * @typedef { ${ typedefs.mutate.SchemaRenameRelationshipPropType || '{ relationship: string, nowName: string, newName: string }' } } AceMutateRequestItemSchemaRenameRelationshipPropItem
  *
  * @typedef { object } AceMutateRequestItemSchemaAdd
  * @property { typeof enums.aceDo.SchemaAdd } do
  * @property { AceSchemaAddition } how
+ *
+ * @typedef { object } AceMutateRequestItemSchemaPush
+ * @property { typeof enums.aceDo.SchemaPush } do
+ * @property { number } how - Aim version number
  *
  * @typedef { object } AceMutateRequestOptions
  * @property { string } [ privateJWK ]
@@ -410,7 +423,7 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceMemory
  * @typedef { ${ typedefs.mutate.RelationshipInsertPropsTypes || '{ a: string | number, b: string | number, [propName: string]: any }' } } AceMutateRequestItemRelationshipInsertProps
  * @typedef { ${ typedefs.mutate.RelationshipUpdatePropsTypes || typedefs.mutate.DefaultRelationshipUpPropsTypes  } } AceMutateRequestItemRelationshipUpdateProps
  * @typedef { ${ typedefs.mutate.RelationshipUpsertPropsTypes || typedefs.mutate.DefaultRelationshipUpPropsTypes } } AceMutateRequestItemRelationshipUpsertProps
- * 
+ *
  * @typedef { ${ typedefs.mutate.RelationshipInUpProps || 'AceMutateRequestItemRelationshipInsertProps | AceMutateRequestItemRelationshipUpdateProps | AceMutateRequestItemRelationshipUpsertProps' } } AceMutateRequestItemRelationshipInUpProps
  */${ typedefs.mutate.NodeInsertTypes }${ typedefs.mutate.RelationshipInsertTypes }${ typedefs.mutate.NodeUpdateTypes }${ typedefs.mutate.RelationshipUpdateTypes }${ typedefs.mutate.NodeUpsertTypes }${ typedefs.mutate.RelationshipUpsertTypes }
 
@@ -639,6 +652,16 @@ ${ typedefs.query.RelationshipType }
  * 
  * @typedef { (reason?: any) => void  } AcePromiseReject
  */
+
+
+/** AceCLI
+ *
+ * @typedef { object } AceCLIPromptSwitchCallbacks
+ * @property { function(any): Promise<void> } onEnter - Called when the input is a newline or end-of-transmission character.
+ * @property { function(any): void } onControlC - Called when the input is the interrupt character (Ctrl+C).
+ * @property { function(any): void } onBackspace - Called when the input is a backspace character.
+ * @property { function(any): void } onCharacter - Called for any other input.
+ */
 `
 }
 
@@ -691,20 +714,22 @@ function getSchemaTypedefs (schema) {
       RelationshipInsertTypes: '',
       RelationshipUpdateTypes: '',
       RelationshipUpsertTypes: '',
-      SchemaUpdateNodeNameType: '',
+      SchemaRenameNodeType: '',
       SchemaDeleteNodePropsType: '',
       SchemaUpdateNodePropHasType: '',
       SchemaUpdatePropDefaultType: '',
-      SchemaUpdateNodePropNameType: '',
+      SchemaRenameNodePropType: '',
       RelationshipInsertPropsTypes: '',
       RelationshipUpdatePropsTypes: '',
       RelationshipUpsertPropsTypes: '',
+      SchemaDeleteRelationshipsType: '',
       SchemaUpdatePropSortIndexType: '',
       SchemaUpdateNodePropCascadeType: '',
       SchemaUpdatePropUniqueIndexType: '',
-      SchemaUpdateRelationshipNameType: '',
+      SchemaRenameRelationshipType: '',
       SchemaUpdatePropMustBeDefinedType: '',
-      SchemaUpdateRelationshipPropNameType: '',
+      SchemaDeleteRelationshipPropsType: '',
+      SchemaRenameRelationshipPropType: '',
       DefaultNodeUpPropsTypes: '{ id: string | number, [propName: string]: any }',
       DefaultRelationshipUpPropsTypes: '{ id: string | number, a: string, b: string, [propName: string]: any }'
     }
@@ -719,7 +744,8 @@ function getSchemaTypedefs (schema) {
 
     for (const schemaNodeName in schema?.nodes) {
       typedefs.query.NodeProps = '' // reset props from previous loop
-      typedefs.query.NodePipes += `${ schemaNodeName }QueryRequestItemNode | `
+      typedefs.mutate.SchemaDeleteNodesType += `'${ schemaNodeName }' | `
+      typedefs.query.NodePipes += `${schemaNodeName}QueryRequestItemNode | `
       typedefs.mutate.NodeInsertPipes += `${ schemaNodeName }MutateRequestItemNodeInsert | `
       typedefs.mutate.NodeUpdatePipes += `${ schemaNodeName }MutateRequestItemNodeUpdate | `
       typedefs.mutate.NodeUpsertPipes += `${ schemaNodeName }MutateRequestItemNodeUpsert | `
@@ -728,7 +754,7 @@ function getSchemaTypedefs (schema) {
       typedefs.mutate.NodeUpdatePropsTypes += `${ schemaNodeName }MutateRequestUpdateItemProps | `
       typedefs.mutate.NodeUpsertPropsTypes += `${ schemaNodeName }MutateRequestUpsertItemProps | `
       typedefs.Nodes += `\n * @typedef { object } ${ schemaNodeName }\n * @property { string } [ id ]`
-      typedefs.mutate.SchemaUpdateNodeNameType += `{ nowName: '${ schemaNodeName }', newName: string } | `
+      typedefs.mutate.SchemaRenameNodeType += `{ nowName: '${ schemaNodeName }', newName: string } | `
 
       typedefs.mutate.NodeInsertTypes += `\n *
  * @typedef { object } ${ schemaNodeName }MutateRequestItemNodeInsert
@@ -771,7 +797,7 @@ function getSchemaTypedefs (schema) {
           const schemaProp = schema.nodes[schemaNodeName][schemaNodePropName]
 
           typedefs.mutate.SchemaDeleteNodePropsType += `{ node: '${ schemaNodeName }', prop: '${ schemaNodePropName }' } | `
-          typedefs.mutate.SchemaUpdateNodePropNameType += `{ node: '${ schemaNodeName }', nowName: '${ schemaNodePropName }', newName: string } | `
+          typedefs.mutate.SchemaRenameNodePropType += `{ node: '${ schemaNodeName }', nowName: '${ schemaNodePropName }', newName: string } | `
           typedefs.mutate.SchemaUpdatePropMustBeDefinedType += `{ nodeOrRelationship: '${ schemaNodeName }', prop: '${ schemaNodePropName }', mustBeDefined: boolean } | `
 
           switch (schemaProp.is) {
@@ -796,7 +822,6 @@ function getSchemaTypedefs (schema) {
 
               typedefs.Nodes += `\n * @property { ${ schemaProp.options.node }${ schemaProp.options.has === 'many' ? '[]' : '' } } [ ${ schemaNodePropName } ]`
               typedefs.mutate.SchemaUpdateNodePropHasType += `{ node: '${ schemaNodeName }', prop: '${ schemaNodePropName }', has: enums.schemaHas } | `
-              typedefs.mutate.SchemaUpdateNodePropCascadeType += `{ node: '${ schemaNodeName }', prop: '${ schemaNodePropName }', cascade: boolean } | `
               typedefs.mutate.SchemaUpdateNodePropCascadeType += `{ node: '${ schemaNodeName }', prop: '${ schemaNodePropName }', cascade: boolean } | `
 
               let queryProps = ''
@@ -864,12 +889,13 @@ function getSchemaTypedefs (schema) {
 
     for (const schemaRelationshipName in schema?.relationships) {
       typedefs.query.RelationshipProps = '' // reset props from previous loop
+      typedefs.mutate.SchemaDeleteRelationshipsType += `'${ schemaRelationshipName }' | `
       typedefs.query.RelationshipPipes += `${ schemaRelationshipName }QueryRequestItemRelationship | `
       typedefs.mutate.RelationshipInsertPipes += `${ schemaRelationshipName }MutateRequestItemRelationshipInsert | `
       typedefs.mutate.RelationshipUpdatePipes += `${ schemaRelationshipName }MutateRequestItemRelationshipUpdate | `
       typedefs.mutate.RelationshipUpsertPipes += `${ schemaRelationshipName }MutateRequestItemRelationshipUpsert | `
       typedefs.Relationships += `\n * @typedef { object } ${ schemaRelationshipName }\n * @property { string } [ id ]`
-      typedefs.mutate.SchemaUpdateRelationshipNameType += `{ nowName: '${ schemaRelationshipName }', newName: string } | `
+      typedefs.mutate.SchemaRenameRelationshipType += `{ nowName: '${ schemaRelationshipName }', newName: string } | `
       typedefs.mutate.RelationshipInsertPropsTypes += `${ schemaRelationshipName }MutateRequestItemRelationshipInsertProps | `
       typedefs.mutate.RelationshipUpdatePropsTypes += `${ schemaRelationshipName }MutateRequestItemRelationshipUpdateProps | `
       typedefs.mutate.RelationshipUpsertPropsTypes += `${ schemaRelationshipName }MutateRequestItemRelationshipUpsertProps | `
@@ -903,7 +929,7 @@ function getSchemaTypedefs (schema) {
  * @property { string | number } _id - The relationship _id you would love to update
  * @property { string | number } [ a ] - ${ abDescription }
  * @property { string | number } [ b ] - ${ abDescription }`
-  
+
       typedefs.mutate.RelationshipUpsertTypes += `\n *
  * @typedef { object } ${ schemaRelationshipName }MutateRequestItemRelationshipUpsert
  * @property { typeof enums.aceDo.RelationshipUpsert } do - Upsert Relationship
@@ -923,16 +949,18 @@ function getSchemaTypedefs (schema) {
           const schemaProp = schema.relationships[schemaRelationshipName].props[schemaRelationshipPropName]
           const dataType = getDataType(schemaProp.options.dataType)
           const description = `Set to a ${ dataType } value if you would love to update this relationship property, **${ schemaRelationshipPropName }**, in the graph`
+
           typedefs.Relationships += `\n * @property { ${ dataType } } [ ${ schemaRelationshipPropName } ] ${ schemaProp.options.description || '' }`
-          typedefs.query.RelationshipProps += `\n * @property { AceQueryResValuePropValue } [ ${ schemaRelationshipPropName } ] - ${ getQueryPropDescription({ propName: schemaRelationshipPropName, relationshipName: schemaRelationshipName, schemaPropDescription: schemaProp.options.description }) }`
-          typedefs.mutate.RelationshipInsertTypes += `\n * @property { ${ dataType } } ${ schemaProp.options.mustBeDefined && typeof schemaProp.options.default === 'undefined' ? schemaRelationshipPropName : '[ ' + schemaRelationshipPropName + ' ]' } - ${ description }`
+          typedefs.mutate.SchemaDeleteRelationshipPropsType += `{ relationship: '${ schemaRelationshipName }', prop: '${ schemaRelationshipPropName }' } | `
           typedefs.mutate.RelationshipUpdateTypes += `\n * @property { ${ dataType } } ${ '[ ' + schemaRelationshipPropName + ' ]' } - ${ description }`
           typedefs.mutate.RelationshipUpsertTypes += `\n * @property { ${ dataType } } ${ '[ ' + schemaRelationshipPropName + ' ]' } - ${ description }`
-          typedefs.mutate.SchemaUpdateRelationshipPropNameType += `{ relationship: '${ schemaRelationshipName }', nowName: '${ schemaRelationshipPropName }', newName: string } | `
           typedefs.mutate.SchemaUpdatePropDefaultType += `{ nodeOrRelationship: '${ schemaRelationshipName }', prop: '${ schemaRelationshipPropName }', default?: any } | `
-          typedefs.mutate.SchemaUpdatePropMustBeDefinedType += `{ nodeOrRelationship: '${ schemaRelationshipName }', prop: '${ schemaRelationshipPropName }', mustBeDefined: boolean } | `
           typedefs.mutate.SchemaUpdatePropSortIndexType += `{ nodeOrRelationship: '${ schemaRelationshipName }', prop: '${ schemaRelationshipPropName }', sortIndex: boolean } | `
+          typedefs.mutate.SchemaRenameRelationshipPropType += `{ relationship: '${ schemaRelationshipName }', nowName: '${ schemaRelationshipPropName }', newName: string } | `
           typedefs.mutate.SchemaUpdatePropUniqueIndexType += `{ nodeOrRelationship: '${ schemaRelationshipName }', prop: '${ schemaRelationshipPropName }', uniqueIndex: boolean } | `
+          typedefs.mutate.SchemaUpdatePropMustBeDefinedType += `{ nodeOrRelationship: '${ schemaRelationshipName }', prop: '${ schemaRelationshipPropName }', mustBeDefined: boolean } | `
+          typedefs.query.RelationshipProps += `\n * @property { AceQueryResValuePropValue } [ ${ schemaRelationshipPropName } ] - ${ getQueryPropDescription({ propName: schemaRelationshipPropName, relationshipName: schemaRelationshipName, schemaPropDescription: schemaProp.options.description }) }`
+          typedefs.mutate.RelationshipInsertTypes += `\n * @property { ${ dataType } } ${ schemaProp.options.mustBeDefined && typeof schemaProp.options.default === 'undefined' ? schemaRelationshipPropName : '[ ' + schemaRelationshipPropName + ' ]' } - ${ description }`
         }
       }
 
@@ -984,25 +1012,26 @@ function getSchemaTypedefs (schema) {
   if (typedefs.mutate.NodeUpdatePropsTypes) typedefs.mutate.NodeUpdatePropsTypes = typedefs.mutate.NodeUpdatePropsTypes.slice(0, -3)
   if (typedefs.mutate.NodeUpsertPropsTypes) typedefs.mutate.NodeUpsertPropsTypes = typedefs.mutate.NodeUpsertPropsTypes.slice(0, -3)
   if (typedefs.mutate.RelationshipInUpProps) typedefs.mutate.RelationshipInUpProps = typedefs.mutate.RelationshipInUpProps.slice(0, -3)
+  if (typedefs.mutate.SchemaDeleteNodesType) typedefs.mutate.SchemaDeleteNodesType = typedefs.mutate.SchemaDeleteNodesType.slice(0, -3)
   if (typedefs.mutate.RelationshipInsertPipes) typedefs.mutate.RelationshipInsertPipes = typedefs.mutate.RelationshipInsertPipes.slice(0, -3)
   if (typedefs.mutate.RelationshipUpdatePipes) typedefs.mutate.RelationshipUpdatePipes = typedefs.mutate.RelationshipUpdatePipes.slice(0, -3)
   if (typedefs.mutate.RelationshipUpsertPipes) typedefs.mutate.RelationshipUpsertPipes = typedefs.mutate.RelationshipUpsertPipes.slice(0, -3)
-  if (typedefs.mutate.SchemaDeleteNodesType) typedefs.mutate.SchemaDeleteNodesType = '(' + typedefs.mutate.SchemaDeleteNodesType.slice(0, -3) + ')'
+  if (typedefs.mutate.SchemaRenameNodeType) typedefs.mutate.SchemaRenameNodeType = typedefs.mutate.SchemaRenameNodeType.slice(0, -3)
+  if (typedefs.mutate.SchemaDeleteNodePropsType) typedefs.mutate.SchemaDeleteNodePropsType = typedefs.mutate.SchemaDeleteNodePropsType.slice(0, -3)
+  if (typedefs.mutate.SchemaUpdateNodePropHasType) typedefs.mutate.SchemaUpdateNodePropHasType = typedefs.mutate.SchemaUpdateNodePropHasType.slice(0, -3)
   if (typedefs.mutate.SchemaUpdatePropDefaultType) typedefs.mutate.SchemaUpdatePropDefaultType = typedefs.mutate.SchemaUpdatePropDefaultType.slice(0, -3)
   if (typedefs.mutate.RelationshipInsertPropsTypes) typedefs.mutate.RelationshipInsertPropsTypes = typedefs.mutate.RelationshipInsertPropsTypes.slice(0, -3)
   if (typedefs.mutate.RelationshipUpdatePropsTypes) typedefs.mutate.RelationshipUpdatePropsTypes = typedefs.mutate.RelationshipUpdatePropsTypes.slice(0, -3)
   if (typedefs.mutate.RelationshipUpsertPropsTypes) typedefs.mutate.RelationshipUpsertPropsTypes = typedefs.mutate.RelationshipUpsertPropsTypes.slice(0, -3)
-  if (typedefs.mutate.SchemaUpdateNodeNameType) typedefs.mutate.SchemaUpdateNodeNameType = '(' + typedefs.mutate.SchemaUpdateNodeNameType.slice(0, -3) + ')[]'
+  if (typedefs.mutate.SchemaRenameNodePropType) typedefs.mutate.SchemaRenameNodePropType = typedefs.mutate.SchemaRenameNodePropType.slice(0, -3)
   if (typedefs.mutate.SchemaUpdatePropSortIndexType) typedefs.mutate.SchemaUpdatePropSortIndexType = typedefs.mutate.SchemaUpdatePropSortIndexType.slice(0, -3)
-  if (typedefs.mutate.SchemaDeleteNodePropsType) typedefs.mutate.SchemaDeleteNodePropsType = '(' + typedefs.mutate.SchemaDeleteNodePropsType.slice(0, -3) + ')[]'
+  if (typedefs.mutate.SchemaDeleteRelationshipsType) typedefs.mutate.SchemaDeleteRelationshipsType = typedefs.mutate.SchemaDeleteRelationshipsType.slice(0, -3)
+  if (typedefs.mutate.SchemaUpdateNodePropCascadeType) typedefs.mutate.SchemaUpdateNodePropCascadeType = typedefs.mutate.SchemaUpdateNodePropCascadeType.slice(0, -3)
   if (typedefs.mutate.SchemaUpdatePropUniqueIndexType) typedefs.mutate.SchemaUpdatePropUniqueIndexType = typedefs.mutate.SchemaUpdatePropUniqueIndexType.slice(0, -3)
-  if (typedefs.mutate.SchemaUpdateNodePropHasType) typedefs.mutate.SchemaUpdateNodePropHasType = '(' + typedefs.mutate.SchemaUpdateNodePropHasType.slice(0, -3) + ')[]'
-  if (typedefs.mutate.SchemaUpdateNodePropNameType) typedefs.mutate.SchemaUpdateNodePropNameType = '(' + typedefs.mutate.SchemaUpdateNodePropNameType.slice(0, -3) + ')[]'
+  if (typedefs.mutate.SchemaRenameRelationshipType) typedefs.mutate.SchemaRenameRelationshipType = typedefs.mutate.SchemaRenameRelationshipType.slice(0, -3)
+  if (typedefs.mutate.SchemaDeleteRelationshipPropsType) typedefs.mutate.SchemaDeleteRelationshipPropsType = typedefs.mutate.SchemaDeleteRelationshipPropsType.slice(0, -3)
   if (typedefs.mutate.SchemaUpdatePropMustBeDefinedType) typedefs.mutate.SchemaUpdatePropMustBeDefinedType = typedefs.mutate.SchemaUpdatePropMustBeDefinedType.slice(0, -3)
-  if (typedefs.mutate.SchemaUpdateNodePropCascadeType) typedefs.mutate.SchemaUpdateNodePropCascadeType = '(' + typedefs.mutate.SchemaUpdateNodePropCascadeType.slice(0, -3) + ')[]'
-  if (typedefs.mutate.SchemaUpdateRelationshipNameType) typedefs.mutate.SchemaUpdateRelationshipNameType = '(' + typedefs.mutate.SchemaUpdateRelationshipNameType.slice(0, -3) + ')[]'
-  if (typedefs.mutate.SchemaUpdateRelationshipPropNameType) typedefs.mutate.SchemaUpdateRelationshipPropNameType = '(' + typedefs.mutate.SchemaUpdateRelationshipPropNameType.slice(0, -3) + ')[]'
-
+  if (typedefs.mutate.SchemaRenameRelationshipPropType) typedefs.mutate.SchemaRenameRelationshipPropType = typedefs.mutate.SchemaRenameRelationshipPropType.slice(0, -3)
 
   typedefs.query.NodeType = plop({
     now: typedefs.query.NodePipes,
@@ -1121,7 +1150,7 @@ function getSchemaTypedefs (schema) {
 function getDataType (dataType) {
   switch (dataType) {
     case 'hash':
-    case 'isoString':
+    case 'iso':
       return 'string'
     default:
       return dataType

@@ -1,16 +1,18 @@
-/** @typedef { 'Empty' | 'BackupGet' | 'BackupLoad' | 'PluginInstall' | 'PluginUninstall' | 'SchemaGet' | 'SchemaAdd' | 'SchemaUpdateNodeName' | 'SchemaUpdateNodePropName' | 'SchemaUpdateRelationshipName' | 'SchemaUpdateRelationshipPropName' | 'SchemaDeleteNodes' | 'SchemaDeleteNodeProps' | 'SchemaDeleteRelationships' | 'SchemaDeleteRelationshipProps' | 'SchemaUpdatePropDefault' | 'SchemaUpdatePropMustBeDefined' | 'SchemaUpdatePropSortIndex' | 'SchemaUpdatePropUniqueIndex' | 'SchemaUpdateNodePropCascade' | 'SchemaUpdateNodePropHas' | 'NodeInsert' | 'NodeUpdate' | 'NodeUpsert' | 'NodeQuery' | 'NodeDelete' | 'NodePropDelete' | 'RelationshipInsert' | 'RelationshipUpdate' | 'RelationshipUpsert' | 'RelationshipQuery' | 'RelationshipDelete' | 'RelationshipPropDelete' } aceDo */
+/** @typedef { 'EmptyGraph' | 'EmptyTrash' | 'BackupGet' | 'BackupLoad' | 'PluginInstall' | 'PluginUninstall' | 'SchemaAdd' | 'SchemaGet' | 'SchemaPush' | 'SchemaRenameNode' | 'SchemaRenameNodeProp' | 'SchemaRenameRelationship' | 'SchemaRenameRelationshipProp' | 'SchemaDeleteNodes' | 'SchemaDeleteNodeProps' | 'SchemaDeleteRelationships' | 'SchemaDeleteRelationshipProps' | 'SchemaUpdatePropDefault' | 'SchemaUpdatePropMustBeDefined' | 'SchemaUpdatePropSortIndex' | 'SchemaUpdatePropUniqueIndex' | 'SchemaUpdateNodePropCascade' | 'SchemaUpdateNodePropHas' | 'NodeInsert' | 'NodeUpdate' | 'NodeUpsert' | 'NodeQuery' | 'NodeDelete' | 'NodePropDelete' | 'RelationshipInsert' | 'RelationshipUpdate' | 'RelationshipUpsert' | 'RelationshipQuery' | 'RelationshipDelete' | 'RelationshipPropDelete' } aceDo */
 export const aceDo = {
-  Empty: /** @type { 'Empty' } */ ('Empty'),
+  EmptyGraph: /** @type { 'EmptyGraph' } */ ('EmptyGraph'),
+  EmptyTrash: /** @type { 'EmptyTrash' } */ ('EmptyTrash'),
   BackupGet: /** @type { 'BackupGet' } */ ('BackupGet'),
   BackupLoad: /** @type { 'BackupLoad' } */ ('BackupLoad'),
   PluginInstall: /** @type { 'PluginInstall' } */ ('PluginInstall'),
   PluginUninstall: /** @type { 'PluginUninstall' } */ ('PluginUninstall'),
-  SchemaGet: /** @type { 'SchemaGet' } */ ('SchemaGet'),
   SchemaAdd: /** @type { 'SchemaAdd' } */ ('SchemaAdd'),
-  SchemaUpdateNodeName: /** @type { 'SchemaUpdateNodeName' } */ ('SchemaUpdateNodeName'),
-  SchemaUpdateNodePropName: /** @type { 'SchemaUpdateNodePropName' } */ ('SchemaUpdateNodePropName'),
-  SchemaUpdateRelationshipName: /** @type { 'SchemaUpdateRelationshipName' } */ ('SchemaUpdateRelationshipName'),
-  SchemaUpdateRelationshipPropName: /** @type { 'SchemaUpdateRelationshipPropName' } */ ('SchemaUpdateRelationshipPropName'),
+  SchemaGet: /** @type { 'SchemaGet' } */ ('SchemaGet'),
+  SchemaPush: /** @type { 'SchemaPush' } */ ('SchemaPush'),
+  SchemaRenameNode: /** @type { 'SchemaRenameNode' } */ ('SchemaRenameNode'),
+  SchemaRenameNodeProp: /** @type { 'SchemaRenameNodeProp' } */ ('SchemaRenameNodeProp'),
+  SchemaRenameRelationship: /** @type { 'SchemaRenameRelationship' } */ ('SchemaRenameRelationship'),
+  SchemaRenameRelationshipProp: /** @type { 'SchemaRenameRelationshipProp' } */ ('SchemaRenameRelationshipProp'),
   SchemaDeleteNodes: /** @type { 'SchemaDeleteNodes' } */ ('SchemaDeleteNodes'),
   SchemaDeleteNodeProps: /** @type { 'SchemaDeleteNodeProps' } */ ('SchemaDeleteNodeProps'),
   SchemaDeleteRelationships: /** @type { 'SchemaDeleteRelationships' } */ ('SchemaDeleteRelationships'),
@@ -36,13 +38,13 @@ export const aceDo = {
 }
 
 
-/** @typedef { 'hash' | 'string' | 'number' | 'boolean' | 'isoString' } dataTypes */
+/** @typedef { 'hash' | 'string' | 'number' | 'boolean' | 'iso' } dataTypes */
 export const dataTypes = {
   hash: /** @type { 'hash' } */ ('hash'),
   string: /** @type { 'string' } */ ('string'),
   number: /** @type { 'number' } */ ('number'),
   boolean: /** @type { 'boolean' } */ ('boolean'),
-  isoString: /** @type { 'isoString' } */ ('isoString'),
+  iso: /** @type { 'iso' } */ ('iso'),
 }
 
 

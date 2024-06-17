@@ -63,11 +63,11 @@ export function validateBidirectionalProp (node, relationship, prop, graphNode, 
 export async function validateDirectionProp (direction, node, relationship, prop, graphNode, props) {
   let isValid = false
   const relationshipProp = getRelationshipProp(relationship)
-  const relationshipIds = graphNode[relationshipProp]
+  const relationship_Ids = graphNode[relationshipProp]
 
-  if (relationshipIds?.length) {
+  if (relationship_Ids?.length) {
     /** @type { td.AceGraphRelationship[] } */
-    const graphRelationships = await getMany(relationshipIds)
+    const graphRelationships = await getMany(relationship_Ids)
 
     for (const graphRelationship of graphRelationships) {
       if (graphRelationship.props[direction] === graphNode.props.id) {
@@ -116,5 +116,5 @@ function validateRelationshipProp (relationship, props) {
  * @returns { td.AceError }
  */
 function getEror (type, name, propName, graphItem) {
-  return AceError('aceFn__missingMustBeDefinedProp', `Please ensure each request item has all must be defined props. This is not happening yet at ${ type } "${ name }", prop: "${ propName }"`, { type, name, mustBeDefinedProp: propName, graphItem })
+  return AceError('missingMustBeDefinedProp', `Please ensure each request item has all must be defined props. This is not happening yet at ${ type } "${ name }", prop: "${ propName }"`, { type, name, mustBeDefinedProp: propName, graphItem })
 }

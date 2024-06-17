@@ -1,38 +1,45 @@
 import { td } from '#ace'
-import { Memory } from '../objects/Memory.js'
 import { inupNode } from './mutate/inupNode.js'
-import { emptyMemory } from '../empty/emptyMemory.js'
+import { emptyTrash } from '../empty/emptyTrash.js'
+import { schemaPush } from '../schema/schemaPush.js'
 import { addToSchema } from '../schema/addToSchema.js'
-import { deleteNodesById } from './mutate/deleteNodesById.js'
+import { Memory, onEmpty } from '../objects/Memory.js'
+import { deleteNodes } from './mutate/deleteNodes.js'
 import { inupRelationship } from './mutate/inupRelationship.js'
 import { queryNode, queryRelationship } from './query/query.js'
 import { schemaDeleteNodes } from '../schema/schemaDeleteNodes.js'
-import { deleteNodePropsById } from './mutate/deleteNodePropsById.js'
-import { schemaUpdateNodeName } from '../schema/schemaUpdateNodeName.js'
+import { deleteNodeProps } from './mutate/deleteNodeProps.js'
+import { schemaRenameNode } from '../schema/schemaRenameNode.js'
 import { schemaDeleteNodeProps } from '../schema/schemaDeleteNodeProps.js'
 import { schemaUpdatePropDefault } from '../schema/schemaUpdatePropDefault.js'
 import { schemaUpdateNodePropHas } from '../schema/schemaUpdateNodePropHas.js'
-import { schemaUpdateNodePropName } from '../schema/schemaUpdateNodePropName.js'
-import { deleteRelationshipsBy_Ids } from './mutate/deleteRelationshipsBy_Ids.js'
+import { schemaRenameNodeProp } from '../schema/schemaRenameNodeProp.js'
+import { deleteRelationships } from './mutate/deleteRelationships.js'
 import { schemaUpdatePropSortIndex } from '../schema/schemaUpdatePropSortIndex.js'
-import { deleteRelationshipPropsById } from './mutate/deleteRelationshipPropsById.js'
+import { deleteRelationshipProps } from './mutate/deleteRelationshipProps.js'
 import { schemaUpdateNodePropCascade } from '../schema/schemaUpdateNodePropCascade.js'
 import { schemaUpdatePropUniqueIndex } from '../schema/schemaUpdatePropUniqueIndex.js'
-import { schemaUpdateRelationshipName } from '../schema/schemaUpdateRelationshipName.js'
+import { schemaRenameRelationship } from '../schema/schemaRenameRelationship.js'
 import { schemaUpdatePropMustBeDefined } from '../schema/schemaUpdatePropMustBeDefined.js'
-import { schemaUpdateRelationshipPropName } from '../schema/schemaUpdateRelationshipPropName.js'
+import { schemaRenameRelationshipProp } from '../schema/schemaRenameRelationshipProp.js'
 
 
 /**
+ * @param { td.AceFnOptions } options
  * @param { td.AceFnRequestItem[] } req 
  * @param { td.AceFnFullResponse } res
  * @param { td.AceFnCryptoJWKs } jwks 
  */
-export async function deligate (req, res, jwks) {
+export async function deligate (options, req, res, jwks) {
   for (let iReq = 0; iReq < req.length; iReq++) {
     switch (req[iReq].do) {
-      case 'Empty':
-        emptyMemory()
+      case 'EmptyGraph':
+        onEmpty()
+        break
+
+
+      case 'EmptyTrash':
+        emptyTrash(options)
         break
 
 
@@ -56,6 +63,11 @@ export async function deligate (req, res, jwks) {
         break
 
 
+      case 'SchemaPush':
+        await schemaPush(options, /** @type { td.AceMutateRequestItemSchemaPush } */(req[iReq]))
+        break
+
+
       case 'NodeInsert':
       case 'NodeUpdate':
       case 'NodeUpsert':
@@ -71,22 +83,22 @@ export async function deligate (req, res, jwks) {
 
 
       case 'NodeDelete':
-        await deleteNodesById(/** @type { { how: (string|number)[] } } */(req[iReq]).how)
+        await deleteNodes(/** @type { { how: (string|number)[] } } */(req[iReq]).how)
         break
 
 
       case 'RelationshipDelete':
-        await deleteRelationshipsBy_Ids(/** @type { td.AceMutateRequestItemRelationshipDelete } */(req[iReq]).how._ids)
+        await deleteRelationships(/** @type { td.AceMutateRequestItemRelationshipDelete } */(req[iReq]).how._ids)
         break
 
 
       case 'NodePropDelete':
-        await deleteNodePropsById(/** @type { td.AceMutateRequestItemNodePropDelete } */(req[iReq]))
+        await deleteNodeProps(/** @type { td.AceMutateRequestItemNodePropDelete } */(req[iReq]))
         break
 
 
       case 'RelationshipPropDelete':
-        await deleteRelationshipPropsById(/** @type { td.AceMutateRequestItemRelationshipPropDelete } */(req[iReq]))
+        await deleteRelationshipProps(/** @type { td.AceMutateRequestItemRelationshipPropDelete } */(req[iReq]))
         break
 
 
@@ -100,13 +112,13 @@ export async function deligate (req, res, jwks) {
         break
 
 
-      case 'SchemaUpdateNodeName':
-        await schemaUpdateNodeName(/** @type { td.AceMutateRequestItemSchemaUpdateNodeName } */(req[iReq]))
+      case 'SchemaRenameNode':
+        await schemaRenameNode(/** @type { td.AceMutateRequestItemSchemaRenameNode } */(req[iReq]))
         break
 
 
-      case 'SchemaUpdateNodePropName':
-        await schemaUpdateNodePropName(/** @type { td.AceMutateRequestItemSchemaUpdateNodePropName } */(req[iReq]))
+      case 'SchemaRenameNodeProp':
+        await schemaRenameNodeProp(/** @type { td.AceMutateRequestItemSchemaRenameNodeProp } */(req[iReq]))
         break
 
 
@@ -120,13 +132,13 @@ export async function deligate (req, res, jwks) {
         break
 
 
-      case 'SchemaUpdateRelationshipName':
-        await schemaUpdateRelationshipName(/** @type { td.AceMutateRequestItemSchemaUpdateRelationshipName } */(req[iReq]))
+      case 'SchemaRenameRelationship':
+        await schemaRenameRelationship(/** @type { td.AceMutateRequestItemSchemaRenameRelationship } */(req[iReq]))
         break
 
 
-      case 'SchemaUpdateRelationshipPropName':
-        await schemaUpdateRelationshipPropName(/** @type { td.AceMutateRequestItemSchemaUpdateRelationshipPropName } */(req[iReq]))
+      case 'SchemaRenameRelationshipProp':
+        await schemaRenameRelationshipProp(/** @type { td.AceMutateRequestItemSchemaRenameRelationshipProp } */(req[iReq]))
         break
 
 

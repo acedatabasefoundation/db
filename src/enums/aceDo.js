@@ -1,5 +1,7 @@
 export const aceDo = new Map([ // boolean => will this id write to the graph (helpful for Memory.txn.hasUpdates)
-  [ 'Empty', true ],
+  // Empty
+  [ 'EmptyGraph', true ],
+  [ 'EmptyTrash', true ],
 
   // Backup
   [ 'BackupGet', false ],
@@ -10,12 +12,13 @@ export const aceDo = new Map([ // boolean => will this id write to the graph (he
   [ 'PluginUninstall', false ],
 
   // Schema
-  [ 'SchemaGet', false ],
   [ 'SchemaAdd', true ],
-  [ 'SchemaUpdateNodeName', true ],
-  [ 'SchemaUpdateNodePropName', true ],
-  [ 'SchemaUpdateRelationshipName', true ],
-  [ 'SchemaUpdateRelationshipPropName', true ],
+  [ 'SchemaGet', false ],
+  [ 'SchemaPush', true ],
+  [ 'SchemaRenameNode', true ],
+  [ 'SchemaRenameNodeProp', true ],
+  [ 'SchemaRenameRelationship', true ],
+  [ 'SchemaRenameRelationshipProp', true ],
 
   // Schema Delete
   [ 'SchemaDeleteNodes', true ],

@@ -7,18 +7,19 @@ import { write, getOne, getMany } from '../util/storage.js'
 
 
 /** 
- * @param { td.AceMutateRequestItemSchemaUpdateNodePropName } reqItem
+ * @param { td.AceMutateRequestItemSchemaRenameNodeProp } reqItem
+ * @param { boolean } [ isSourceSchemaPush ]
  * @returns { Promise<void> }
  */
-export async function schemaUpdateNodePropName (reqItem) {
-  for (const { node, nowName, newName } of reqItem.how.props) {
-    if (!Memory.txn.schema?.nodes[node]) throw AceError('aceFn__schemaUpdateNodePropName__invalidNode', `Please ensure that when updating a node prop name, the node is defined in the schema, this is not happening yet for the node: ${ node }, nowName: ${ nowName }, and newName: ${ newName }`, { node, nowName, newName })
-    if (!Memory.txn.schema?.nodes[node]?.[nowName]) throw AceError('aceFn__schemaUpdateNodePropName__invalidProp', `Please ensure that when updating a node prop name, the prop is defined in the schema, this is not happening yet for the node: ${ node }, nowName: ${ nowName }, and newName: ${ newName }`, { node, nowName, newName })
+export async function schemaRenameNodeProp (reqItem, isSourceSchemaPush) {
+  for (const { node, nowName, newName } of reqItem.how) {
+    if (!Memory.txn.schema?.nodes[node]) throw AceError('schemaRenameNodeProp__invalidNode', `Please ensure that when updating a node prop name, the node is defined in the schema, this is not happening yet for the node: ${ node }, nowName: ${ nowName }, and newName: ${ newName }`, { node, nowName, newName })
+    if (!Memory.txn.schema?.nodes[node]?.[nowName]) throw AceError('schemaRenameNodeProp__invalidProp', `Please ensure that when updating a node prop name, the prop is defined in the schema, this is not happening yet for the node: ${ node }, nowName: ${ nowName }, and newName: ${ newName }`, { node, nowName, newName })
 
     /** @type { string[] } */
     const nodeIds = await getOne(getNodeIdsKey(node))
 
-    if (nodeIds.length) {
+    if (nodeIds?.length) {
       /** @type {td.AceGraphNode[] } */
       const graphNodes = await getMany(nodeIds)
 
@@ -34,6 +35,6 @@ export async function schemaUpdateNodePropName (reqItem) {
     // update schema
     Memory.txn.schema.nodes[node][newName] = Memory.txn.schema.nodes[node][nowName]
     delete Memory.txn.schema.nodes[node][nowName]
-    doneSchemaUpdate()
+    doneSchemaUpdate(isSourceSchemaPush)
   }
 }

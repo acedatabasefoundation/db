@@ -16,6 +16,6 @@ export function overwriteIds (props, reqItemKey) {
     const graphId = Memory.txn.enumGraphIdsMap.get(reqItemValue)
 
     if (graphId) props[reqItemKey] = graphId
-    else throw AceError('aceFn__mutate__invalidId', `Please ensure each enumId that is used is defined on a node, this is not happening yet for the enumId: ${ reqItemValue }`, { enumId: reqItemValue })
+    else throw AceError('mutate__invalidId', `Please ensure each enumId that is used is defined on a node, this is not happening yet for the enumId: ${ reqItemValue }`, { enumId: reqItemValue })
   }
 }

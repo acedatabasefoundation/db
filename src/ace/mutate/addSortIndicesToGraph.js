@@ -1,7 +1,7 @@
 import { td } from '#ace'
 import { Memory } from '../../objects/Memory.js'
 import { write, getOne, getMany } from '../../util/storage.js'
-import { getNodeIdsKey, getRelationshipIdsKey } from '../../util/variables.js'
+import { getNodeIdsKey, getRelationship_IdsKey } from '../../util/variables.js'
 
 
 /** @returns { Promise<void> } */
@@ -9,7 +9,7 @@ export async function addSortIndicesToGraph () {
   if (Memory.txn.sortIndexMap.size) {
     for (const entry of Memory.txn.sortIndexMap) {
       /** @type { (string | number)[] } 1) Find nodes in sort array OR find nodes in all nodes or all relationships index OR default to empty array */
-      const graphIdsArray = await getOne(entry[0]) || (entry[1].schemaProp.is === 'Prop' ? await getOne(getNodeIdsKey(entry[1].nodeOrRelationshipName)) : await getOne(getRelationshipIdsKey(entry[1].nodeOrRelationshipName))) || []
+      const graphIdsArray = await getOne(entry[0]) || (entry[1].schemaProp.is === 'Prop' ? await getOne(getNodeIdsKey(entry[1].nodeOrRelationshipName)) : await getOne(getRelationship_IdsKey(entry[1].nodeOrRelationshipName))) || []
       const allKeysSet = new Set(graphIdsArray.concat(entry[1].newIds))
 
       /** @type { (td.AceGraphNode | td.AceGraphRelationship)[] } */
@@ -26,9 +26,9 @@ export async function addSortIndicesToGraph () {
             switch (dataType) {
               case 'string':
                 return (a.props[propName]).localeCompare(b.props[propName])
+              case 'iso':
               case 'number':
               case 'boolean':
-              case 'isoString':
                 return Number(a.props[propName] > b.props[propName]) - Number(a.props[propName] < b.props[propName])
             }
           }
