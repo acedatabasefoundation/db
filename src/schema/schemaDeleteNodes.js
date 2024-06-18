@@ -2,8 +2,8 @@ import { td } from '#ace'
 import { Memory } from '../objects/Memory.js'
 import { getOne, write } from '../util/storage.js'
 import { doneSchemaUpdate } from './doneSchemaUpdate.js'
-import { DELIMITER, getNodeIdsKey } from '../util/variables.js'
 import { deleteNodes } from '../ace/mutate/deleteNodes.js'
+import { DELIMITER, getNodeIdsKey } from '../util/variables.js'
 
 
 /** 
@@ -55,5 +55,4 @@ function deleteFromSchema (node) {
   }
 
   delete Memory.txn.schema?.nodes?.[node]
-  console.log('\n')
 }

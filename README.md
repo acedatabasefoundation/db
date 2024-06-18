@@ -8,18 +8,18 @@ Create maintain and enhance, the Best database, for JavaScript Developers!
 ## 🧐 Why Ace?
 * A graph is a **natural** data storage technique, that connects nodes **(neurons)** with relationships **(synapses)** 🧠
 * Ace unites the following lovely features, in an optionally [sponsored](#sponsor-ace) or optionally free 🙌, open source graph db:
-    1. **[Embeded](#embeded)** (no latency between application server and database)
-    1. **[Memory Storage](#storage)** (query millions of nodes in 1ms 😳)
-    1. **[File Storage](#storage)** (append memory storage to files)
-    1. **[Transactions](#transactions)** (start, continue, cancel or complete txn's)
-    1. **[Queue](#queue)** (povides read and write concurrency)
-    1. **[Schema](#schema)** (define data shape w/ JSON)
-    1. **[Migrations](#migrations)** (simple and powerful schema migrations within and between environments)
-    1. **[Backups](#backups)** (multiple locations and frequencies available)
-    1. **[TypeScript and JSDoc](#typescript-and-jsdoc)** (based on schema to provide helpful editor intellisense)
-    1. **[CLI](#cli)** (geneate types, perform migrations and much more)
-    1. **[Data Types](#data-types)** (string, number, boolean, iso, hash, encrypt)
-    1. **[ORM](#orm)** (unite the query language and the ORM with the function `ace()`, that allows multiple, interrelated and typesafe, queries and mutations)
+    * **[Embeded](#embeded)** (no latency between application server and database)
+    * **[Memory Storage](#storage)** (query millions of nodes in less then 9ms 😳)
+    * **[File Storage](#storage)** (append memory storage to files)
+    * **[Transactions](#transactions)** (start, continue, cancel or complete txn's)
+    * **[Queue](#queue)** (provides read and write concurrency)
+    * **[Schema](#schema)** (define data shape w/ JSON)
+    * **[Migrations](#migrations)** (simple and powerful schema migrations within and between environments)
+    * **[Backups](#backups)** (multiple locations and frequencies available)
+    * **[TypeScript and JSDoc](#typescript-and-jsdoc)** (based on schema to provide helpful editor intellisense)
+    * **[CLI](#cli)** (geneate types, perform migrations and much more)
+    * **[Data Types](#data-types)** (string, number, boolean, iso, hash, encrypt)
+    * **[ORM](#orm)** (unite the query language and the ORM with the function `ace()`, that allows multiple, interrelated and typesafe, queries and mutations)
 
 
 ## ☁️ Getting Stated

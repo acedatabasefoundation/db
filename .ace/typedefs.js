@@ -492,7 +492,7 @@ import * as enums from './enums.js'
  * @typedef { Set<string> | null } AceQueryResHide
  * 
  * @typedef { object } AceQueryRequestItemDetailedResValueSection
- * @property { string } reqResKey
+ * @property { string } resValueKey
  * @property { string } resKey
  * @property { string } [ aliasResKey ]
  * @property { enums.schemaHas } schemaHas
@@ -561,6 +561,7 @@ import * as enums from './enums.js'
  * @typedef { object } AceQueryRequestItemRelationshipOptions
  * @property { enums.queryOptions[] } [ flow ]
  * @property { string } [ alias ]
+ * @property { AceQueryStars } [ fill ]
  * @property { boolean } [ all ]
  * @property { AceQuerySort } [ sort ]
  * @property { string } [ findBy_Id ]

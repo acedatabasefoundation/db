@@ -37,9 +37,9 @@ export function getRelationshipNode (detailedResValueSection, startingNode, rela
       schemaRelationshipProp = /** @type { td.AceSchemaForwardRelationshipProp | td.AceSchemaReverseRelationshipProp | td.AceSchemaBidirectionalRelationshipProp } */ (Memory.txn.schema?.nodes?.[relationshipNodeName]?.[relationshipPropName])
     
       if (!schemaRelationshipProp) { // IF the relationshipPropName is not in the schema it might be an alias
-        for (const reqResKey in detailedResValueSection.resValue) {
-          if (detailedResValueSection.resValue[reqResKey]?.$o?.alias === relationshipPropName) { // if one of the props has an alias that matches the relationshipPropName
-            schemaRelationshipProp = /** @type { td.AceSchemaForwardRelationshipProp | td.AceSchemaReverseRelationshipProp | td.AceSchemaBidirectionalRelationshipProp } */ (Memory.txn.schema?.nodes?.[relationshipNodeName]?.[reqResKey]) // use the reqResKey rather then the alias name in the relationships array
+        for (const resValueKey in detailedResValueSection.resValue) {
+          if (detailedResValueSection.resValue[resValueKey]?.$o?.alias === relationshipPropName) { // if one of the props has an alias that matches the relationshipPropName
+            schemaRelationshipProp = /** @type { td.AceSchemaForwardRelationshipProp | td.AceSchemaReverseRelationshipProp | td.AceSchemaBidirectionalRelationshipProp } */ (Memory.txn.schema?.nodes?.[relationshipNodeName]?.[resValueKey]) // use the resValueKey rather then the alias name in the relationships array
             break
           }
         }

@@ -33,9 +33,9 @@ export async function queryNode (res, publicJWKs, iReq, reqItem) {
  * @returns { Promise<void> }
  */
 export async function queryRelationship (res, publicJWKs, iReq, reqItem) {
-  const { ids, detailedResValueSection, isUsingSortIndex } = await getInitialIds(reqItem)
+  const { ids: _ids, detailedResValueSection, isUsingSortIndex } = await getInitialIds(reqItem)
 
-  if (ids.length) await addRelationshipsToResponse(detailedResValueSection, res, ids, isUsingSortIndex, publicJWKs, iReq)
+  if (_ids.length) await addRelationshipsToResponse(detailedResValueSection, res, _ids, isUsingSortIndex, publicJWKs, iReq)
   else {
     res.now[detailedResValueSection.resKey] = null
     res.original[detailedResValueSection.resKey] = null
@@ -156,17 +156,11 @@ function removeEmptyObjects (detailedResValueSection, res) {
  * @returns { Promise<void> }
  */
 async function addPropsToResponse (detailedResValueSection, res, item, jwks, iReq, graphRelationshipProps) {
-  let graphItem, id = ''
+  let graphItem
 
-  if (item.node) {
-    graphItem = item.node
-    id = item.node?.props?.id
-  } else if (item.relationship) {
-    graphItem = item.relationship
-  } else if (item.id) {
-    id = item.id
-    graphItem = await getOne(id)
-  }
+  if (item.node) graphItem = item.node
+  else if (item.relationship) graphItem = item.relationship
+  else if (item.id) graphItem = await getOne(item.id)
 
   if (!graphItem) {
     res.now[ detailedResValueSection.resKey ] = null
@@ -184,37 +178,47 @@ async function addPropsToResponse (detailedResValueSection, res, item, jwks, iRe
     /** @type { Map<string, { propNode: string, propValue: td.AceSchemaForwardRelationshipProp | td.AceSchemaReverseRelationshipProp | td.AceSchemaBidirectionalRelationshipProp }> | undefined } */
     const relationshipPropsMap = (item.relationship && Memory.txn.schemaDataStructures.relationshipPropsMap) ? Memory.txn.schemaDataStructures.relationshipPropsMap.get(detailedResValueSection.relationship || '') : undefined
 
-    for (const reqResKey in detailedResValueSection.resValue) { // loop a section of query.x object
-      const resValueItemValue = detailedResValueSection.resValue[reqResKey]
+    for (const resValueKey in detailedResValueSection.resValue) { // loop a section of query.x object
+      const resValueItemValue = detailedResValueSection.resValue[resValueKey]
 
       /** @type { { schemaNodeProp?: td.AceSchemaProp | td.AceSchemaForwardRelationshipProp | td.AceSchemaReverseRelationshipProp | td.AceSchemaBidirectionalRelationshipProp, schemaRelationshipProp?: td.AceSchemaRelationshipProp } } - If graphItemType is node, add node info to this object  */
       const parentNodeOptions = {}
 
       if (!item.relationship) {
-        parentNodeOptions.schemaNodeProp = Memory.txn.schema?.nodes[detailedResValueSection.node || '']?.[reqResKey]
-        parentNodeOptions.schemaRelationshipProp = (detailedResValueSection.relationship) ? Memory.txn.schema?.relationships?.[detailedResValueSection.relationship]?.props?.[reqResKey] : undefined
+        parentNodeOptions.schemaNodeProp = Memory.txn.schema?.nodes[detailedResValueSection.node || '']?.[resValueKey]
+        parentNodeOptions.schemaRelationshipProp = (detailedResValueSection.relationship) ? Memory.txn.schema?.relationships?.[detailedResValueSection.relationship]?.props?.[resValueKey] : undefined
       }
 
-      if (reqResKey !== '$o' && (!detailedResValueSection.resHide || !detailedResValueSection.resHide?.has(reqResKey))) {
-        if (typeof resOriginalItem[reqResKey] !== 'undefined') { // the graph item has the prop we are looking for
-          if (resValueItemValue === true) resNowItem[reqResKey] = resOriginalItem[reqResKey] // they just want this value in the response
+      if (resValueKey !== '$o' && (!detailedResValueSection.resHide || !detailedResValueSection.resHide?.has(resValueKey))) {
+        // the graph item has the key we are looking for
+        if (typeof resOriginalItem[resValueKey] !== 'undefined') {
+          if (resValueItemValue === true) resNowItem[resValueKey] = resOriginalItem[resValueKey] // they just want this value in the response
           else if (resValueItemValue?.alias) { // they want this value in the response but using an alias
-            resNowItem[resValueItemValue.alias] = resOriginalItem[reqResKey] // add alias value to now
-            resOriginalItem[resValueItemValue.alias] = resOriginalItem[reqResKey] // IF an alias is used add that alias prop onto the original (helpful @ new props when we are using the original to do calculations and the user may be using the alias prop name)
+            resNowItem[resValueItemValue.alias] = resOriginalItem[resValueKey] // add alias value to now
+            resOriginalItem[resValueItemValue.alias] = resOriginalItem[resValueKey] // IF an alias is used add that alias prop onto the original (helpful @ new props when we are using the original to do calculations and the user may be using the alias prop name)
           }
-        } else if (typeof graphRelationshipProps?.[reqResKey] !== 'undefined') { // this prop is defined @ schema.relationships
-          if (resValueItemValue === true) resNowItem[reqResKey] = graphRelationshipProps[reqResKey]
+        }
+
+        // the graph relationship props have the key we are looking for (false positive potential)
+        else if (typeof graphRelationshipProps?.[resValueKey] !== 'undefined') {
+          if (resValueItemValue === true) resNowItem[resValueKey] = graphRelationshipProps[resValueKey]
           else if (resValueItemValue?.alias) {
-            resNowItem[resValueItemValue.alias] = graphRelationshipProps[reqResKey]
-            resOriginalItem[resValueItemValue.alias] = graphRelationshipProps[reqResKey]
+            resNowItem[resValueItemValue.alias] = graphRelationshipProps[resValueKey]
+            resOriginalItem[resValueItemValue.alias] = graphRelationshipProps[resValueKey]
           }
-        } else if (parentNodeOptions.schemaNodeProp?.is === 'ForwardRelationshipProp' || parentNodeOptions.schemaNodeProp?.is === 'ReverseRelationshipProp' || parentNodeOptions.schemaNodeProp?.is === 'BidirectionalRelationshipProp') { // this prop is defined @ schema.nodes and is a SchemaRelationshipProp
+        }
+
+        // this key is a SchemaRelationshipProp (relationship key that points to nodes and not a prop key)
+        else if (parentNodeOptions.schemaNodeProp?.is === 'ForwardRelationshipProp' || parentNodeOptions.schemaNodeProp?.is === 'ReverseRelationshipProp' || parentNodeOptions.schemaNodeProp?.is === 'BidirectionalRelationshipProp') {
           const relationship_Ids = graphItem[getRelationshipProp(parentNodeOptions.schemaNodeProp.options.relationship)]
-          await addRelationshipPropsToResponse(id, relationship_Ids, parentNodeOptions.schemaNodeProp, reqResKey, resValueItemValue, detailedResValueSection, resNowItem, resOriginalItem, jwks, iReq)
-        } else if (item.relationship && relationshipPropsMap) {
-          const r = relationshipPropsMap.get(reqResKey)
+          await addRelationshipPropsToResponse(graphItem.props.id, relationship_Ids, parentNodeOptions.schemaNodeProp, resValueKey, resValueItemValue, detailedResValueSection, resNowItem, resOriginalItem, jwks, iReq)
+        }
+
+        // this is a relationship query and the key we are populating is a relationship key that points to nodes and not a prop key
+        else if (item.relationship && relationshipPropsMap?.has(resValueKey)) {
+          const r = relationshipPropsMap.get(resValueKey)
           const schemaNodeProp = r?.propValue
-          const relationshipDetailedResValueSection = getDetailedResValueSectionByParent(resValueItemValue, reqResKey, detailedResValueSection)  
+          const relationshipDetailedResValueSection = getDetailedResValueSectionByParent(resValueItemValue, resValueKey, detailedResValueSection)  
 
           if (schemaNodeProp?.is === 'BidirectionalRelationshipProp') {
             const ids = [ resOriginalItem.a, resOriginalItem.b ]
@@ -249,27 +253,27 @@ async function addPropsToResponse (detailedResValueSection, res, item, jwks, iRe
 /**
  * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
  * @param { td.AceFnFullResponse } res 
- * @param { (string | number)[] } ids 
+ * @param { (string | number)[] } _ids 
  * @param { boolean } isUsingSortIndex
  * @param { td.AceFnCryptoJWKs } jwks
  * @param { number } iReq
  * @returns { Promise<void> }
  */
-async function addRelationshipsToResponse (detailedResValueSection, res, ids, isUsingSortIndex, jwks, iReq) {
+async function addRelationshipsToResponse (detailedResValueSection, res, _ids, isUsingSortIndex, jwks, iReq) {
   if (detailedResValueSection.resValue?.$o?.findBy_Id) {
-    if (ids.includes(detailedResValueSection.resValue?.$o.findBy_Id)) ids = [ detailedResValueSection.resValue?.$o.findBy_Id ]
+    if (_ids.includes(detailedResValueSection.resValue?.$o.findBy_Id)) _ids = [ detailedResValueSection.resValue?.$o.findBy_Id ]
   } else {
     if (detailedResValueSection.resValue?.$o?.filterBy_Ids?.length) {
       const set = new Set(detailedResValueSection.resValue?.$o.filterBy_Ids)
 
-      for (let i = ids.length - 1; i >= 0; i--) {
-        if (!set.has(ids[i])) ids.splice(i, 1)
+      for (let i = _ids.length - 1; i >= 0; i--) {
+        if (!set.has(_ids[i])) _ids.splice(i, 1)
       }
     }
   }
 
   /** @type { td.AceGraphRelationship[] } */
-  const graphRelationships = await getMany(ids)
+  const graphRelationships = await getMany(_ids)
 
   for (let i = 0; i < graphRelationships.length; i++) {
     await addPropsToResponse(detailedResValueSection, res, { relationship: graphRelationships[i] }, jwks, iReq)
@@ -284,7 +288,7 @@ async function addRelationshipsToResponse (detailedResValueSection, res, ids, is
  * @param { string } id
  * @param { string[] } relationship_Ids
  * @param { td.AceSchemaForwardRelationshipProp | td.AceSchemaReverseRelationshipProp | td.AceSchemaBidirectionalRelationshipProp | td.AceSchemaProp } schemaNodeProp
- * @param { string } reqResKey 
+ * @param { string } resValueKey 
  * @param { any } resValueItemValue 
  * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
  * @param { { [propName: string]: any } } resNowItem 
@@ -293,16 +297,22 @@ async function addRelationshipsToResponse (detailedResValueSection, res, ids, is
  * @param { number } iReq
  * @returns { Promise<void> }
  */
-async function addRelationshipPropsToResponse (id, relationship_Ids, schemaNodeProp, reqResKey, resValueItemValue, detailedResValueSection, resNowItem, resOriginalItem, jwks, iReq) {
+async function addRelationshipPropsToResponse (id, relationship_Ids, schemaNodeProp, resValueKey, resValueItemValue, detailedResValueSection, resNowItem, resOriginalItem, jwks, iReq) {
   if (id && schemaNodeProp && relationship_Ids?.length) {
     let findByIdFound = false
     let findBy_IdFound = false
     let findByUniqueFound = false
-    let nodeIds = /** @type { (string | number)[] } */ ([])
-    const graphRelationships = /** @type { any[] } */ ([])
-    const relationshipDetailedResValueSection = getDetailedResValueSectionByParent(resValueItemValue, reqResKey, detailedResValueSection)  
 
-    const uniqueKeys = /** @type { string[] } */ ([])
+    /** @type { (string | number)[] } */
+    let nodeIds = []
+
+    /** @type { string[] } */
+    const uniqueKeys = []
+
+    /** @type { td.AceGraphRelationshipProps[] } */
+    const graphRelationshipProps = []
+
+    const relationshipDetailedResValueSection = getDetailedResValueSectionByParent(resValueItemValue, resValueKey, detailedResValueSection)  
 
     if (detailedResValueSection.resValue?.$o?.findByUnique) uniqueKeys.push(getUniqueIndexKey(relationshipDetailedResValueSection.relationship || '', detailedResValueSection.resValue?.$o.findByUnique.prop, detailedResValueSection.resValue?.$o.findByUnique.value))
     else if (detailedResValueSection.resValue?.$o?.filterByUniques) {
@@ -321,7 +331,7 @@ async function addRelationshipPropsToResponse (id, relationship_Ids, schemaNodeP
       case 'ForwardRelationshipProp':
         for (const graphRelationship of allGraphRelationships) {
           if (id === graphRelationship.props.a) {
-            const rForward = validateAndPushIds(relationshipDetailedResValueSection, graphRelationship.props.b, graphRelationships, graphRelationship, graphRelationship.props._id, nodeIds, uniqueIds, findByIdFound, findByUniqueFound, findBy_IdFound)
+            const rForward = validateAndPushIds(relationshipDetailedResValueSection, graphRelationship.props.b, graphRelationshipProps, graphRelationship, graphRelationship.props._id, nodeIds, uniqueIds, findByIdFound, findByUniqueFound, findBy_IdFound)
             if (rForward.findByIdFound) findByIdFound = true
             if (rForward.findByUniqueFound) findByUniqueFound = true
             if (rForward.findBy_IdFound) findBy_IdFound = true
@@ -331,7 +341,7 @@ async function addRelationshipPropsToResponse (id, relationship_Ids, schemaNodeP
       case 'ReverseRelationshipProp':
         for (const graphRelationship of allGraphRelationships) {
           if (id === graphRelationship.props.b) {
-            const rReverse = validateAndPushIds(relationshipDetailedResValueSection, graphRelationship.props.a, graphRelationships, graphRelationship, graphRelationship.props._id, nodeIds, uniqueIds, findByIdFound, findByUniqueFound, findBy_IdFound)
+            const rReverse = validateAndPushIds(relationshipDetailedResValueSection, graphRelationship.props.a, graphRelationshipProps, graphRelationship, graphRelationship.props._id, nodeIds, uniqueIds, findByIdFound, findByUniqueFound, findBy_IdFound)
             if (rReverse.findByIdFound) findByIdFound = true
             if (rReverse.findByUniqueFound) findByUniqueFound = true
             if (rReverse.findBy_IdFound) findBy_IdFound = true
@@ -340,7 +350,7 @@ async function addRelationshipPropsToResponse (id, relationship_Ids, schemaNodeP
         break
       case 'BidirectionalRelationshipProp':
         for (const graphRelationship of allGraphRelationships) {
-          const rBi = validateAndPushIds(relationshipDetailedResValueSection, id === graphRelationship.props.a ? graphRelationship.props.b : graphRelationship.props.a, graphRelationships, graphRelationship, graphRelationship.props._id, nodeIds, uniqueIds, findByIdFound, findByUniqueFound, findBy_IdFound)
+          const rBi = validateAndPushIds(relationshipDetailedResValueSection, id === graphRelationship.props.a ? graphRelationship.props.b : graphRelationship.props.a, graphRelationshipProps, graphRelationship, graphRelationship.props._id, nodeIds, uniqueIds, findByIdFound, findByUniqueFound, findBy_IdFound)
           if (rBi.findByIdFound) findByIdFound = true
           if (rBi.findByUniqueFound) findByUniqueFound = true
           if (rBi.findBy_IdFound) findBy_IdFound = true
@@ -365,7 +375,7 @@ async function addRelationshipPropsToResponse (id, relationship_Ids, schemaNodeP
       else isValid = false
     }
 
-    if (isValid) await addNodesToResponse(relationshipDetailedResValueSection, { now: resNowItem, original: resOriginalItem }, nodeIds, false, jwks, iReq, graphRelationships)
+    if (isValid) await addNodesToResponse(relationshipDetailedResValueSection, { now: resNowItem, original: resOriginalItem }, nodeIds, false, jwks, iReq, graphRelationshipProps)
   }
 }
 
@@ -373,7 +383,7 @@ async function addRelationshipPropsToResponse (id, relationship_Ids, schemaNodeP
 /**
  * @param { td.AceQueryRequestItemDetailedResValueSection } relationshipDetailedResValueSection 
  * @param { string } id 
- * @param { any[] } graphRelationships 
+ * @param { td.AceGraphRelationshipProps[] } graphRelationshipProps 
  * @param { td.AceGraphRelationship } graphRelationship 
  * @param { string } graphRelationshipKey 
  * @param { (string | number)[] } nodeIds 
@@ -383,7 +393,7 @@ async function addRelationshipPropsToResponse (id, relationship_Ids, schemaNodeP
  * @param { boolean } findBy_IdFound 
  * @returns { { findByIdFound: boolean, findByUniqueFound: boolean, findBy_IdFound: boolean } } 
  */
-function validateAndPushIds (relationshipDetailedResValueSection, id, graphRelationships, graphRelationship, graphRelationshipKey, nodeIds, uniqueIds, findByIdFound, findByUniqueFound, findBy_IdFound) {
+function validateAndPushIds (relationshipDetailedResValueSection, id, graphRelationshipProps, graphRelationship, graphRelationshipKey, nodeIds, uniqueIds, findByIdFound, findByUniqueFound, findBy_IdFound) {
   const filterByIds = new Set(relationshipDetailedResValueSection.resValue.$o?.filterByIds)
 
   if (!filterByIds.has(id)) {
@@ -396,7 +406,7 @@ function validateAndPushIds (relationshipDetailedResValueSection, id, graphRelat
 
       if (!filterByUniques) {
         nodeIds.push(id)
-        graphRelationships.push(graphRelationship.props)
+        graphRelationshipProps.push(graphRelationship.props)
 
         if (String(relationshipDetailedResValueSection.resValue.$o?.findById) === id) findByIdFound = true
         else if (String(relationshipDetailedResValueSection.resValue.$o?.findBy_Id) === graphRelationshipKey) findBy_IdFound = true
