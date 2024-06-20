@@ -38,13 +38,14 @@ export const aceDo = {
 }
 
 
-/** @typedef { 'hash' | 'string' | 'number' | 'boolean' | 'iso' } dataTypes */
+/** @typedef { 'hash' | 'string' | 'number' | 'boolean' | 'iso' | 'encrypt' } dataTypes */
 export const dataTypes = {
   hash: /** @type { 'hash' } */ ('hash'),
   string: /** @type { 'string' } */ ('string'),
   number: /** @type { 'number' } */ ('number'),
   boolean: /** @type { 'boolean' } */ ('boolean'),
   iso: /** @type { 'iso' } */ ('iso'),
+  encrypt: /** @type { 'encrypt' } */ ('encrypt'),
 }
 
 

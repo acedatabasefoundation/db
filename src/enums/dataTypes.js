@@ -4,4 +4,5 @@ export const dataTypes = new Set([
   'number',
   'boolean',
   'iso',
+  'encrypt',
 ])

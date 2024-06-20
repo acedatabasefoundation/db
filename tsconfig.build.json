@@ -37,6 +37,7 @@
 
     "src/ace/ace.js",
     "src/ace/deligate.js",
+    "src/ace/graphSort.js",
     "src/ace/log.js",
     "src/ace/set$ace.js",
     "src/ace/setHasUpdates.js",
@@ -75,6 +76,7 @@
     "src/enums/writeDo.js",
 
     "src/objects/AceError.js",
+    "src/objects/Collator.js",
     "src/objects/Memory.js",
     "src/objects/SchemaDataStructures.js",
     "src/objects/SchemaDetail.js",

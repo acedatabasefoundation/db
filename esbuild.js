@@ -44,6 +44,7 @@ esbuild.build({ // // https://esbuild.github.io/api/
 
     './tsc/src/ace/ace.js',
     './tsc/src/ace/deligate.js',
+    './tsc/src/ace/graphSort.js',
     './tsc/src/ace/log.js',
     './tsc/src/ace/set$ace.js',
     './tsc/src/ace/setHasUpdates.js',
@@ -82,6 +83,7 @@ esbuild.build({ // // https://esbuild.github.io/api/
     './tsc/src/enums/writeDo.js',
 
     './tsc/src/objects/AceError.js',
+    './tsc/src/objects/Collator.js',
     './tsc/src/objects/Memory.js',
     './tsc/src/objects/SchemaDataStructures.js',
     './tsc/src/objects/SchemaDetail.js',

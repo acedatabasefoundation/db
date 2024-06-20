@@ -1,6 +1,10 @@
 import { td, enums } from '#ace'
+import { graphSort } from '../graphSort.js'
 import { queryWhere } from './queryWhere.js'
 import { getNewProps } from './getNewProps.js'
+import { Memory } from '../../objects/Memory.js'
+import { Collator } from '../../objects/Collator.js'
+import { AceError } from '../../objects/AceError.js'
 import { getRelationshipNode } from './getRelationshipNode.js'
 import { DEFAULT_QUERY_OPTIONS_FLOW, POST_QUERY_OPTIONS_FLOW } from '../../util/variables.js'
 
@@ -81,7 +85,7 @@ async function doOption (option, hasValueAsResponse, doneOptions, detailedResVal
         break
 
       case enums.queryOptions.sort:
-        doSort($o, res, detailedResValueSection.resKey, isUsingSortIndex)
+        doSort($o, res, detailedResValueSection, isUsingSortIndex)
         break
 
       case enums.queryOptions.newProps:
@@ -189,36 +193,110 @@ function doLimit ($o, res, resKey) {
 /**
  * @param { td.AceQueryRequestItemNodeOptions } $o 
  * @param { td.AceFnFullResponse } res 
- * @param { string } resKey 
+ * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
  * @param { boolean } isUsingSortIndex 
  * @returns { void }
  */
-function doSort ($o, res, resKey, isUsingSortIndex) {
-  if (!isUsingSortIndex && $o.sort) { // IF not using a sorted index array => sort items
-    const combined = []
-    const sort = $o.sort
+function doSort ($o, res, detailedResValueSection, isUsingSortIndex) {
+  if ($o.sort) {
+    if (isUsingSortIndex) {
+      if ($o.sort.how === 'dsc') { // sort index is stored asc, so if dsc is requested, do a reverse
+        res.now[detailedResValueSection.resKey].reverse()
+        res.original[detailedResValueSection.resKey].reverse()
+      }
+    } else {
+      const combined = []
+      const sort = $o.sort
+      const collator = Collator()
+      const prop = detailedResValueSection.resValue.$o?.sort?.prop
 
-    for (let i = 0; i < res.original[resKey].length; i++) {
-      combined.push({
-        now: res.now[resKey][i],
-        original: res.original[resKey][i],
+      if (!prop) throw AceError('query__falsySortProp', 'Please ensure the $o.sort.prop is truthy', { $o: detailedResValueSection.resValue.$o })
+
+      const dataType = detailedResValueSection.node ?
+        geNodeSortPropDataType(detailedResValueSection, prop) :
+        getRelationshipSortPropDataType(detailedResValueSection, prop)
+
+      if (!dataType) throw AceError('query__invalidSortProp', `Please ensure your sort prop "${ prop }" is defined in your schema or is an alias for a prop defined in your schema`, { $o: detailedResValueSection.resValue.$o })
+
+      for (let i = 0; i < res.original[detailedResValueSection.resKey].length; i++) {
+        combined.push({
+          now: res.now[detailedResValueSection.resKey][i],
+          original: res.original[detailedResValueSection.resKey][i],
+        })
+      }
+
+      combined.sort((a, b) => {
+        return graphSort(a.now[sort.prop], b.now[sort.prop], collator, dataType, sort.how)
       })
+
+      res.now[detailedResValueSection.resKey] = combined.map((value) => value.now)
+      res.original[detailedResValueSection.resKey] = combined.map((value) => value.original)
     }
-
-    combined.sort((a, b) => {
-      let rSort = 0
-      let x = a.now[sort.prop]
-      let y = b.now[sort.prop]
-
-      if (x < y) rSort = (sort.how === enums.sortHow.dsc) ? 1 : -1
-      if (x > y) rSort = (sort.how === enums.sortHow.dsc) ? -1 : 1
-
-      return rSort
-    })
-
-    res.now[resKey] = combined.map((value) => value.now)
-    res.original[resKey] = combined.map((value) => value.original)
   }
+}
+
+
+/**
+ * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
+ * @param { string } prop 
+ * @returns { enums.dataTypes | 'graphKey' | undefined }
+ */
+function geNodeSortPropDataType (detailedResValueSection, prop) {
+  /** @type { enums.dataTypes | 'graphKey' | undefined } */
+  let dataType
+
+  if (prop === 'id') dataType = 'graphKey' 
+  else {
+    if (!detailedResValueSection.node || !Memory.txn.schema?.nodes?.[detailedResValueSection.node]) throw AceError('query__invalidSortNode', `Please ensure the node in your query "${ detailedResValueSection.node }" is defined in your schema`, { node: detailedResValueSection.node })
+
+    const schemaProp = Memory.txn.schema?.nodes[detailedResValueSection.node][prop]
+
+    if (schemaProp?.is === 'Prop') dataType = /** @type { enums.dataTypes } */(schemaProp.options.dataType)
+    else {
+      for (const resKey in detailedResValueSection.resValue) {
+        if (detailedResValueSection.resValue[resKey]?.alias === prop) {
+          const aliasSchemaProp = Memory.txn.schema.nodes[detailedResValueSection.node]?.[resKey]
+
+          if (aliasSchemaProp?.is === 'Prop') dataType = /** @type { enums.dataTypes } */(aliasSchemaProp.options.dataType)
+          break
+        }
+      }
+    }
+  }
+
+  return dataType
+}
+
+
+/**
+ * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
+ * @param { string } prop 
+ * @returns { enums.dataTypes | 'graphKey' | undefined }
+ */
+function getRelationshipSortPropDataType (detailedResValueSection, prop) {
+  /** @type { enums.dataTypes | 'graphKey' | undefined } */
+  let dataType
+
+  if (prop === '_id') dataType = 'graphKey'
+  else {
+    if (!detailedResValueSection.relationship || !Memory.txn.schema?.relationships?.[detailedResValueSection.relationship]) throw AceError('query__invalidSortRelationship', `Please ensure the relationship in your query "${ detailedResValueSection.relationship }" is defined in your schema`, { relationship: detailedResValueSection.relationship })
+
+    const schemaProp = Memory.txn.schema?.relationships?.[detailedResValueSection.relationship]?.props?.[prop]
+
+    if (schemaProp?.is === 'RelationshipProp') dataType = /** @type { enums.dataTypes } */(schemaProp.options.dataType)
+    else {
+      for (const resKey in detailedResValueSection.resValue) {
+        if (detailedResValueSection.resValue[resKey]?.alias === prop) {
+          const aliasSchemaProp = Memory.txn.schema.relationships[detailedResValueSection.relationship]?.props?.[resKey]
+
+          if (aliasSchemaProp?.is === 'RelationshipProp') dataType = /** @type { enums.dataTypes } */(aliasSchemaProp.options.dataType)
+          break
+        }
+      }
+    }
+  }
+
+  return dataType
 }
 
 

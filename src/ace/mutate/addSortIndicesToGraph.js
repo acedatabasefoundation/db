@@ -1,5 +1,7 @@
 import { td } from '#ace'
+import { graphSort } from '../graphSort.js'
 import { Memory } from '../../objects/Memory.js'
+import { Collator } from '../../objects/Collator.js'
 import { write, getOne, getMany } from '../../util/storage.js'
 import { getNodeIdsKey, getRelationship_IdsKey } from '../../util/variables.js'
 
@@ -17,21 +19,11 @@ export async function addSortIndicesToGraph () {
       const propName = entry[1].propName
       const dataType = entry[1].schemaProp.options.dataType
 
-      if (dataType !== 'hash') {
+      if (dataType !== 'hash' && dataType !== 'encrypt') {
+        const collator = Collator()
+
         allGraphItems.sort((a, b) => { // order ascending
-          if (typeof a.props[propName] === 'undefined' && typeof b.props[propName] === 'undefined') return 0 // both undefined => equal
-          else if (typeof a.props[propName] === 'undefined' && typeof b.props[propName] !== 'undefined') return 1 // a undefined => b comes first (undefined @ end)
-          else if (typeof a.props[propName] !== 'undefined' && typeof b.props[propName] === 'undefined') return -1 // b undefined => a comes first (undefined @ end)
-          else { // a and b defined
-            switch (dataType) {
-              case 'string':
-                return (a.props[propName]).localeCompare(b.props[propName])
-              case 'iso':
-              case 'number':
-              case 'boolean':
-                return Number(a.props[propName] > b.props[propName]) - Number(a.props[propName] < b.props[propName])
-            }
-          }
+          return graphSort(a.props[propName], b.props[propName], collator, dataType, 'asc')
         })
       }
 

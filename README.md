@@ -7,8 +7,8 @@ Create maintain and enhance, the Best database, for JavaScript Developers!
 
 ## 🧐 Why Ace?
 * A graph is a **natural** data storage technique, that connects nodes **(neurons)** with relationships **(synapses)** 🧠
-* Ace unites the following lovely features, in an optionally [sponsored](#sponsor-ace) or optionally free 🙌, open source graph db:
-    * **[Embeded](#embeded)** (no latency between application server and database)
+* Ace unites the following lovely features, in an optionally [sponsored](#sponsor-ace) or optionally free, open source graph db:
+    * **[Embeded](#embeded)** (no network latency between the application server and the database)
     * **[Memory Storage](#storage)** (query millions of nodes in less then 9ms 😳)
     * **[File Storage](#storage)** (append memory storage to files)
     * **[Transactions](#transactions)** (start, continue, cancel or complete txn's)
@@ -16,10 +16,10 @@ Create maintain and enhance, the Best database, for JavaScript Developers!
     * **[Schema](#schema)** (define data shape w/ JSON)
     * **[Migrations](#migrations)** (simple and powerful schema migrations within and between environments)
     * **[Backups](#backups)** (multiple locations and frequencies available)
-    * **[TypeScript and JSDoc](#typescript-and-jsdoc)** (based on schema to provide helpful editor intellisense)
+    * **[TypeScript and JSDoc](#typescript-and-jsdoc)** (provides helpful editor intellisense & is based on your schema)
     * **[CLI](#cli)** (geneate types, perform migrations and much more)
     * **[Data Types](#data-types)** (string, number, boolean, iso, hash, encrypt)
-    * **[ORM](#orm)** (unite the query language and the ORM with the function `ace()`, that allows multiple, interrelated and typesafe, queries and mutations)
+    * **[ORM](#orm)** (the query language and the ORM are bundled in the typesafe function, `ace()`)
 
 
 ## ☁️ Getting Stated
@@ -31,7 +31,7 @@ Create maintain and enhance, the Best database, for JavaScript Developers!
     * No migrations scripts are planned for any version between now and `v1.0.0`
 1. Create a Graph
     * [Create a WhatsApp Graph](#create-a-whatsapp-graph)
-    * [Create an Instagram Graph](#create-an-instagram-graph)
+    * [Create a YouTube Graph](#create-a-youtube-graph)
     * [Create a Stack Overflow Graph](#create-a-sessions-graph)
     * [Create a Sessions Graph](#create-a-sessions-graph)
     * [Create an eCommerce Graph](#create-an-ecommerce-graph)
