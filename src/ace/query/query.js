@@ -17,8 +17,13 @@ import { getRelationshipProp, getSortIndexKey, getUniqueIndexKey, getNodeIdsKey,
 export async function queryNode (res, publicJWKs, iReq, reqItem) {
   const { ids, detailedResValueSection, isUsingSortIndex } = await getInitialIds(reqItem)
 
-  if (ids.length) await addNodesToResponse(detailedResValueSection, res, ids, isUsingSortIndex, publicJWKs, iReq)
-  else {
+  if (ids.length) {
+    if (reqItem.how.resValue !== 'count') await addNodesToResponse(detailedResValueSection, res, ids, isUsingSortIndex, publicJWKs, iReq)
+    else {
+      res.now[detailedResValueSection.resKey] = ids.length
+      res.original[detailedResValueSection.resKey] = ids.length
+    }
+  } else {
     res.now[detailedResValueSection.resKey] = null
     res.original[detailedResValueSection.resKey] = null
   }
@@ -299,83 +304,88 @@ async function addRelationshipsToResponse (detailedResValueSection, res, _ids, i
  */
 async function addRelationshipPropsToResponse (id, relationship_Ids, schemaNodeProp, resValueKey, resValueItemValue, detailedResValueSection, resNowItem, resOriginalItem, jwks, iReq) {
   if (id && schemaNodeProp && relationship_Ids?.length) {
-    let findByIdFound = false
-    let findBy_IdFound = false
-    let findByUniqueFound = false
+    if (resValueItemValue === 'count') {
+      resNowItem[resValueKey] = relationship_Ids.length
+      resOriginalItem[resValueKey] = relationship_Ids.length
+    } else {
+      let findByIdFound = false
+      let findBy_IdFound = false
+      let findByUniqueFound = false
 
-    /** @type { (string | number)[] } */
-    let nodeIds = []
+      /** @type { (string | number)[] } */
+      let nodeIds = []
 
-    /** @type { string[] } */
-    const uniqueKeys = []
+      /** @type { string[] } */
+      const uniqueKeys = []
 
-    /** @type { td.AceGraphRelationshipProps[] } */
-    const graphRelationshipProps = []
+      /** @type { td.AceGraphRelationshipProps[] } */
+      const graphRelationshipProps = []
 
-    const relationshipDetailedResValueSection = getDetailedResValueSectionByParent(resValueItemValue, resValueKey, detailedResValueSection)  
+      const relationshipDetailedResValueSection = getDetailedResValueSectionByParent(resValueItemValue, resValueKey, detailedResValueSection)  
 
-    if (detailedResValueSection.resValue?.$o?.findByUnique) uniqueKeys.push(getUniqueIndexKey(relationshipDetailedResValueSection.relationship || '', detailedResValueSection.resValue?.$o.findByUnique.prop, detailedResValueSection.resValue?.$o.findByUnique.value))
-    else if (detailedResValueSection.resValue?.$o?.filterByUniques) {
-      for (const unique of detailedResValueSection.resValue?.$o.filterByUniques.uniques) {
-        uniqueKeys.push(getUniqueIndexKey(relationshipDetailedResValueSection.relationship || '', unique.prop, unique.value))
+      if (detailedResValueSection.resValue?.$o?.findByUnique) uniqueKeys.push(getUniqueIndexKey(relationshipDetailedResValueSection.relationship || '', detailedResValueSection.resValue?.$o.findByUnique.prop, detailedResValueSection.resValue?.$o.findByUnique.value))
+      else if (detailedResValueSection.resValue?.$o?.filterByUniques) {
+        for (const unique of detailedResValueSection.resValue?.$o.filterByUniques.uniques) {
+          uniqueKeys.push(getUniqueIndexKey(relationshipDetailedResValueSection.relationship || '', unique.prop, unique.value))
+        }
       }
-    }
 
-    /** @type { (string | number)[] } */
-    const uniqueIds = (uniqueKeys.length) ? await getMany(uniqueKeys) : []
+      /** @type { (string | number)[] } */
+      const uniqueIds = (uniqueKeys.length) ? await getMany(uniqueKeys) : []
 
-    /** @type { td.AceGraphRelationship[] } */
-    const allGraphRelationships = await getMany(relationship_Ids)
+      /** @type { td.AceGraphRelationship[] } */
+      const allGraphRelationships = await getMany(relationship_Ids)
 
-    switch (schemaNodeProp.is) {
-      case 'ForwardRelationshipProp':
-        for (const graphRelationship of allGraphRelationships) {
-          if (id === graphRelationship.props.a) {
-            const rForward = validateAndPushIds(relationshipDetailedResValueSection, graphRelationship.props.b, graphRelationshipProps, graphRelationship, graphRelationship.props._id, nodeIds, uniqueIds, findByIdFound, findByUniqueFound, findBy_IdFound)
-            if (rForward.findByIdFound) findByIdFound = true
-            if (rForward.findByUniqueFound) findByUniqueFound = true
-            if (rForward.findBy_IdFound) findBy_IdFound = true
+      switch (schemaNodeProp.is) {
+        case 'ForwardRelationshipProp':
+          for (const graphRelationship of allGraphRelationships) {
+            if (id === graphRelationship.props.a) {
+              const rForward = validateAndPushIds(relationshipDetailedResValueSection, graphRelationship.props.b, graphRelationshipProps, graphRelationship, graphRelationship.props._id, nodeIds, uniqueIds, findByIdFound, findByUniqueFound, findBy_IdFound)
+              if (rForward.findByIdFound) findByIdFound = true
+              if (rForward.findByUniqueFound) findByUniqueFound = true
+              if (rForward.findBy_IdFound) findBy_IdFound = true
+            }
           }
-        }
-        break
-      case 'ReverseRelationshipProp':
-        for (const graphRelationship of allGraphRelationships) {
-          if (id === graphRelationship.props.b) {
-            const rReverse = validateAndPushIds(relationshipDetailedResValueSection, graphRelationship.props.a, graphRelationshipProps, graphRelationship, graphRelationship.props._id, nodeIds, uniqueIds, findByIdFound, findByUniqueFound, findBy_IdFound)
-            if (rReverse.findByIdFound) findByIdFound = true
-            if (rReverse.findByUniqueFound) findByUniqueFound = true
-            if (rReverse.findBy_IdFound) findBy_IdFound = true
+          break
+        case 'ReverseRelationshipProp':
+          for (const graphRelationship of allGraphRelationships) {
+            if (id === graphRelationship.props.b) {
+              const rReverse = validateAndPushIds(relationshipDetailedResValueSection, graphRelationship.props.a, graphRelationshipProps, graphRelationship, graphRelationship.props._id, nodeIds, uniqueIds, findByIdFound, findByUniqueFound, findBy_IdFound)
+              if (rReverse.findByIdFound) findByIdFound = true
+              if (rReverse.findByUniqueFound) findByUniqueFound = true
+              if (rReverse.findBy_IdFound) findBy_IdFound = true
+            }
           }
-        }
-        break
-      case 'BidirectionalRelationshipProp':
-        for (const graphRelationship of allGraphRelationships) {
-          const rBi = validateAndPushIds(relationshipDetailedResValueSection, id === graphRelationship.props.a ? graphRelationship.props.b : graphRelationship.props.a, graphRelationshipProps, graphRelationship, graphRelationship.props._id, nodeIds, uniqueIds, findByIdFound, findByUniqueFound, findBy_IdFound)
-          if (rBi.findByIdFound) findByIdFound = true
-          if (rBi.findByUniqueFound) findByUniqueFound = true
-          if (rBi.findBy_IdFound) findBy_IdFound = true
-        }
-        break
+          break
+        case 'BidirectionalRelationshipProp':
+          for (const graphRelationship of allGraphRelationships) {
+            const rBi = validateAndPushIds(relationshipDetailedResValueSection, id === graphRelationship.props.a ? graphRelationship.props.b : graphRelationship.props.a, graphRelationshipProps, graphRelationship, graphRelationship.props._id, nodeIds, uniqueIds, findByIdFound, findByUniqueFound, findBy_IdFound)
+            if (rBi.findByIdFound) findByIdFound = true
+            if (rBi.findByUniqueFound) findByUniqueFound = true
+            if (rBi.findBy_IdFound) findBy_IdFound = true
+          }
+          break
+      }
+
+      let isValid = true
+
+      if (relationshipDetailedResValueSection.resValue?.$o?.findById) {
+        if (findByIdFound) nodeIds = [relationshipDetailedResValueSection.resValue?.$o.findById ]
+        else isValid = false
+      }
+
+      if (relationshipDetailedResValueSection.resValue?.$o?.findByUnique) {
+        if (findByUniqueFound) nodeIds = [ uniqueIds[0] ]
+        else isValid = false
+      }
+
+      if (relationshipDetailedResValueSection.resValue?.$o?.findBy_Id) {
+        if (findBy_IdFound) nodeIds = [relationshipDetailedResValueSection.resValue?.$o.findBy_Id ]
+        else isValid = false
+      }
+
+      if (isValid) await addNodesToResponse(relationshipDetailedResValueSection, { now: resNowItem, original: resOriginalItem }, nodeIds, false, jwks, iReq, graphRelationshipProps)
     }
-
-    let isValid = true
-
-    if (relationshipDetailedResValueSection.resValue?.$o?.findById) {
-      if (findByIdFound) nodeIds = [relationshipDetailedResValueSection.resValue?.$o.findById ]
-      else isValid = false
-    }
-
-    if (relationshipDetailedResValueSection.resValue?.$o?.findByUnique) {
-      if (findByUniqueFound) nodeIds = [ uniqueIds[0] ]
-      else isValid = false
-    }
-
-    if (relationshipDetailedResValueSection.resValue?.$o?.findBy_Id) {
-      if (findBy_IdFound) nodeIds = [relationshipDetailedResValueSection.resValue?.$o.findBy_Id ]
-      else isValid = false
-    }
-
-    if (isValid) await addNodesToResponse(relationshipDetailedResValueSection, { now: resNowItem, original: resOriginalItem }, nodeIds, false, jwks, iReq, graphRelationshipProps)
   }
 }
 

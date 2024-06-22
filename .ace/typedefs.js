@@ -473,7 +473,7 @@ import * as enums from './enums.js'
  * @typedef { object } AceQueryRequestItemNodeHow
  * @property { string } node
  * @property { string } resKey
- * @property { AceQueryStars | AceQueryRequestItemNodeResValue } resValue
+ * @property { AceQueryCount | AceQueryStars | AceQueryRequestItemNodeResValue } resValue
  *
  * @typedef { object } AceQueryRequestItemRelationship
  * @property { typeof enums.aceDo.RelationshipQuery } do
@@ -481,13 +481,14 @@ import * as enums from './enums.js'
  * @typedef { object } AceQueryRequestItemRelationshipHow
  * @property { string } relationship
  * @property { string } resKey
- * @property { AceQueryStars | AceQueryRequestItemRelationshipResValue } resValue
+ * @property { AceQueryCount | AceQueryStars | AceQueryRequestItemRelationshipResValue } resValue
  *
  * @typedef { AceQueryRequestItemNode | AceQueryRequestItemRelationship | AceQueryRequestItemBackupGet | AceQueryRequestItemSchemaGet } AceQueryRequestItem
  *
  * @typedef { boolean | { alias: string } } AceQueryResValuePropValue
  * 
  * @typedef { '*' | '**' | '***' } AceQueryStars
+ * @typedef { 'count' } AceQueryCount
  * 
  * @typedef { Set<string> | null } AceQueryResHide
  * 

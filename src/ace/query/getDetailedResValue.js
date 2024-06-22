@@ -23,7 +23,9 @@ export function getDetailedResValueSectionById (reqItem) {
     item.relationship = reqItem.how.relationship
   }
 
-  const resValue = updateWhereIds(fill(reqItem.how.resValue, item))
+  const resValue = reqItem.how.resValue === 'count' ?
+    reqItem.how.resValue :
+    updateWhereIds(fill(reqItem.how.resValue, item))
 
   /** @type { td.AceQueryRequestItemDetailedResValueSection } */
   const detailedResValueSection =  {

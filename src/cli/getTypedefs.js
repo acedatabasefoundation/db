@@ -439,6 +439,7 @@ ${ typedefs.query.RelationshipType }
  * @typedef { boolean | { alias: string } } AceQueryResValuePropValue
  * 
  * @typedef { '*' | '**' | '***' } AceQueryStars
+ * @typedef { 'count' } AceQueryCount
  * 
  * @typedef { Set<string> | null } AceQueryResHide
  * 
@@ -833,7 +834,7 @@ function getSchemaTypedefs (schema) {
 
                   queryProps += rSchemaProp.is === 'Prop' ?
                     `\n * @property { AceQueryResValuePropValue } [ ${ relationshipNodePropName } ] - ${ getQueryPropDescription({ propName: relationshipNodePropName, nodeName: schemaProp.options.node, schemaPropDescription: rSchemaProp.options.description }) }` :
-                    `\n * @property { AceQueryStars | ${ getNodePropResValue(schemaProp.options.node, relationshipNodePropName) } } [ ${ relationshipNodePropName} ] - ${ getRelationshipQueryPropDescription(schemaProp.options.node, relationshipNodePropName, rSchemaProp) }`
+                    `\n * @property { AceQueryCount | AceQueryStars | ${ getNodePropResValue(schemaProp.options.node, relationshipNodePropName) } } [ ${ relationshipNodePropName} ] - ${ getRelationshipQueryPropDescription(schemaProp.options.node, relationshipNodePropName, rSchemaProp) }`
                 }
               }
 
@@ -847,7 +848,7 @@ function getSchemaTypedefs (schema) {
 
               const relationshipPropName = getNodePropResValue(schemaNodeName, schemaNodePropName)
 
-              typedefs.query.NodeProps += `\n * @property { AceQueryStars | ${ relationshipPropName } } [ ${ schemaNodePropName } ] - ${ getRelationshipQueryPropDescription(schemaNodeName, schemaNodePropName, schemaProp) }`
+              typedefs.query.NodeProps += `\n * @property { AceQueryCount | AceQueryStars | ${ relationshipPropName } } [ ${ schemaNodePropName } ] - ${ getRelationshipQueryPropDescription(schemaNodeName, schemaNodePropName, schemaProp) }`
 
               if (!typedefs.query.RelationshipPropTypes) typedefs.query.RelationshipPropTypes += '\n\n\n/** Query: Node relationship props (from schema)\n *'
 
@@ -871,7 +872,7 @@ function getSchemaTypedefs (schema) {
  * @typedef { object } ${ schemaNodeName }QueryRequestItemNodeHow
  * @property { '${ schemaNodeName }' } node
  * @property { string } resKey
- * @property { AceQueryStars | ${ schemaNodeName }QueryRequestItemNodeResValue } resValue
+ * @property { AceQueryCount | AceQueryStars | ${ schemaNodeName }QueryRequestItemNodeResValue } resValue
  * @typedef { object } ${ schemaNodeName }QueryRequestItemNodeResValue
  * @property { AceQueryResValuePropValue } [ id ]
  * @property { AceQueryRequestItemNodeOptions } [ $o ]${ typedefs.query.NodeProps }
@@ -952,16 +953,16 @@ function getSchemaTypedefs (schema) {
           const description = `Set to a ${ dataType } value if you would love to update this relationship property, **${ schemaRelationshipPropName }**, in the graph`
 
           typedefs.Relationships += `\n * @property { ${ dataType } } [ ${ schemaRelationshipPropName } ] ${ schemaProp.options.description || '' }`
-          typedefs.mutate.SchemaDeleteRelationshipPropsType += `{ relationship: '${ schemaRelationshipName }', prop: '${ schemaRelationshipPropName }' } | `
           typedefs.mutate.RelationshipUpdateTypes += `\n * @property { ${ dataType } } ${ '[ ' + schemaRelationshipPropName + ' ]' } - ${ description }`
           typedefs.mutate.RelationshipUpsertTypes += `\n * @property { ${ dataType } } ${ '[ ' + schemaRelationshipPropName + ' ]' } - ${ description }`
+          typedefs.mutate.SchemaDeleteRelationshipPropsType += `{ relationship: '${ schemaRelationshipName }', prop: '${ schemaRelationshipPropName }' } | `
           typedefs.mutate.SchemaUpdatePropDefaultType += `{ nodeOrRelationship: '${ schemaRelationshipName }', prop: '${ schemaRelationshipPropName }', default?: any } | `
-          typedefs.mutate.SchemaUpdatePropSortIndexType += `{ nodeOrRelationship: '${ schemaRelationshipName }', prop: '${ schemaRelationshipPropName }', sortIndex: boolean } | `
           typedefs.mutate.SchemaRenameRelationshipPropType += `{ relationship: '${ schemaRelationshipName }', nowName: '${ schemaRelationshipPropName }', newName: string } | `
+          typedefs.mutate.SchemaUpdatePropSortIndexType += `{ nodeOrRelationship: '${ schemaRelationshipName }', prop: '${ schemaRelationshipPropName }', sortIndex: boolean } | `
           typedefs.mutate.SchemaUpdatePropUniqueIndexType += `{ nodeOrRelationship: '${ schemaRelationshipName }', prop: '${ schemaRelationshipPropName }', uniqueIndex: boolean } | `
           typedefs.mutate.SchemaUpdatePropMustBeDefinedType += `{ nodeOrRelationship: '${ schemaRelationshipName }', prop: '${ schemaRelationshipPropName }', mustBeDefined: boolean } | `
-          typedefs.query.RelationshipProps += `\n * @property { AceQueryResValuePropValue } [ ${ schemaRelationshipPropName } ] - ${ getQueryPropDescription({ propName: schemaRelationshipPropName, relationshipName: schemaRelationshipName, schemaPropDescription: schemaProp.options.description }) }`
           typedefs.mutate.RelationshipInsertTypes += `\n * @property { ${ dataType } } ${ schemaProp.options.mustBeDefined && typeof schemaProp.options.default === 'undefined' ? schemaRelationshipPropName : '[ ' + schemaRelationshipPropName + ' ]' } - ${ description }`
+          typedefs.query.RelationshipProps += `\n * @property { AceQueryResValuePropValue } [ ${ schemaRelationshipPropName } ] - ${ getQueryPropDescription({ propName: schemaRelationshipPropName, relationshipName: schemaRelationshipName, schemaPropDescription: schemaProp.options.description }) }`
         }
       }
 
@@ -969,7 +970,7 @@ function getSchemaTypedefs (schema) {
 
       if (relationshipMapValue) {
         for (const { schemaNodeName, schemaNodePropName, schemaProp } of relationshipMapValue) {
-          typedefs.query.RelationshipProps += `\n * @property { AceQueryStars | ${ getNodePropResValue(schemaNodeName, schemaNodePropName) } } [ ${ schemaNodePropName } ] - ${ getRelationshipQueryPropDescription(schemaNodeName, schemaNodePropName, schemaProp) }`
+          typedefs.query.RelationshipProps += `\n * @property { AceQueryCount | AceQueryStars | ${ getNodePropResValue(schemaNodeName, schemaNodePropName) } } [ ${ schemaNodePropName } ] - ${ getRelationshipQueryPropDescription(schemaNodeName, schemaNodePropName, schemaProp) }`
         }
       }
 
@@ -982,7 +983,7 @@ function getSchemaTypedefs (schema) {
  * @typedef { object } ${ schemaRelationshipName }QueryRequestItemRelationshipHow
  * @property { '${ schemaRelationshipName }' } relationship
  * @property { string } resKey
- * @property { AceQueryStars | ${ schemaRelationshipName }QueryRequestItemRelationshipResValue } resValue
+ * @property { AceQueryCount | AceQueryStars | ${ schemaRelationshipName }QueryRequestItemRelationshipResValue } resValue
  * @typedef { object } ${ schemaRelationshipName }QueryRequestItemRelationshipResValue
  * @property { AceQueryResValuePropValue } [ _id ]
  * @property { AceQueryRequestItemRelationshipOptions } [ $o ]${ typedefs.query.RelationshipProps }
@@ -1044,7 +1045,7 @@ function getSchemaTypedefs (schema) {
  * @typedef { object } AceQueryRequestItemNodeHow
  * @property { string } node
  * @property { string } resKey
- * @property { AceQueryStars | AceQueryRequestItemNodeResValue } resValue`
+ * @property { AceQueryCount | AceQueryStars | AceQueryRequestItemNodeResValue } resValue`
   })
 
 
@@ -1058,7 +1059,7 @@ function getSchemaTypedefs (schema) {
  * @typedef { object } AceQueryRequestItemRelationshipHow
  * @property { string } relationship
  * @property { string } resKey
- * @property { AceQueryStars | AceQueryRequestItemRelationshipResValue } resValue`
+ * @property { AceQueryCount | AceQueryStars | AceQueryRequestItemRelationshipResValue } resValue`
   })
 
 
