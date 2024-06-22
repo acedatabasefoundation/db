@@ -32,7 +32,7 @@ import * as enums from './enums.js'
  * @property { boolean } [ schemaPushRequestedThenSchemaUpdated ]
  * @property { AceSchemaDetails } [ schemaNowDetails ]
  * @property { AceSchemaDetails } [ schemaOriginalDetails ]
- * @property { number } [ lastId ]
+ * @property { number } [ lastGraphId ]
  * @property { boolean } [ hasUpdates ]
  * @property { string } [ emptyTimestamp ]
  * @property { Map<string | number, number> } enumGraphIdsMap

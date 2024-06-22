@@ -33,7 +33,7 @@ export async function doneReqGateway ({ res, error, resolve, reject, options }) 
   if (reject || Memory.txn.step === 'lastReq' || res?.now?.$ace?.txnCancelled) { // IF last request in txn
     if (Memory.txn.timeoutId) clearTimeout(Memory.txn.timeoutId)
 
-    doneReqGatewayReset()
+    await doneReqGatewayReset()
 
     if (Memory.queue.length) { // if more txn's are in the queue => start the next one
       const next = Memory.queue.shift()

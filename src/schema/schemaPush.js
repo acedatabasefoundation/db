@@ -1,13 +1,14 @@
 import { td } from '#ace'
+import { setSchema } from './setSchema.js'
 import { readFile } from 'node:fs/promises'
 import { Memory } from '../objects/Memory.js'
+import { doesPathExist } from '../util/file.js'
 import { AceError } from '../objects/AceError.js'
 import { setSchemaFlag } from './setSchemaFlag.js'
 import { schemaRenameNode } from './schemaRenameNode.js'
 import { schemaDeleteNodes } from './schemaDeleteNodes.js'
 import { schemaRenameNodeProp } from './schemaRenameNodeProp.js'
 import { schemaDeleteNodeProps } from './schemaDeleteNodeProps.js'
-import { doesPathExist, getPaths, initPaths } from '../util/file.js'
 import { schemaUpdateNodePropHas } from './schemaUpdateNodePropHas.js'
 import { schemaUpdatePropDefault } from './schemaUpdatePropDefault.js'
 import { schemaRenameRelationship } from './schemaRenameRelationship.js'
@@ -30,10 +31,12 @@ export async function schemaPush (options, reqItem) {
   if (!Memory.txn.env) throw AceError('schemaPush__missingEnv', 'Please ensure Memory.txn.env is a truthy when calling schemaPush()', {})
   if (typeof reqItem.how !== 'number' || reqItem.how < 1) throw AceError('schemaPush__invalidVersion', 'Please ensure that when pushing a schema, a "version" is provided as a number greater then 0 to ace() @ options.req.how. Example options: { req: { how: 2 } } ', { how: reqItem.how })
 
-  const paths = getPaths(options.dir, [ 'dir', 'schemas', 'schemaDetails' ])
-  await initPaths(paths, [ 'dir', 'schemas' ])
+  // when doing a schema push, ensure the schema is fresh
+  Memory.txn.schemaNowDetails = undefined
+  Memory.txn.schemaOriginalDetails = undefined
+  const paths = await setSchema(options)
 
-  let nowId = Memory.txn.schemaNowDetails?.[ Memory.txn.env ]?.nowId || 0
+  let nowId = /** @type { td.AceSchemaDetail } */(/** @type { * } */(Memory.txn.schemaNowDetails?.[ Memory.txn.env ]))?.nowId || 0
 
   if (nowId === 0) await pushFromZero(paths, reqItem) 
   else if (nowId !== reqItem.how) await pushNotFromZero(paths, nowId, reqItem.how)

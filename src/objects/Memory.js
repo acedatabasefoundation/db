@@ -19,14 +19,14 @@ export async function doneReqGatewayReset () { // Preserve some values from one 
   Memory.txn.env = undefined
   Memory.txn.timeoutId = undefined
   Memory.txn.step = 'preEnter'
-  Memory.txn.schema = null
-  Memory.txn.schemaDataStructures = SchemaDataStructures(null)
+  // preserve Memory.txn.schema
+  // preserve Memory.txn.schemaDataStructures
   Memory.txn.schemaUpdated = undefined
   Memory.txn.schemaPushRequested = undefined
   Memory.txn.schemaPushRequestedThenSchemaUpdated = undefined
-  Memory.txn.schemaNowDetails = undefined
-  Memory.txn.schemaOriginalDetails = undefined
-  Memory.txn.lastId = undefined
+  // preserve Memory.txn.schemaNowDetails
+  // preserve Memory.txn.schemaOriginalDetails
+  // preserve Memory.txn.lastGraphId
   Memory.txn.hasUpdates = undefined
   Memory.txn.emptyTimestamp = undefined
   Memory.txn.enumGraphIdsMap.clear()
@@ -69,7 +69,7 @@ export function onEmpty() { // Order is based on typedefs.js
   }
 
   // preserve Memory.txn.schemaOriginalDetails
-  Memory.txn.lastId = 0
+  Memory.txn.lastGraphId = 0
   Memory.txn.hasUpdates = undefined
   Memory.txn.emptyTimestamp = getNow() // will be the name of the folder in trash
   Memory.txn.enumGraphIdsMap.clear()

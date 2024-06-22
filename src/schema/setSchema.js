@@ -9,13 +9,14 @@ import { SchemaDataStructures } from '../objects/SchemaDataStructures.js'
 
 /**
  * @param { td.AceFnOptions } options 
- * @returns { Promise<void> }
+ * @returns { Promise<td.AceFilePaths> }
  */
 export async function setSchema (options) {
   if (!Memory.txn.env) throw AceError('missingEnv', 'Please ensure Memory.txn.env is a truthy when calling setSchema()', {})
 
   const paths = getPaths(options.dir, ['dir', 'schemas', 'schemaDetails' ])
   await initPaths(paths, [ 'dir', 'schemas' ])
+
 
   if (!Memory.txn.schemaOriginalDetails || !Memory.txn.schemaNowDetails) { // if no details => bind details from file
     const str = await readFile(paths.schemaDetails, { encoding: 'utf-8', flag: 'a+' })
@@ -41,4 +42,6 @@ export async function setSchema (options) {
       Memory.txn.schemaDataStructures = SchemaDataStructures(Memory.txn.schema)
     }
   }
+
+  return paths
 }
