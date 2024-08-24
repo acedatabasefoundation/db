@@ -122,13 +122,14 @@ import * as enums from './enums.js'
  * @typedef { { [prop: string]: any } & { $ace: AceFn$Default & { txnId: string, txnStarted: true } } } AceFnTxnStartResponse
  * @typedef { { [prop: string]: any } & { $ace: AceFn$Default & { txnId: string, txnCancelled: true } } } AceFnTxnCancelResponse
  * @typedef { { [prop: string]: any } & { $ace: AceFn$Default & { txnId: string, txnCompleted: true } } } AceFnTxnCompleteResponse
- * @typedef { { [prop: string]: any } & { $ace: AceFn$Default & { txnId: string } } } AceFnTxnContinueResponse
- * @typedef { { [prop: string]: any } & { $ace?: AceFn$Default } } AceFnNoTxnResponse
+ * @typedef { { [prop: string]: any } & { $ace: AceFn$Default & { txnId: string, txnCompleted?: never } } } AceFnTxnContinueResponse
+ * @typedef { { [prop: string]: any } & { $ace: AceFn$Default & { txnId?: never, txnCompleted?: never } } } AceFnNoTxnResponse
+ * @typedef { AceFnTxnStartResponse | AceFnTxnCancelResponse | AceFnTxnCompleteResponse | AceFnTxnContinueResponse | AceFnNoTxnResponse } AceFn$
  *
  * @typedef { AceQueryRequestItem | AceMutateRequestItem } AceFnRequestItem
  * 
  * @typedef { AceFnRequestItem | (AceFnRequestItem)[] } AceFnRequest
- * @typedef { { [prop: string]: any, $ace?: AceFn$Default } } AceFnResponse
+ * @typedef { { [prop: string]: any, $ace?: AceFn$ } } AceFnResponse
  * @typedef { { now: AceFnResponse, original: { [k: string]: any } } } AceFnFullResponse
  * @typedef { { success: true } } AceFnEmptyGraphResponse
  *
