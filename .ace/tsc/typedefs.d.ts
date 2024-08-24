@@ -60,19 +60,6 @@ export type AceGraphIndexSearchRes = null | {
     match?: never;
 };
 /**
- * AceGraph
- */
-export type AceGraphDetail = {
-    lastId: number;
-    graphs: string[];
-};
-/**
- * AceGraph
- */
-export type AceGraphDetails = {
-    [env: string]: AceGraphDetail;
-};
-/**
  * AceMemory
  */
 export type AceMemory = {
@@ -126,8 +113,6 @@ export type AceTxn = {
         propName: string;
         newIds: (string | number)[];
     }>;
-    graphNowDetails?: AceGraphDetails | undefined;
-    graphOriginalDetails?: AceGraphDetails | undefined;
     paths?: AceFilePaths | undefined;
 };
 /**
@@ -321,7 +306,7 @@ export type AceFnRequest = AceFnRequestItem | (AceFnRequestItem)[];
  */
 export type AceFnResponse = {
     [prop: string]: any;
-    $ace?: AceFn$;
+    $ace?: AceFn$Default;
 };
 /**
  * AceFn
@@ -368,25 +353,25 @@ export type AceFnIVs = {
     [name: string]: string;
 };
 /**
- * AceFn
- */
-export type AceFn$ = {
-    txnId?: string;
-    txnStarted?: boolean;
-    txnCompleted?: boolean;
-    txnCancelled?: boolean;
-    enumIds?: {
-        [id: string]: number;
-    };
-    deletedKeys?: (string | number)[];
-};
-/**
  * - If updating we store the orignal items here, based on the id (nodes) or id (relationships)
  */
 export type AceFnUpdateRequestItems = {
     nodes: any;
     relationships: any;
 };
+/**
+ * AceFn
+ */
+export type AceFnDoneReqGatewayParams = {
+    res?: AceFnFullResponse;
+    error?: any;
+    resolve?: (res: AceFnResponse) => void;
+    reject?: AcePromiseReject;
+};
+/**
+ * AceFn
+ */
+export type AceFnDoneReqGatewayResponse = Promise<void>;
 /**
  * AceSecure
  */

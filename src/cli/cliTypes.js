@@ -34,7 +34,7 @@ export async function cliTypes () {
   ])
 
   stdout.write('✨ enums ready!\n✨ typedefs ready!\n')
-  await util.promisify(exec)(`tsc -p ${files.tsConfig}`) // write tsc folder AND write .ts type files within folder
+  await util.promisify(exec)(`npx tsc -p ${ files.tsConfig }`) // write tsc folder AND write .ts type files within folder
 
   await Promise.all([
     writeFile(files.jsIndex, getJsIndex()), // write index.js

@@ -11,9 +11,6 @@ import * as enums from './enums.js';
  * @typedef { AceGraphNode | AceGraphRelationship | AceGraphIndex | AceGraphLastKey | AceGraphDelete } AceGraphItem
  *
  * @typedef { null | { match: number, start?: never } | { start: number, match?: never } } AceGraphIndexSearchRes
- *
- * @typedef { { lastId: number, graphs: string[] } } AceGraphDetail
- * @typedef { { [env: string]: AceGraphDetail } } AceGraphDetails
  */
 /** AceMemory
  *
@@ -50,8 +47,6 @@ import * as enums from './enums.js';
  * @property { Map<string, number> } enumGraphIds
  * @property { AceGraphItem[] } writeArray
  * @property { Map<string, { schemaProp: AceSchemaProp | AceSchemaRelationshipProp, nodeOrRelationshipName: string, propName: string, newIds: (string | number)[] }> } sortIndexMap - If we add a node and prop and that node+prop has a sort index, put the newly created nodes in here
- * @property { AceGraphDetails } [ graphNowDetails ]
- * @property { AceGraphDetails } [ graphOriginalDetails ]
  * @property { AceFilePaths } [ paths ]
  *
  * @typedef { object } AceTxnSchemaDataStructures
@@ -121,7 +116,7 @@ import * as enums from './enums.js';
  * @typedef { AceQueryRequestItem | AceMutateRequestItem } AceFnRequestItem
  *
  * @typedef { AceFnRequestItem | (AceFnRequestItem)[] } AceFnRequest
- * @typedef { { [prop: string]: any, $ace?: AceFn$ } } AceFnResponse
+ * @typedef { { [prop: string]: any, $ace?: AceFn$Default } } AceFnResponse
  * @typedef { { now: AceFnResponse, original: { [k: string]: any } } } AceFnFullResponse
  * @typedef { { success: true } } AceFnEmptyGraphResponse
  *
@@ -131,9 +126,10 @@ import * as enums from './enums.js';
  *
  * @typedef { { [name: string]: string } } AceFnIVs
  *
- * @typedef { { txnId?: string, txnStarted?: boolean, txnCompleted?: boolean, txnCancelled?: boolean, enumIds?: { [id: string]: number }, deletedKeys?: (string | number)[] } } AceFn$
- *
  * @typedef { { nodes: any, relationships: any } } AceFnUpdateRequestItems - If updating we store the orignal items here, based on the id (nodes) or id (relationships)
+ *
+ * @typedef { { res?: AceFnFullResponse, error?: any, resolve?: (res: AceFnResponse) => void, reject?: AcePromiseReject } } AceFnDoneReqGatewayParams
+ * @typedef { Promise<void> } AceFnDoneReqGatewayResponse
  */
 /** AceSecure
  *

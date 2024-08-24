@@ -139,7 +139,7 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceGraph
  * @typedef { AceQueryRequestItem | AceMutateRequestItem } AceFnRequestItem
  * 
  * @typedef { AceFnRequestItem | (AceFnRequestItem)[] } AceFnRequest
- * @typedef { { [prop: string]: any, $ace?: AceFn$ } } AceFnResponse
+ * @typedef { { [prop: string]: any, $ace?: AceFn$Default } } AceFnResponse
  * @typedef { { now: AceFnResponse, original: { [k: string]: any } } } AceFnFullResponse
  * @typedef { { success: true } } AceFnEmptyGraphResponse
  *

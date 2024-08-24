@@ -35,6 +35,7 @@
   "scripts": {
     "build": "bash ./build.sh",
     "prepare": "bash ./build.sh",
-    "npmCloud": "pnpm build && pnpm publish --access public ."
+    "npmCloud": "pnpm build && pnpm publish --access public .",
+    "types": "node src/cli/cli.js types"
   }
 }
