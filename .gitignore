@@ -1,4 +1,8 @@
-node_modules
-apps.toml
-dist
-tsc
+/node_modules
+/apps.toml
+/dist
+/tsc
+/.ace/tsc/enums.d.ts
+/.ace/tsc/enums.js.map
+/.ace/tsc/typedefs.d.ts
+/.ace/tsc/typedefs.js.map
