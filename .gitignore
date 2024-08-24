@@ -1,7 +1,8 @@
 /node_modules
 /apps.toml
 /dist
-/tsc
+/tsc/src/*
+!/tsc/src/index.d.ts
 /.ace/tsc/enums.d.ts
 /.ace/tsc/enums.js.map
 /.ace/tsc/typedefs.d.ts
