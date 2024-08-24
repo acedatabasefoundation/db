@@ -34,6 +34,7 @@
   },
   "scripts": {
     "build": "bash ./build.sh",
+    "prepare": "bash ./build.sh",
     "npmCloud": "pnpm build && pnpm publish --access public ."
   }
 }
