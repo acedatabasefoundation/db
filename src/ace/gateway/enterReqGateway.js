@@ -37,10 +37,10 @@ export async function enterReqGateway (resolve, reject, options, doneReqGateway)
   setTxnEnv(options)
   setTxnPaths(options)
 
-  if (options.txn?.do === 'Cancel') await cancelTxn(res, resolve)
+  if (options.txn?.do === 'Cancel') await cancelTxn(res, resolve, doneReqGateway)
   else if (!options.req) throw new AceError('enterReqGateway__falsyReq', 'Please ensure options.req is not falsy. The only time options.req may be falsy is if options.txn.do is "Cancel".', { options })
   else {
-    setTxnTimer(reject, options)
+    setTxnTimer(reject, options, doneReqGateway)
     await initMemoryAol()
     setTxnStep(options)
 

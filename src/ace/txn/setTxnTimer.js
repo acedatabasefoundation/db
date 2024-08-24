@@ -1,14 +1,14 @@
 import { td } from '#ace'
 import { Memory } from '../../objects/Memory.js'
-import { doneReqGateway } from '../gateway/doneReqGateway.js'
 
 
 /**
  * @param { td.AcePromiseReject } reject 
  * @param { td.AceFnOptions } options 
+ * @param { (params: td.AceFnDoneReqGatewayParams) => td.AceFnDoneReqGatewayResponse } doneReqGateway 
  * @returns { void }
  */
-export function setTxnTimer (reject, options) {
+export function setTxnTimer (reject, options, doneReqGateway) {
   if (Memory.txn.id && !Memory.txn.timeoutId && options.txn?.do === 'Start') {
     const seconds = (options.txn.maxSeconds || 9)
 
