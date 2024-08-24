@@ -13,7 +13,6 @@ import { setTxnPaths } from '../txn/setTxnPaths.js'
 import { setHasUpdates } from '../setHasUpdates.js'
 import { setTxnTimer } from '../txn/setTxnTimer.js'
 import { AceError } from '../../objects/AceError.js'
-import { doneReqGateway } from './doneReqGateway.js'
 import { emptyFile } from '../../empty/emptyFile.js'
 import { setSchema } from '../../schema/setSchema.js'
 import { appendToAol } from '../../aol/appendToAol.js'
@@ -27,9 +26,10 @@ import { validateMustBeDefined } from '../mutate/validateMustBeDefined.js'
  * @param { (res: td.AceFnResponse) => void } resolve 
  * @param { (res: td.AceFnResponse) => void } reject 
  * @param { td.AceFnOptions } options 
+ * @param { td.AceFnDoneReqGateway } doneReqGateway 
  * @returns { Promise<void> }
  */
-export async function enterReqGateway (resolve, reject, options) {
+export async function enterReqGateway (resolve, reject, options, doneReqGateway) {
   /** @type { td.AceFnFullResponse } - Nodes with all properties will be in original, nodes with requested properties from `query.x` will be in now. */
   const res = { now: {}, original: {} }
 
@@ -37,7 +37,7 @@ export async function enterReqGateway (resolve, reject, options) {
   setTxnEnv(options)
   setTxnPaths(options)
 
-  if (options.txn?.do === 'Cancel') await cancelTxn(res, resolve, options)
+  if (options.txn?.do === 'Cancel') await cancelTxn(res, resolve)
   else if (!options.req) throw new AceError('enterReqGateway__falsyReq', 'Please ensure options.req is not falsy. The only time options.req may be falsy is if options.txn.do is "Cancel".', { options })
   else {
     setTxnTimer(reject, options)
@@ -72,6 +72,6 @@ export async function enterReqGateway (resolve, reject, options) {
 
     }
 
-    await doneReqGateway({ res, resolve, options })
+    await doneReqGateway({ res, resolve })
   }
 }

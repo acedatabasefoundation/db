@@ -14,7 +14,7 @@ export function setTxnTimer (reject, options) {
 
     Memory.txn.timeoutId = setTimeout(async () => {
       try {
-        await doneReqGateway({ options, reject, error: `Please ensure each transaction takes a maximum of ${ seconds } seconds to resolve, this limit was reached for the transaction id: ${ Memory.txn.id }` })
+        await doneReqGateway({ reject, error: `Please ensure each transaction takes a maximum of ${ seconds } seconds to resolve, this limit was reached for the transaction id: ${ Memory.txn.id }` })
       } catch (e) {
         console.log('error', e)
       }

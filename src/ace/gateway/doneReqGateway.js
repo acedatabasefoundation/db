@@ -1,19 +1,16 @@
 import { td } from '#ace'
 import { write } from '../../util/storage.js'
+import { lastIdKey } from '../../util/variables.js'
 import { approachReqGateway } from './approachReqGateway.js'
 import { revertEmptyFile } from '../../empty/revertEmptyFile.js'
 import { revertAppendToAol } from '../../aol/revertAppendToAol.js'
 import { revertWriteSchema } from '../../schema/revertWriteSchema.js'
 import { Memory, doneReqGatewayReset } from '../../objects/Memory.js'
-import { lastIdKey, maxAolByteAmount } from '../../util/variables.js'
 import { binarySearchAdd, binarySearchSub } from '../../util/binarySearch.js'
 
 
-/**
- * @param { { res?: td.AceFnFullResponse, error?: any, resolve?: (res: td.AceFnResponse) => void, reject?: td.AcePromiseReject, options: td.AceFnOptions } } item
- * @returns { Promise<void> }
- */
-export async function doneReqGateway ({ res, error, resolve, reject, options }) {
+/** @type { td.AceFnDoneReqGateway } */
+export async function doneReqGateway ({ res, error, resolve, reject }) {
   if (reject || res?.now?.$ace?.txnCancelled) {
     await revertWriteSchema()
     await revertAppendToAol()

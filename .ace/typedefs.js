@@ -146,6 +146,8 @@ import * as enums from './enums.js'
  * @typedef { { txnId?: string, txnStarted?: boolean, txnCompleted?: boolean, txnCancelled?: boolean, enumIds?: { [id: string]: number }, deletedKeys?: (string | number)[] } } AceFn$
  *
  * @typedef { { nodes: any, relationships: any } } AceFnUpdateRequestItems - If updating we store the orignal items here, based on the id (nodes) or id (relationships)
+ *
+ * @typedef { (r: { res?: AceFnFullResponse, error?: any, resolve?: (res: AceFnResponse) => void, reject?: AcePromiseReject }) => Promise<void> } AceFnDoneReqGateway
  */
 
 
