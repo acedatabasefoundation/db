@@ -107,17 +107,16 @@ import * as enums from './enums.js';
  *
  * @typedef { { enumIds?: { [id: string]: number }, deletedKeys?: (string | number)[] } } AceFn$Default
  *
- * @typedef { { [prop: string]: any } & { $ace: AceFn$Default & { txnId: string, txnStarted: true } } } AceFnTxnStartResponse
- * @typedef { { [prop: string]: any } & { $ace: AceFn$Default & { txnId: string, txnCancelled: true } } } AceFnTxnCancelResponse
- * @typedef { { [prop: string]: any } & { $ace: AceFn$Default & { txnId: string, txnCompleted: true } } } AceFnTxnCompleteResponse
- * @typedef { { [prop: string]: any } & { $ace: AceFn$Default & { txnId: string, txnCompleted?: never } } } AceFnTxnContinueResponse
- * @typedef { { [prop: string]: any } & { $ace: AceFn$Default & { txnId?: never, txnCompleted?: never } } } AceFnNoTxnResponse
- * @typedef { AceFnTxnStartResponse | AceFnTxnCancelResponse | AceFnTxnCompleteResponse | AceFnTxnContinueResponse | AceFnNoTxnResponse } AceFn$
+ * @typedef { { [prop: string]: any } & { $ace: AceFn$Default & { txnId: string, txnStarted: true,   txnCancelled?: never, txnCompleted?: never } } } AceFnTxnStartResponse
+ * @typedef { { [prop: string]: any } & { $ace: AceFn$Default & { txnId: string, txnStarted?: never, txnCancelled: true,   txnCompleted?: never } } } AceFnTxnCancelResponse
+ * @typedef { { [prop: string]: any } & { $ace: AceFn$Default & { txnId: string, txnStarted?: never, txnCancelled?: never, txnCompleted: true } } } AceFnTxnCompleteResponse
+ * @typedef { { [prop: string]: any } & { $ace: AceFn$Default & { txnId: string, txnStarted?: never, txnCancelled?: never, txnCompleted?: never } } } AceFnTxnContinueResponse
+ * @typedef { { [prop: string]: any } & { $ace: AceFn$Default & { txnId?: never, txnStarted?: never, txnCancelled?: never, txnCompleted?: never } } } AceFnNoTxnResponse
  *
  * @typedef { AceQueryRequestItem | AceMutateRequestItem } AceFnRequestItem
  *
  * @typedef { AceFnRequestItem | (AceFnRequestItem)[] } AceFnRequest
- * @typedef { { [prop: string]: any, $ace?: AceFn$ } } AceFnResponse
+ * @typedef { AceFnTxnStartResponse | AceFnTxnCancelResponse | AceFnTxnCompleteResponse | AceFnTxnContinueResponse | AceFnNoTxnResponse } AceFnResponse
  * @typedef { { now: AceFnResponse, original: { [k: string]: any } } } AceFnFullResponse
  * @typedef { { success: true } } AceFnEmptyGraphResponse
  *

@@ -251,6 +251,8 @@ export type AceFnTxnStartResponse = {
     $ace: AceFn$Default & {
         txnId: string;
         txnStarted: true;
+        txnCancelled?: never;
+        txnCompleted?: never;
     };
 };
 /**
@@ -261,7 +263,9 @@ export type AceFnTxnCancelResponse = {
 } & {
     $ace: AceFn$Default & {
         txnId: string;
+        txnStarted?: never;
         txnCancelled: true;
+        txnCompleted?: never;
     };
 };
 /**
@@ -272,6 +276,8 @@ export type AceFnTxnCompleteResponse = {
 } & {
     $ace: AceFn$Default & {
         txnId: string;
+        txnStarted?: never;
+        txnCancelled?: never;
         txnCompleted: true;
     };
 };
@@ -283,6 +289,8 @@ export type AceFnTxnContinueResponse = {
 } & {
     $ace: AceFn$Default & {
         txnId: string;
+        txnStarted?: never;
+        txnCancelled?: never;
         txnCompleted?: never;
     };
 };
@@ -294,13 +302,11 @@ export type AceFnNoTxnResponse = {
 } & {
     $ace: AceFn$Default & {
         txnId?: never;
+        txnStarted?: never;
+        txnCancelled?: never;
         txnCompleted?: never;
     };
 };
-/**
- * AceFn
- */
-export type AceFn$ = AceFnTxnStartResponse | AceFnTxnCancelResponse | AceFnTxnCompleteResponse | AceFnTxnContinueResponse | AceFnNoTxnResponse;
 /**
  * AceFn
  */
@@ -312,10 +318,7 @@ export type AceFnRequest = AceFnRequestItem | (AceFnRequestItem)[];
 /**
  * AceFn
  */
-export type AceFnResponse = {
-    [prop: string]: any;
-    $ace?: AceFn$;
-};
+export type AceFnResponse = AceFnTxnStartResponse | AceFnTxnCancelResponse | AceFnTxnCompleteResponse | AceFnTxnContinueResponse | AceFnNoTxnResponse;
 /**
  * AceFn
  */

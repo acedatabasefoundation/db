@@ -31,7 +31,7 @@ import { validateMustBeDefined } from '../mutate/validateMustBeDefined.js'
  */
 export async function enterReqGateway (resolve, reject, options, doneReqGateway) {
   /** @type { td.AceFnFullResponse } - Nodes with all properties will be in original, nodes with requested properties from `query.x` will be in now. */
-  const res = { now: {}, original: {} }
+  const res = { now: { $ace: {} }, original: { $ace: {} } }
 
   setTxnId(options, res)
   setTxnEnv(options)

@@ -1,6 +1,6 @@
 import { td } from '#ace'
 import { Memory } from '../objects/Memory.js'
-import { isObjectPopulated } from '../util/isObjectPopulated.js'
+import { AceError } from '../objects/AceError.js'
 
 
 /**
@@ -28,17 +28,19 @@ export function set$ace (res, options) {
     }
   }
 
+  if (!Memory.txn.id) throw new AceError('set$ace__falsyTxnId', 'Please ensure Memory.txn.id is truthy', {})
+
   switch (options.txn?.do) {
     case 'Start':
-      if (!res.now.$ace) res.now.$ace = { txnStarted: true }
+      if (!res.now.$ace) res.now.$ace = { txnId: Memory.txn.id, txnStarted: true }
       else res.now.$ace.txnStarted = true
       break
     case 'Complete':
-      if (!res.now.$ace) res.now.$ace = { txnCompleted: true }
+      if (!res.now.$ace) res.now.$ace = { txnId: Memory.txn.id, txnCompleted: true }
       else res.now.$ace.txnCompleted = true
       break
     case 'Cancel':
-      if (!res.now.$ace) res.now.$ace = { txnCancelled: true }
+      if (!res.now.$ace) res.now.$ace = { txnId: Memory.txn.id, txnCancelled: true }
       else res.now.$ace.txnCancelled = true
       break
   }
