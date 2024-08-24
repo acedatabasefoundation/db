@@ -10,13 +10,9 @@ import { Memory } from '../../objects/Memory.js'
 export function setTxnId (options, res) {
   if (options.txn?.do === 'Start') {
     Memory.txn.id = crypto.randomUUID()
-
-    if (!res.now.$ace) res.now.$ace = { txnId: Memory.txn.id }
-    else res.now.$ace.txnId = Memory.txn.id
+    res.now.$ace.txnId = Memory.txn.id
   } else if (options.txn?.id) {
     Memory.txn.id = options.txn.id
-
-    if (!res.now.$ace) res.now.$ace = { txnId: Memory.txn.id }
-    else res.now.$ace.txnId = Memory.txn.id
+    res.now.$ace.txnId = Memory.txn.id
   }
 }
