@@ -9,7 +9,10 @@ import { Memory, doneReqGatewayReset } from '../../objects/Memory.js'
 import { binarySearchAdd, binarySearchSub } from '../../util/binarySearch.js'
 
 
-/** @type { td.AceFnDoneReqGateway } */
+/**
+ * @param { td.AceFnDoneReqGatewayParams } options
+ * @returns { td.AceFnDoneReqGatewayResponse }
+ */
 export async function doneReqGateway ({ res, error, resolve, reject }) {
   if (reject || res?.now?.$ace?.txnCancelled) {
     await revertWriteSchema()

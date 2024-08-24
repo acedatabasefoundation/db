@@ -26,7 +26,7 @@ import { validateMustBeDefined } from '../mutate/validateMustBeDefined.js'
  * @param { (res: td.AceFnResponse) => void } resolve 
  * @param { (res: td.AceFnResponse) => void } reject 
  * @param { td.AceFnOptions } options 
- * @param { td.AceFnDoneReqGateway } doneReqGateway 
+ * @param { (params: td.AceFnDoneReqGatewayParams) => td.AceFnDoneReqGatewayResponse } doneReqGateway 
  * @returns { Promise<void> }
  */
 export async function enterReqGateway (resolve, reject, options, doneReqGateway) {

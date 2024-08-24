@@ -15,7 +15,7 @@ export async function ace (options) {
     } catch (error) {
       console.log('error', error)
       try {
-        await doneReqGateway({ reject, error, options })
+        await doneReqGateway({ reject, error })
       } catch (e) {
         console.log('error:', e)
       }

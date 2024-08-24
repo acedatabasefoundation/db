@@ -149,9 +149,10 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceGraph
  *
  * @typedef { { [name: string]: string } } AceFnIVs
  *
- * @typedef { { txnId?: string, txnStarted?: boolean, txnCompleted?: boolean, txnCancelled?: boolean, enumIds?: { [id: string]: number }, deletedKeys?: (string | number)[] } } AceFn$
- *
  * @typedef { { nodes: any, relationships: any } } AceFnUpdateRequestItems - If updating we store the orignal items here, based on the id (nodes) or id (relationships)
+ *
+ * @typedef { { res?: AceFnFullResponse, error?: any, resolve?: (res: AceFnResponse) => void, reject?: AcePromiseReject } } AceFnDoneReqGatewayParams
+ * @typedef { Promise<void> } AceFnDoneReqGatewayResponse
  */
 
 
