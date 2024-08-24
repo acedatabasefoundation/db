@@ -1,5 +1,5 @@
 import { td } from '#ace'
-import { DELIMITER, SCHEMA_ID } from '../util/variables.js'
+import { delimiter, schemaId } from '../util/variables.js'
 
 
 /**
@@ -9,13 +9,11 @@ import { DELIMITER, SCHEMA_ID } from '../util/variables.js'
 export function SchemaDataStructures (schema) {
   /** @type { td.AceTxnSchemaDataStructures } */
   const schemaDataStructures = {
-    cascade: new Map(),
     byAceId: new Map(),
     defaults: new Map(),
     mustPropsMap: new Map(),
     relationshipPropsMap: new Map(),
     nodeRelationshipPropsMap: new Map(),
-    nodeNamePlusRelationshipNameToNodePropNameMap: new Map(),
   }
 
   if (schema?.nodes) {
@@ -23,32 +21,23 @@ export function SchemaDataStructures (schema) {
       schemaDataStructures.byAceId.set(schema.nodes[nodeName].$aceId, { node: nodeName })
 
       for (const propName in schema.nodes[nodeName]) {
-        if (propName !== SCHEMA_ID) {
+        if (propName !== schemaId) {
           const propValue = schema.nodes[nodeName][propName]
 
           schemaDataStructures.byAceId.set(propValue.$aceId, { node: nodeName, prop: propName })
   
           if (propValue.is === 'Prop') setDefaults(schemaDataStructures, nodeName, propName, propValue) // defaults
           else {
-            schemaDataStructures.nodeNamePlusRelationshipNameToNodePropNameMap.set(nodeName + DELIMITER + propValue.options.relationship, propName)
-
             // relationshipPropsMap
             const mapValue = schemaDataStructures.relationshipPropsMap.get(propValue.options.relationship) || new Map()
             mapValue.set(propName, { propNode: nodeName, propValue })
             schemaDataStructures.relationshipPropsMap.set(propValue.options.relationship, mapValue)
 
-            // cascade
-            if (propValue.options.cascade) {
-              const set = schemaDataStructures.cascade.get(nodeName) || new Set()
-              set.add(propName)
-              schemaDataStructures.cascade.set(nodeName, set)
-            }
-
             // nodeRelationshipPropsMap
             if (propValue.options.node) {
-              const set = schemaDataStructures.nodeRelationshipPropsMap.get(propValue.options.node) || new Set()
-              set.add(nodeName + DELIMITER + propName + DELIMITER + propValue.options.relationship)
-              schemaDataStructures.nodeRelationshipPropsMap.set(propValue.options.node, set)
+              const map = schemaDataStructures.nodeRelationshipPropsMap.get(propValue.options.node) || new Map()
+              map.set(nodeName + delimiter + propName + delimiter + propValue.options.relationship, { node: nodeName, prop: propName, relationship: propValue.options.relationship })
+              schemaDataStructures.nodeRelationshipPropsMap.set(propValue.options.node, map)
             }
           }
 

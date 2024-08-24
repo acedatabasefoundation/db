@@ -10,7 +10,7 @@ import { schemaIs } from '../enums/schemaIs.js'
 import { sortHow } from '../enums/sortHow.js'
 import { txnDo } from '../enums/txnDo.js'
 import { txnSteps } from '../enums/txnSteps.js'
-import { writeDo } from '../enums/writeDo.js'
+import { writeAction } from '../enums/writeAction.js'
 
 
 
@@ -31,7 +31,7 @@ function setEnumsMap () {
   enumsMap.set('sortHow', sortHow)
   enumsMap.set('txnDo', txnDo)
   enumsMap.set('txnSteps', txnSteps)
-  enumsMap.set('writeDo', writeDo)
+  enumsMap.set('writeAction', writeAction)
 
   return enumsMap
 }

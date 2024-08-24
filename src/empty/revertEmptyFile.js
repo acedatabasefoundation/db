@@ -1,31 +1,33 @@
-import { td } from '#ace'
 import { Memory } from '../objects/Memory.js'
 import { rm, rename } from 'node:fs/promises'
-import { getPaths, doesPathExist } from '../util/file.js'
+import { doesPathExist } from '../util/file.js'
+import { AceError } from '../objects/AceError.js'
+import { setTxnTrashPaths } from '../ace/txn/setTxnPaths.js'
 
 
-/**
- * @param { td.AceFnOptions } options
- * @returns { Promise<void> }
- */
-export async function revertEmptyFile (options) {
+/** @returns { Promise<void> } */
+export async function revertEmptyFile () {
   if (Memory.txn.emptyTimestamp) {
-    const paths = getPaths(options.dir, [ 'wal', 'graphs', 'schemas', 'trashNow', 'trashNowWal', 'trashNowGraphs', 'trashNowSchemas' ])
+    if (!Memory.txn.paths) throw new AceError('revertEmptyFile__missingPaths', 'Please ensure Memory.txn.paths is a truthy when calling revertEmptyFile()', {})
 
-    if (await doesPathExist(paths.trashNow)) { // has a trashNow folder been created
-      if (await doesPathExist(paths.trashNowWal)) await rename(paths.trashNowWal, paths.wal) // renaming a file if the file already exists does not throw an error
+    setTxnTrashPaths()
 
-      if (await doesPathExist(paths.trashNowGraphs)) { // renaming a folder throws an error if it already exists
-        if (await doesPathExist(paths.graphs)) await rm(paths.graphs, { recursive: true, force: true })
-        await rename(paths.trashNowGraphs, paths.graphs)
+    if (Memory.txn.paths.trashNow && Memory.txn.paths.trashNowAol && Memory.txn.paths.trashNowGraphs && Memory.txn.paths.trashNowSchemas) {
+      if (await doesPathExist(Memory.txn.paths.trashNow)) { // has a trashNow folder been created
+        if (await doesPathExist(Memory.txn.paths.trashNowAol)) await rename(Memory.txn.paths.trashNowAol, Memory.txn.paths.aol) // renaming a file if the file already exists does not throw an error
+
+        if (await doesPathExist(Memory.txn.paths.trashNowGraphs)) { // renaming a folder throws an error if it already exists
+          if (await doesPathExist(Memory.txn.paths.graphs)) await rm(Memory.txn.paths.graphs, { recursive: true, force: true })
+          await rename(Memory.txn.paths.trashNowGraphs, Memory.txn.paths.graphs)
+        }
+
+        if (await doesPathExist(Memory.txn.paths.trashNowSchemas)) {
+          if (await doesPathExist(Memory.txn.paths.schemas)) await rm(Memory.txn.paths.schemas, { recursive: true, force: true })
+          await rename(Memory.txn.paths.trashNowSchemas, Memory.txn.paths.schemas)
+        }
+
+        await rm(Memory.txn.paths.trashNow, { recursive: true })
       }
-
-      if (await doesPathExist(paths.trashNowSchemas)) {
-        if (await doesPathExist(paths.schemas)) await rm(paths.schemas, { recursive: true, force: true })
-        await rename(paths.trashNowSchemas, paths.schemas)
-      }
-
-      await rm(paths.trashNow, { recursive: true })
     }
   }
 }

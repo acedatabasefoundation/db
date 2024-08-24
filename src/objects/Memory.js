@@ -1,5 +1,6 @@
 import { td } from '#ace'
 import { Txn } from './Txn.js'
+import { Collator } from './Collator.js'
 import { getNow } from '../util/variables.js'
 import { SchemaDetail } from './SchemaDetail.js'
 import { SchemaDataStructures } from './SchemaDataStructures.js'
@@ -9,7 +10,8 @@ import { SchemaDataStructures } from './SchemaDataStructures.js'
 export const Memory = {
   queue: [],
   txn: Txn(),
-  wal: { byteAmount: 0, map: new Map() },
+  collator: Collator(),
+  aol: { array: [], nowFileSize: null, ogFileSize: null },
 }
 
 
@@ -29,31 +31,33 @@ export async function doneReqGatewayReset () { // Preserve some values from one 
   // preserve Memory.txn.lastGraphId
   Memory.txn.hasUpdates = undefined
   Memory.txn.emptyTimestamp = undefined
-  Memory.txn.enumGraphIdsMap.clear()
-  Memory.txn.writeMap.clear()
-  Memory.txn.writeStr = ''
-  Memory.txn.revertWalDetails.byteAmount = 0
-  Memory.txn.revertWalDetails.map.clear()
+  Memory.txn.enumGraphIds = new Map()
+  Memory.txn.writeArray = []
   Memory.txn.sortIndexMap.clear()
 
-  if (!Memory.queue.length && Memory.wal.filehandle) { // preserve Memory.wal.filehandle if there are more requests in queue
-    await Memory.wal.filehandle.close()
-    Memory.wal.filehandle = undefined // in other functions, to know if the filehandle is closed, we falsy check
+  if (!Memory.queue.length) { // preserve filehandles if there are more requests in queue
+    if (Memory.aol.filehandle) {
+      await Memory.aol.filehandle.close()
+      Memory.aol.filehandle = undefined // in other functions, to know if the filehandle is closed, we falsy check
+    }
   }
 
   // preserve Memory.queue
-  // preserve Memory.wal.byteAmount
-  // preserve Memory.wal.fileSize
-  // preserve Memory.wal.map
+
+  Memory.aol.ogFileSize = Memory.aol.nowFileSize // sync these up
+  // preserve Memory.aol.nowFileSize
+  // preserve Memory.aol.array
+
+  // preserve Memory.collator
 }
 
 
 /**
  * When ace() is called with a do: "Empty".
  * This is just clearing memory, not files.
- * @returns { void }
+ * @returns { Promise<void> }
  */
-export function onEmpty() { // Order is based on typedefs.js
+export async function onEmpty () { // Order is based on typedefs.js
   // preserve Memory.txn.id
   // preserve Memory.txn.env
   // preserve Memory.txn.timeoutId
@@ -72,16 +76,24 @@ export function onEmpty() { // Order is based on typedefs.js
   Memory.txn.lastGraphId = 0
   Memory.txn.hasUpdates = undefined
   Memory.txn.emptyTimestamp = getNow() // will be the name of the folder in trash
-  Memory.txn.enumGraphIdsMap.clear()
-  Memory.txn.writeMap.clear()
-  Memory.txn.writeStr = ''
-  Memory.txn.revertWalDetails.byteAmount = 0
-  Memory.txn.revertWalDetails.map.clear()
+  Memory.txn.enumGraphIds = new Map()
+  Memory.txn.writeArray = []
   Memory.txn.sortIndexMap.clear()
 
   // preserve Memory.queue
-  Memory.wal.byteAmount = 0
-  // preserve Memory.wal.fileSize (set to 0 @ emptyFile.js)
-  Memory.wal.map.clear()
-  // preserve Memory.wal.filehandle (so that an easy appendWal() can happen after the file has been emptied)
+
+  // preserve Memory.aol.fileSize (set to 0 @ emptyFile.js)
+  Memory.aol.array = []
+
+  if (Memory.aol.filehandle) {
+    await Memory.aol.filehandle.close()
+    Memory.aol.filehandle = undefined // in other functions, to know if the filehandle is closed, we falsy check
+  }
+
+  // preserve Memory.queue
+
+  // preserve Memory.aol.ogFileSize
+  // preserve Memory.aol.nowFileSize
+
+  // preserve Memory.collator
 }

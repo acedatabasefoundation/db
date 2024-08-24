@@ -1,6 +1,6 @@
 import { td } from '#ace'
 import { Memory } from '../../objects/Memory.js'
-import { SCHEMA_ID } from '../../util/variables.js'
+import { schemaId } from '../../util/variables.js'
 import { AceError } from '../../objects/AceError.js'
 import { enumIdToGraphId } from '../id/enumIdToGraphId.js'
 import { isObjectPopulated } from '../../util/isObjectPopulated.js'
@@ -11,15 +11,15 @@ import { isObjectPopulated } from '../../util/isObjectPopulated.js'
  * @returns { td.AceQueryRequestItemDetailedResValueSection }
  */
 export function getDetailedResValueSectionById (reqItem) {
-  if (reqItem.do !== 'NodeQuery' && reqItem.do !== 'RelationshipQuery') throw AceError('query__invalidId', `Please ensure the reqItem.do: ${ /** @type {*} */ (reqItem).id } is NodeQuery or RelationshipQuery`, { reqItem })
+  if (reqItem.do !== 'NodeQuery' && reqItem.do !== 'RelationshipQuery') throw new AceError('query__invalidId', `Please ensure the reqItem.do: ${ /** @type {*} */ (reqItem).id } is NodeQuery or RelationshipQuery`, { reqItem })
 
-  const item = {}
+  const item = {};
 
   if (reqItem.do === 'NodeQuery') {
-    if (!Memory.txn.schema?.nodes[reqItem.how.node]) throw AceError('query__invalidNode', `Please ensure the reqItem.node of: "${ reqItem.how.node }" is a node in the schema`, { reqItem })
+    if (!Memory.txn.schema?.nodes[reqItem.how.node]) throw new AceError('query__invalidNode', `Please ensure the reqItem.node of: "${ reqItem.how.node }" is a node in the schema`, { reqItem })
     item.node = reqItem.how.node
   } else {
-    if (!Memory.txn.schema?.relationships?.[reqItem.how.relationship]) throw AceError('query__invalidRelationship', `Please ensure the reqItem.relationship of: "${ reqItem.how.relationship }"  is a relationship in the schema`, { reqItem })
+    if (!Memory.txn.schema?.relationships?.[reqItem.how.relationship]) throw new AceError('query__invalidRelationship', `Please ensure the reqItem.relationship of: "${ reqItem.how.relationship }"  is a relationship in the schema`, { reqItem })
     item.relationship = reqItem.how.relationship
   }
 
@@ -57,8 +57,8 @@ export function getDetailedResValueSectionByParent (reqResValue, resValueKey, de
   const item = {}
 
   if (detailedResValueSectionParent.node) {
-    item.node = /** @type { td.AceSchemaNodeRelationshipOptions } */ (Memory.txn.schema?.nodes[detailedResValueSectionParent.node][resValueKey]?.options).node
-    schemaPropValue = Memory.txn.schema?.nodes?.[detailedResValueSectionParent.node]?.[resValueKey]
+    item.node = /** @type { td.AceSchemaNodeRelationshipOptions } */ (Memory.txn.schema?.nodes[detailedResValueSectionParent.node][resValueKey]?.options).node;
+    schemaPropValue = Memory.txn.schema?.nodes?.[detailedResValueSectionParent.node]?.[resValueKey];
   } else if (detailedResValueSectionParent.relationship) {
     const node = Memory.txn.schemaDataStructures.relationshipPropsMap.get(detailedResValueSectionParent.relationship)?.get(resValueKey)?.propNode
 
@@ -68,7 +68,7 @@ export function getDetailedResValueSectionByParent (reqResValue, resValueKey, de
     }
   }
 
-  if (!schemaPropValue || schemaPropValue.is === 'Prop') throw AceError('query__schemaPropValue', `Please ensure your query includes a prop in your resValue that is in the schema as a ForwardRelationshipProp, ReverseRelationshipProp or BidirectionalRelationshipProp. This is not happening yet at the prop: "${ resValueKey }"`, { prop: resValueKey, reqValue: reqResValue })
+  if (!schemaPropValue || schemaPropValue.is === 'Prop') throw new AceError('query__schemaPropValue', `Please ensure your query includes a prop in your resValue that is in the schema as a ForwardRelationshipProp, ReverseRelationshipProp or BidirectionalRelationshipProp. This is not happening yet at the prop: "${ resValueKey }"`, { prop: resValueKey, reqValue: reqResValue })
 
   const resValue = updateWhereIds(fill(reqResValue, item))
 
@@ -103,7 +103,7 @@ function fill (resValue, item) {
 
   const response = updatedResValue || resValue
 
-  if (typeof response !== 'object' || Array.isArray(response) || !isObjectPopulated(response)) throw AceError('query__invalidQueryString', `Please ensure each query resValue is a valid object with propss from the schema or "*" o "**"  or "***". This is not happening yet for this resValue: ${ JSON.stringify(resValue) }`, { resValue })
+  if (typeof response !== 'object' || Array.isArray(response) || !isObjectPopulated(response)) throw new AceError('query__invalidQueryString', `Please ensure each query resValue is a valid object with propss from the schema or "*" o "**"  or "***". This is not happening yet for this resValue: ${ JSON.stringify(resValue) }`, { resValue })
 
   return response
 }
@@ -127,19 +127,19 @@ function fillNodeQuery (stars, resValue, rootNode) {
 
     if (nodeProps1) {
       for (const propName1 in nodeProps1) { // loop the root node
-        if (propName1 === SCHEMA_ID) {}
+        if (propName1 === schemaId) {}
         else if (nodeProps1[propName1].is === 'Prop') updatedResValue[propName1] = true // IF the prop does not point to a node THEN add prop to resValue
         else if (stars === '**' || stars === '***') { // IF prop points to a node THEN only continue if more levels requested
 
           /** @type { string } */
-          const nodeName2 = /** @type { td.AceSchemaNodeRelationshipOptions } */ (nodeProps1[propName1].options).node // the node (level 2 node) that this prop points to
+          const nodeName2 = /** @type { td.AceSchemaNodeRelationshipOptions } */ (nodeProps1[propName1].options).node; // the node (level 2 node) that this prop points to
 
           /** @type { td.AceSchemaNodeValue | undefined } */
-          const nodeProps2 = Memory.txn.schema.nodes[nodeName2] // the props for the level 2 node
+          const nodeProps2 = Memory.txn.schema.nodes[nodeName2]; // the props for the level 2 node
 
-          updatedResValue[propName1] = { id: true, _id: true } // resValue initiation
+          updatedResValue[propName1] = { id: true, _id: true }; // resValue initiation
 
-          const relationship2 = /** @type { td.AceSchemaNodeRelationshipOptions } */ (nodeProps1?.[propName1]?.options)?.relationship // the relationship name between the level 2 node and the root node
+          const relationship2 = /** @type { td.AceSchemaNodeRelationshipOptions } */ (nodeProps1?.[propName1]?.options)?.relationship; // the relationship name between the level 2 node and the root node
 
           if (relationship2) { // IF there are props, @ the relationship between the level 2 node and the root node THEN add each relationship prop to resValue
             const relationshipProps2 = Memory.txn.schema.relationships?.[relationship2]?.props
@@ -153,21 +153,21 @@ function fillNodeQuery (stars, resValue, rootNode) {
 
           if (nodeProps2) {
             for (const propName2 in nodeProps2) {
-              if (propName2 === SCHEMA_ID) {}
+              if (propName2 === schemaId) {}
               else if (nodeProps2[propName2].is === 'Prop') updatedResValue[propName1][propName2] = true // IF prop does not point to nodes THEN add prop to resValue
               else if (stars === '***') { //  // IF prop points to a node THEN only continue if 3 levels requested
-                const nodeName3 = /** @type { td.AceSchemaNodeRelationshipOptions } */ (nodeProps2[propName2].options).node
+                const nodeName3 = /** @type { td.AceSchemaNodeRelationshipOptions } */ (nodeProps2[propName2].options).node;
 
                 /** @type { td.AceSchemaNodeValue | undefined } */
-                const nodeProps3 = Memory.txn.schema.nodes[nodeName3] // the props for the level 2 node
+                const nodeProps3 = Memory.txn.schema.nodes[nodeName3]; // the props for the level 2 node
 
                 updatedResValue[propName1][propName2] = { id: true, _id: true }
 
                 for (const propName3 in nodeProps3) { // IF the prop does not point to a node THEN add prop to resValue
-                  if (propName3 !== SCHEMA_ID && nodeProps3[propName3].is === 'Prop') updatedResValue[propName1][propName2][propName3] = true
+                  if (propName3 !== schemaId && nodeProps3[propName3].is === 'Prop') updatedResValue[propName1][propName2][propName3] = true
                 }
 
-                const relationship3 = /** @type { td.AceSchemaNodeRelationshipOptions } */ (nodeProps2?.[propName2]?.options)?.relationship // the relationship name between the level 3 node and the leve 2 node
+                const relationship3 = /** @type { td.AceSchemaNodeRelationshipOptions } */ (nodeProps2?.[propName2]?.options)?.relationship; // the relationship name between the level 3 node and the leve 2 node
 
                 if (relationship3) { // IF there are props, @ the relationship between the level 2 node and level 3 node THEN add each relationship prop to resValue
                   const relationshipProps3 = Memory.txn.schema.relationships?.[relationship3]?.props
@@ -228,11 +228,11 @@ function fillRelationshipQuery (stars, resValue, rootRelationship) {
           }
 
           for (const propName2 in nodeProps2) {
-            if (propName2 === SCHEMA_ID) {}
+            if (propName2 === schemaId) {}
             else if (nodeProps2[propName2].is === 'Prop') updatedResValue[nodePropName][propName2] = true // IF the prop does not point to a node THEN add prop to resValue
             else if (stars === '***') { // IF prop points to a node THEN only continue if more levels requested            
               /** @type { td.AceSchemaNodeValue | undefined } */
-              const nodeProps3 = Memory.txn.schema.nodes[/** @type {*} */ (nodeProps2[propName2].options).node] // the props for the level 3 node
+              const nodeProps3 = Memory.txn.schema.nodes[/** @type {*} */ (nodeProps2[propName2].options).node]; // the props for the level 3 node
 
               updatedResValue[nodePropName][propName2] = { id: true, _id: true }
 
@@ -240,7 +240,7 @@ function fillRelationshipQuery (stars, resValue, rootRelationship) {
                 if (nodeProps3[propName3].is === 'Prop') updatedResValue[nodePropName][propName2][propName3] = true
               }
 
-              const relationship3 = /** @type {td.AceSchemaNodeRelationshipOptions} */ (nodeProps3?.[propName2]?.options)?.relationship // the relationship name between the level 3 node and the leve 2 node
+              const relationship3 = /** @type {td.AceSchemaNodeRelationshipOptions} */ (nodeProps3?.[propName2]?.options)?.relationship; // the relationship name between the level 3 node and the leve 2 node
 
               if (relationship3) { // IF there are props, @ the relationship between the level 2 node and level 3 node THEN add each relationship prop to resValue
                 const relationshipProps3 = Memory.txn.schema.relationships[relationship3]?.props

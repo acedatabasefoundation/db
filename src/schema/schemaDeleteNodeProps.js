@@ -12,28 +12,25 @@ import { write, getOne, getMany } from '../util/storage.js'
  * @returns { Promise<void> }
  */
 export async function schemaDeleteNodeProps (reqItem, isSourceSchemaPush) {
-  for (const { node, prop } of reqItem.how) {
-    if (!Memory.txn.schema?.nodes[node]?.[prop]) throw AceError('schemaDeleteNodeProps__invalidNodePropCombo', `Pleae ensure that when you'd love to delete a prop, the node and prop align, this is not happening yet with node: ${ node } and prop: ${ prop } for the reqItem:`, { reqItem, node, prop })
-    if (/** @type {*} */ (prop) === 'id') throw AceError('schemaDeleteNodeProps__invalidId', `Pleae ensure that when you'd love to delete a prop, the prop is not id, this is not happening yet for the reqItem:`, { reqItem, node, prop })
+  for (let i = 0; i < reqItem.how.length; i++) {
+    if (!Memory.txn.schema?.nodes[reqItem.how[i].node]?.[reqItem.how[i].prop]) throw new AceError('schemaDeleteNodeProps__invalidNodePropCombo', `Pleae ensure that when you'd love to delete a prop, the node and prop align, this is not happening yet with node: ${ reqItem.how[i].node } and prop: ${ reqItem.how[i].prop } for the reqItem:`, { reqItem, node: reqItem.how[i].node, prop: reqItem.how[i].prop });
+    if (/** @type {*} */ (reqItem.how[i].prop) === 'id') throw new AceError('schemaDeleteNodeProps__invalidId', `Pleae ensure that when you'd love to delete a prop, the prop is not id, this is not happening yet for the reqItem:`, { reqItem, node: reqItem.how[i].node, prop: reqItem.how[i].prop });
 
-    const nodeIdsKey = getNodeIdsKey(node)
+    const nodeIds = /** @type { td.AceGraphIndex | undefined } */ (await getOne(getNodeIdsKey(reqItem.how[i].node)))
 
-    /** @type { (string | number)[] } */
-    const nodeIds = await getOne(nodeIdsKey)
+    if (Array.isArray(nodeIds?.index)) {
+      const graphNodes = /** @type { td.AceGraphNode[] } */ (await getMany(nodeIds.index));
 
-    if (nodeIds?.length) {
-      /** @type {td.AceGraphNode[] } */
-      const graphNodes = await getMany(nodeIds)
-
-      for (const graphNode of graphNodes) {
-        if (typeof graphNode.props[prop] !== 'undefined') {
-          delete graphNode.props[prop]
-          write('update', graphNode.props.id, graphNode)
+      for (let j = 0; j < graphNodes.length; j++) {
+        if (typeof graphNodes[j][reqItem.how[i].prop] !== 'undefined') {
+          delete graphNodes[j][reqItem.how[i].prop]
+          graphNodes[j].$aA = 'update'
+          write(graphNodes[j])
         }
       }
     }
 
-    delete Memory.txn.schema.nodes[node][prop]
+    delete Memory.txn.schema.nodes[reqItem.how[i].node][reqItem.how[i].prop]
     doneSchemaUpdate(isSourceSchemaPush)
   }
 }

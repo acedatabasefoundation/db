@@ -1,32 +1,31 @@
-import { enums } from '#ace'
+import { td } from '#ace'
 import { Memory } from '../objects/Memory.js'
+import { binarySearchGet, binarySearchAdd } from './binarySearch.js'
 
 
 /**
- * @param { enums.writeDo } todo
- * @param { string | number } key 
- * @param { any } [ value ]
+ * @param { td.AceGraphItem } graphItem
  * @returns { void }
  */
-export function write(todo, key, value) {
-  Memory.txn.writeMap.set(key, { value, do: todo })
-  Memory.txn.writeStr += (todo === 'delete' ?
-    (JSON.stringify([ key, todo ]) + '\n') :
-    (JSON.stringify([ key, todo, value ]) + '\n'))
+export function write (graphItem) {
+  binarySearchAdd(Memory.txn.writeArray, graphItem)
 }
 
 
 /**
- * Undefined if not found
+ * If not found, response is undefined
  * @param { string | number } key
- * @returns { Promise<any> }
+ * @returns { Promise<undefined | td.AceGraphItem> }
  */
 export async function getOne (key) {
   let res
 
   if (key) {
-    const item = Memory.txn.writeMap.get(key) || Memory.wal.map.get(key)
-    if (item && item?.do !== 'delete') res = item.value
+    const graphItem =
+      binarySearchGet(Memory.txn.writeArray, key) ||
+      binarySearchGet(Memory.aol.array, key)
+
+    if (graphItem && graphItem.$aA !== 'delete') res = graphItem
   }
 
   return res
@@ -34,16 +33,17 @@ export async function getOne (key) {
 
 
 /**
- * not added to array if undefined in graph
+ * If undefined in graph, not in response array.
  * @param { (string | number)[] } keys
- * @returns { Promise<any[]> }
+ * @returns { Promise<td.AceGraphItem[]> }
  */
 export async function getMany (keys) {
-  /** @type { any[] } */
+  /** @type { td.AceGraphItem[] } */
   const res = []
 
-  for (const key of keys) {
-    const value = await getOne(key)
+  for (let i = 0; i < keys.length; i++) {
+    const value = await getOne(keys[i])
+
     if (value) res.push(value)
   }
 

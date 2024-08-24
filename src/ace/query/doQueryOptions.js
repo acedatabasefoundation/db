@@ -1,12 +1,13 @@
 import { td, enums } from '#ace'
+import { doLimit } from './doLimit.js'
 import { graphSort } from '../graphSort.js'
 import { queryWhere } from './queryWhere.js'
 import { getNewProps } from './getNewProps.js'
+import { vars } from '../../util/variables.js'
 import { Memory } from '../../objects/Memory.js'
 import { Collator } from '../../objects/Collator.js'
 import { AceError } from '../../objects/AceError.js'
 import { getRelationshipNode } from './getRelationshipNode.js'
-import { DEFAULT_QUERY_OPTIONS_FLOW, POST_QUERY_OPTIONS_FLOW } from '../../util/variables.js'
 
 
 /**
@@ -14,36 +15,37 @@ import { DEFAULT_QUERY_OPTIONS_FLOW, POST_QUERY_OPTIONS_FLOW } from '../../util/
  * @param { td.AceFnFullResponse } res 
  * @param { boolean } isUsingSortIndex 
  * @param { td.AceFnCryptoJWKs } jwks 
+ * @param { td.AceFnOptions } options
  * @returns { Promise<void> }
  */
-export async function doQueryOptions (detailedResValueSection, res, isUsingSortIndex, jwks) {
-  if (detailedResValueSection.resValue?.$o) {
-    const $o = detailedResValueSection.resValue.$o
+export async function doQueryOptions (detailedResValueSection, res, isUsingSortIndex, jwks, options) {
+  const $o = detailedResValueSection.resValue?.$o
 
-    /** @type { boolean } Set to true when ...AsRes is used */
-    let hasValueAsResponse = false
+  /** @type { boolean } Set to true when ...AsRes is used */
+  let hasValueAsResponse = false
 
+  if ($o) {
     /** @type { Set<string> } If we have completed an option put it in done */
     const doneOptions = new Set()
 
     if ($o.flow) { // do in requested flow order
-      for (const option of $o.flow) {
-        hasValueAsResponse = await doOption(option, hasValueAsResponse, doneOptions, detailedResValueSection, $o, res, isUsingSortIndex, jwks)
+      for (let i = 0; i < $o.flow.length; i++) {
+        hasValueAsResponse = await doOption($o.flow[i], hasValueAsResponse, doneOptions, detailedResValueSection, $o, res, isUsingSortIndex, jwks, options)
       }
     }
 
-    for (const option of DEFAULT_QUERY_OPTIONS_FLOW) { // do in default flow order
-      hasValueAsResponse = await doOption(option, hasValueAsResponse, doneOptions, detailedResValueSection, $o, res, isUsingSortIndex, jwks)
+    for (let i = 0; i < vars.defaultQueryOptionsFlow.length; i++) { // do in default flow order
+      hasValueAsResponse = await doOption(vars.defaultQueryOptionsFlow[i], hasValueAsResponse, doneOptions, detailedResValueSection, $o, res, isUsingSortIndex, jwks, options)
     }
 
-    for (const option of POST_QUERY_OPTIONS_FLOW) { // do post flow order
-      hasValueAsResponse = await doOption(option, hasValueAsResponse, doneOptions, detailedResValueSection, $o, res, isUsingSortIndex, jwks)
+    for (let i = 0; i < vars.postQueryOptions.length; i++) { // do post flow order
+      hasValueAsResponse = await doOption(vars.postQueryOptions[i], hasValueAsResponse, doneOptions, detailedResValueSection, $o, res, isUsingSortIndex, jwks, options)
     }
+  }
 
-    if (hasValueAsResponse || detailedResValueSection.schemaHas === 'one' || $o.limit?.count === 1 || $o.findById || $o.findBy_Id || $o.findByUnique || $o.findByOr || $o.findByAnd || $o.findByDefined || $o.findByUndefined || $o.findByPropValue || $o.findByPropProp || $o.findByPropRes) {
-      res.now[detailedResValueSection.resKey] = typeof res.now[detailedResValueSection.resKey]?.[0] === 'undefined' ? null : res.now[detailedResValueSection.resKey][0]
-      res.original[detailedResValueSection.resKey] = typeof res.original[detailedResValueSection.resKey]?.[0] === 'undefined' ? null : res.original[detailedResValueSection.resKey][0]
-    }
+  if (hasValueAsResponse || detailedResValueSection.schemaHas === 'one' || $o?.limit?.count === 1 || $o?.findById || $o?.findBy_Id || $o?.findByUnique || $o?.findByOr || $o?.findByAnd || $o?.findByDefined || $o?.findByUndefined || $o?.findByPropValue || $o?.findByPropProp || $o?.findByPropRes) {
+    res.now[detailedResValueSection.resKey] = typeof res.now[detailedResValueSection.resKey]?.[0] === 'undefined' ? null : res.now[detailedResValueSection.resKey][0]
+    res.original[detailedResValueSection.resKey] = typeof res.original[detailedResValueSection.resKey]?.[0] === 'undefined' ? null : res.original[detailedResValueSection.resKey][0]
   }
 }
 
@@ -58,9 +60,10 @@ export async function doQueryOptions (detailedResValueSection, res, isUsingSortI
  * @param { td.AceFnFullResponse } res 
  * @param { boolean } isUsingSortIndex 
  * @param { td.AceFnCryptoJWKs } jwks 
+ * @param { td.AceFnOptions } options
  * @returns { Promise<boolean> }
  */
-async function doOption (option, hasValueAsResponse, doneOptions, detailedResValueSection, $o, res, isUsingSortIndex, jwks) {
+async function doOption (option, hasValueAsResponse, doneOptions, detailedResValueSection, $o, res, isUsingSortIndex, jwks, options) {
   if (!hasValueAsResponse && !doneOptions.has(option) && $o[/** @type { keyof td.AceQueryRequestItemNodeOptions } */(option)]) {
     switch (option) {
       case enums.queryOptions.findByOr:
@@ -77,11 +80,12 @@ async function doOption (option, hasValueAsResponse, doneOptions, detailedResVal
       case enums.queryOptions.filterByPropValue:
       case enums.queryOptions.filterByPropProp:
       case enums.queryOptions.filterByPropRes:
-        await queryWhere(detailedResValueSection, res, option, jwks)
+        await queryWhere(detailedResValueSection, res, option, jwks, options)
         break
 
       case enums.queryOptions.limit:
-        doLimit($o, res, detailedResValueSection.resKey)
+        res.now[detailedResValueSection.resKey] = doLimit($o, res.now[detailedResValueSection.resKey])
+        res.original[detailedResValueSection.resKey] = doLimit($o, res.now[detailedResValueSection.resKey])
         break
 
       case enums.queryOptions.sort:
@@ -171,28 +175,6 @@ async function doOption (option, hasValueAsResponse, doneOptions, detailedResVal
 /**
  * @param { td.AceQueryRequestItemNodeOptions } $o 
  * @param { td.AceFnFullResponse } res 
- * @param { string } resKey 
- * @returns { void }
- */
-function doLimit ($o, res, resKey) {
-  if ($o.limit) {
-    if ($o.limit.skip && $o.limit.count) {
-      res.now[resKey] = res.now[resKey].slice($o.limit.skip, $o.limit.skip + $o.limit.count)
-      res.original[resKey] = res.original[resKey].slice($o.limit.skip, $o.limit.skip + $o.limit.count)
-    } else if ($o.limit.skip) {
-      res.now[resKey] = res.now[resKey].slice($o.limit.skip)
-      res.original[resKey] = res.original[resKey].slice($o.limit.skip)
-    } else if ($o.limit.count) {
-      res.now[resKey] = res.now[resKey].slice(0, $o.limit.count)
-      res.original[resKey] = res.original[resKey].slice(0, $o.limit.count)
-    }
-  }
-}
-
-
-/**
- * @param { td.AceQueryRequestItemNodeOptions } $o 
- * @param { td.AceFnFullResponse } res 
  * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
  * @param { boolean } isUsingSortIndex 
  * @returns { void }
@@ -210,13 +192,13 @@ function doSort ($o, res, detailedResValueSection, isUsingSortIndex) {
       const collator = Collator()
       const prop = detailedResValueSection.resValue.$o?.sort?.prop
 
-      if (!prop) throw AceError('query__falsySortProp', 'Please ensure the $o.sort.prop is truthy', { $o: detailedResValueSection.resValue.$o })
+      if (!prop) throw new AceError('query__falsySortProp', 'Please ensure the $o.sort.prop is truthy', { $o: detailedResValueSection.resValue.$o })
 
       const dataType = detailedResValueSection.node ?
         geNodeSortPropDataType(detailedResValueSection, prop) :
         getRelationshipSortPropDataType(detailedResValueSection, prop)
 
-      if (!dataType) throw AceError('query__invalidSortProp', `Please ensure your sort prop "${ prop }" is defined in your schema or is an alias for a prop defined in your schema`, { $o: detailedResValueSection.resValue.$o })
+      if (!dataType) throw new AceError('query__invalidSortProp', `Please ensure your sort prop "${ prop }" is defined in your schema or is an alias for a prop defined in your schema`, { $o: detailedResValueSection.resValue.$o })
 
       for (let i = 0; i < res.original[detailedResValueSection.resKey].length; i++) {
         combined.push({
@@ -226,7 +208,7 @@ function doSort ($o, res, detailedResValueSection, isUsingSortIndex) {
       }
 
       combined.sort((a, b) => {
-        return graphSort(a.now[sort.prop], b.now[sort.prop], collator, dataType, sort.how)
+        return graphSort(a.now[sort.prop], b.now[sort.prop], dataType, sort.how)
       })
 
       res.now[detailedResValueSection.resKey] = combined.map((value) => value.now)
@@ -247,7 +229,7 @@ function geNodeSortPropDataType (detailedResValueSection, prop) {
 
   if (prop === 'id') dataType = 'graphKey' 
   else {
-    if (!detailedResValueSection.node || !Memory.txn.schema?.nodes?.[detailedResValueSection.node]) throw AceError('query__invalidSortNode', `Please ensure the node in your query "${ detailedResValueSection.node }" is defined in your schema`, { node: detailedResValueSection.node })
+    if (!detailedResValueSection.node || !Memory.txn.schema?.nodes?.[detailedResValueSection.node]) throw new AceError('query__invalidSortNode', `Please ensure the node in your query "${ detailedResValueSection.node }" is defined in your schema`, { node: detailedResValueSection.node })
 
     const schemaProp = Memory.txn.schema?.nodes[detailedResValueSection.node][prop]
 
@@ -279,7 +261,7 @@ function getRelationshipSortPropDataType (detailedResValueSection, prop) {
 
   if (prop === '_id') dataType = 'graphKey'
   else {
-    if (!detailedResValueSection.relationship || !Memory.txn.schema?.relationships?.[detailedResValueSection.relationship]) throw AceError('query__invalidSortRelationship', `Please ensure the relationship in your query "${ detailedResValueSection.relationship }" is defined in your schema`, { relationship: detailedResValueSection.relationship })
+    if (!detailedResValueSection.relationship || !Memory.txn.schema?.relationships?.[detailedResValueSection.relationship]) throw new AceError('query__invalidSortRelationship', `Please ensure the relationship in your query "${ detailedResValueSection.relationship }" is defined in your schema`, { relationship: detailedResValueSection.relationship })
 
     const schemaProp = Memory.txn.schema?.relationships?.[detailedResValueSection.relationship]?.props?.[prop]
 
@@ -312,12 +294,12 @@ function doNewProps ($o, res, detailedResValueSection) {
 
     if (newPropKeys.length) {
       for (let i = 0; i < res.original[detailedResValueSection.resKey].length; i++) { // looping graph nodes
-        for (const prop of newPropKeys) {
-          const newPropsGroup = /** @type { td.AceQueryNewPropsGroup } */ ($o.newProps[prop])
-          const newPropsValue = getNewProps(detailedResValueSection, res.original[detailedResValueSection.resKey][i], newPropsGroup)
+        for (let j = 0; j < newPropKeys.length; j++) {
+          const newPropsGroup = /** @type { td.AceQueryNewPropsGroup } */ ($o.newProps[newPropKeys[j]]);
+          const newPropsValue = getNewProps(detailedResValueSection, res.original[detailedResValueSection.resKey][i], newPropsGroup);
 
-          res.original[detailedResValueSection.resKey][i][prop] = newPropsValue
-          if (!detailedResValueSection.resHide || !detailedResValueSection.resHide.has(detailedResValueSection.resKey)) res.now[detailedResValueSection.resKey][i][prop] = newPropsValue
+          res.original[detailedResValueSection.resKey][i][newPropKeys[j]] = newPropsValue
+          if (!detailedResValueSection.resHide || !detailedResValueSection.resHide.has(detailedResValueSection.resKey)) res.now[detailedResValueSection.resKey][i][newPropKeys[j]] = newPropsValue
         }
       }
     }
@@ -337,8 +319,8 @@ function doSumAsProp ($o, res, resKey, resHide) {
     let sum = 0
     const sumAsProp = $o.sumAsProp
 
-    for (let arrayItem of res.original[resKey]) {
-      sum += arrayItem[sumAsProp.computeProp]
+    for (let i = 0; i < res.original[resKey].length; i++) {
+      sum += res.original[resKey][i][sumAsProp.computeProp]
     }
 
     for (let i = 0; i < res.original[resKey].length; i++) {
@@ -360,8 +342,8 @@ function doSumAsRes ($o, res, resKey, resHide) {
   if ($o.sumAsRes) {
     let sum = 0
 
-    for (let arrayItem of res.original[resKey]) {
-      sum += arrayItem[$o.sumAsRes]
+    for (let i = 0; i < res.original[resKey].length; i++) {
+      sum += res.original[resKey][i][$o.sumAsRes]
     }
 
     res.original[resKey] = [sum]
@@ -383,8 +365,8 @@ function doAvgAsProp ($o, res, resKey, resHide) {
 
     const original = res.original[resKey]
 
-    for (let arrayItem of original) {
-      sum += arrayItem[$o.avgAsProp.computeProp]
+    for (let i = 0; i < original.length; i++) {
+      sum += original[i][$o.avgAsProp.computeProp]
     }
 
     const average = original.length ? sum / original.length : 0
@@ -409,8 +391,8 @@ function doAvgAsRes ($o, res, resKey) {
 
     const original = res.original[resKey]
 
-    for (let arrayItem of original) {
-      sum += arrayItem[$o.avgAsRes]
+    for (let i = 0; i < original.length; i++) {
+      sum += original[i][$o.avgAsRes]
     }
 
     const average = original.length ? sum / original.length : 0
@@ -435,8 +417,8 @@ function doMinAmtAsProp ($o, res, resKey, resHide) {
     const minAmtAsProp = $o.minAmtAsProp
     const original = res.original[resKey]
 
-    for (let arrayItem of original) {
-      if (!amount || arrayItem[minAmtAsProp.computeProp] < amount) amount = arrayItem[minAmtAsProp.computeProp]
+    for (let i = 0; i < original.length; i++) {
+      if (!amount || original[i][minAmtAsProp.computeProp] < amount) amount = original[i][minAmtAsProp.computeProp]
     }
 
     for (let i = 0; i < original.length; i++) {
@@ -459,8 +441,8 @@ function doMinAmtAsRes ($o, res, resKey) {
 
     const original = res.original[resKey]
 
-    for (let arrayItem of original) {
-      if (!amount || arrayItem[$o.minAmtAsRes] < amount) amount = arrayItem[$o.minAmtAsRes]
+    for (let i = 0; i < original.length; i++) {
+      if (!amount || original[i][$o.minAmtAsRes] < amount) amount = original[i][$o.minAmtAsRes]
     }
 
     res.now[resKey] = [amount]
@@ -534,8 +516,8 @@ function doMaxAmtAsProp ($o, res, resKey, resHide) {
 
     const original = res.original[resKey]
 
-    for (let arrayItem of original) {
-      if (!amount || arrayItem[$o.maxAmtAsProp.computeProp] > amount) amount = arrayItem[$o.maxAmtAsProp.computeProp]
+    for (let i = 0; i < original.length; i++) {
+      if (!amount || original[i][$o.maxAmtAsProp.computeProp] > amount) amount = original[i][$o.maxAmtAsProp.computeProp]
     }
 
     for (let i = 0; i < original.length; i++) {
@@ -558,8 +540,8 @@ function doMaxAmtAsRes ($o, res, resKey) {
 
     const original = res.original[resKey]
 
-    for (let arrayItem of original) {
-      if (!amount || arrayItem[$o.maxAmtAsRes] > amount) amount = arrayItem[$o.maxAmtAsRes]
+    for (let i = 0; i < original.length; i++) {
+      if (!amount || original[i][$o.maxAmtAsRes] > amount) amount = original[i][$o.maxAmtAsRes]
     }
 
     res.now[resKey] = [amount]

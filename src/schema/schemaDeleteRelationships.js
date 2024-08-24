@@ -12,9 +12,9 @@ import { deleteRelationships } from '../ace/mutate/deleteRelationships.js'
  * @returns { Promise<void> }
  */
 export async function schemaDeleteRelationships (reqItem, isSourceSchemaPush) {
-  for (const node of reqItem.how) {
-    await deleteData(node)
-    deleteFromSchema(node)
+  for (let i = 0; i < reqItem.how.length; i++) {
+    await deleteData(reqItem.how[i])
+    deleteFromSchema(reqItem.how[i])
   }
 
   doneSchemaUpdate(isSourceSchemaPush)
@@ -27,13 +27,11 @@ export async function schemaDeleteRelationships (reqItem, isSourceSchemaPush) {
  */
 async function deleteData (relationship) {
   const relationship_IdsKey = getRelationship_IdsKey(relationship)
+  const relationship_Ids =/** @type { td.AceGraphIndex | undefined } */ ( await getOne(relationship_IdsKey))
 
-  /** @type { (string | number)[] } */
-  const relationship_Ids = await getOne(relationship_IdsKey)
-
-  if (relationship_Ids?.length) {
-    await deleteRelationships(relationship_Ids)
-    write('delete', relationship_IdsKey)
+  if (Array.isArray(relationship_Ids?.index)) {
+    await deleteRelationships(relationship_Ids.index)
+    write({ $aA: 'delete', $aK: relationship_IdsKey })
   }
 }
 

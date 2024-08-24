@@ -23,12 +23,14 @@ esbuild.build({ // // https://esbuild.github.io/api/
     './tsc/src/ace/mutate/deleteNodes.js',
     './tsc/src/ace/mutate/deleteRelationshipProps.js',
     './tsc/src/ace/mutate/deleteRelationships.js',
+    './tsc/src/ace/mutate/encryptMutationProp.js',
     './tsc/src/ace/mutate/hashMutationProp.js',
     './tsc/src/ace/mutate/inupNode.js',
     './tsc/src/ace/mutate/inupRelationship.js',
     './tsc/src/ace/mutate/overwriteIds.js',
     './tsc/src/ace/mutate/validateMustBeDefined.js',
 
+    './tsc/src/ace/query/doLimit.js',
     './tsc/src/ace/query/doQueryOptions.js',
     './tsc/src/ace/query/getDetailedResValue.js',
     './tsc/src/ace/query/getNewProps.js',
@@ -39,16 +41,20 @@ esbuild.build({ // // https://esbuild.github.io/api/
     './tsc/src/ace/txn/cancelTxn.js',
     './tsc/src/ace/txn/setTxnEnv.js',
     './tsc/src/ace/txn/setTxnId.js',
+    './tsc/src/ace/txn/setTxnPaths.js',
     './tsc/src/ace/txn/setTxnStep.js',
     './tsc/src/ace/txn/setTxnTimer.js',
 
     './tsc/src/ace/ace.js',
     './tsc/src/ace/deligate.js',
     './tsc/src/ace/graphSort.js',
-    './tsc/src/ace/log.js',
     './tsc/src/ace/set$ace.js',
     './tsc/src/ace/setHasUpdates.js',
     './tsc/src/ace/setJWKs.js',
+
+    './tsc/src/aol/appendToAol.js',
+    './tsc/src/aol/initMemoryAol.js',
+    './tsc/src/aol/revertAppendToAol.js',
 
     './tsc/src/cli/cli.js',
     './tsc/src/cli/cliTypes.js',
@@ -80,7 +86,7 @@ esbuild.build({ // // https://esbuild.github.io/api/
     './tsc/src/enums/sortHow.js',
     './tsc/src/enums/txnDo.js',
     './tsc/src/enums/txnSteps.js',
-    './tsc/src/enums/writeDo.js',
+    './tsc/src/enums/writeAction.js',
 
     './tsc/src/objects/AceError.js',
     './tsc/src/objects/Collator.js',
@@ -119,15 +125,13 @@ esbuild.build({ // // https://esbuild.github.io/api/
     './tsc/src/security/secureAce.js',
     './tsc/src/security/transmute.js',
 
+    './tsc/src/util/binarySearch.js',
     './tsc/src/util/file.js',
     './tsc/src/util/isObjectPopulated.js',
+    './tsc/src/util/lessThan.js',
     './tsc/src/util/storage.js',
     './tsc/src/util/validatePropValue.js',
     './tsc/src/util/variables.js',
-
-    './tsc/src/wal/appendWal.js',
-    './tsc/src/wal/walMapInitialize.js',
-    './tsc/src/wal/revertAppendWal.js',
 
     './tsc/src/index.js',
   ],

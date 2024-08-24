@@ -1,5 +1,4 @@
 import { td } from '#ace'
-import { log } from './log.js'
 import { doneReqGateway } from './gateway/doneReqGateway.js'
 import { approachReqGateway } from './gateway/approachReqGateway.js'
 
@@ -14,6 +13,7 @@ export async function ace (options) {
       console.time('✨ ace')
       await approachReqGateway(resolve, reject, options)
     } catch (error) {
+      console.log('error', error)
       try {
         await doneReqGateway({ reject, error, options })
       } catch (e) {
@@ -24,7 +24,6 @@ export async function ace (options) {
   .finally(() => {
     try {
       console.timeEnd('✨ ace')
-      log(options)
     } catch (e) {
       console.log('error:', e)
     }

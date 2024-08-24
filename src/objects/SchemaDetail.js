@@ -1,4 +1,4 @@
-import { td } from '../index.js'
+import { td } from '#ace'
 
 
 /** @returns { td.AceSchemaDetail } */

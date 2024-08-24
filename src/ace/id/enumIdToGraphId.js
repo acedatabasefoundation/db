@@ -1,5 +1,5 @@
+import { vars } from '../../util/variables.js'
 import { Memory } from '../../objects/Memory.js'
-import { ENUM_ID_PREFIX } from '../../util/variables.js'
 
 
 
@@ -11,8 +11,8 @@ export function enumIdToGraphId (options) {
   else if (options.ids) {
     const newIds = []
 
-    for (let id of options.ids) {
-      newIds.push(_enumIdToGraphId(id))
+    for (let i = 0; i < options.ids.length; i++) {
+      newIds.push(_enumIdToGraphId(options.ids[i]))
     }
 
     return newIds
@@ -25,5 +25,5 @@ export function enumIdToGraphId (options) {
  * @returns { any }
  */
 function _enumIdToGraphId (id) {
-  return (typeof id === 'string' && id.startsWith(ENUM_ID_PREFIX)) ? Memory.txn.enumGraphIdsMap.get(id) : id
+  return (typeof id === 'string' && id.startsWith(vars.enumIdPrefix)) ? Memory.txn.enumGraphIds.get(id) : id
 }

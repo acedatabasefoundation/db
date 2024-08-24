@@ -13,10 +13,10 @@ export function applyDefaults (itemName, props) {
     const defaults = Memory.txn.schemaDataStructures.defaults.get(itemName)
 
     if (defaults) {
-      for (const d of defaults) {
-        if (typeof props[d.prop] === 'undefined') {
-          if (d.do === 'setIsoNow') props[d.prop] = getNow()
-          else if (typeof d.value !== 'undefined') props[d.prop] = d.value
+      for (let i = 0; i <  defaults.length; i++) {
+        if (typeof props[defaults[i].prop] === 'undefined') {
+          if (defaults[i].do === 'setIsoNow') props[defaults[i].prop] = getNow()
+          else if (typeof defaults[i].value !== 'undefined') props[defaults[i].prop] = defaults[i].value
         }
       }
     }

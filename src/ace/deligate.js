@@ -2,9 +2,9 @@ import { td } from '#ace'
 import { inupNode } from './mutate/inupNode.js'
 import { emptyTrash } from '../empty/emptyTrash.js'
 import { schemaPush } from '../schema/schemaPush.js'
+import { deleteNodes } from './mutate/deleteNodes.js'
 import { addToSchema } from '../schema/addToSchema.js'
 import { Memory, onEmpty } from '../objects/Memory.js'
-import { deleteNodes } from './mutate/deleteNodes.js'
 import { deleteNodeProps } from './mutate/deleteNodeProps.js'
 import { inupRelationship } from './mutate/inupRelationship.js'
 import { queryNode, queryRelationship } from './query/query.js'
@@ -34,22 +34,22 @@ export async function deligate (options, req, res, jwks) {
   for (let iReq = 0; iReq < req.length; iReq++) {
     switch (req[iReq].do) {
       case 'EmptyGraph':
-        onEmpty()
+        await onEmpty()
         break
 
 
       case 'EmptyTrash':
-        emptyTrash(options)
+        emptyTrash()
         break
 
 
       case 'NodeQuery':
-        await queryNode(res, jwks, iReq, /** @type { td.AceQueryRequestItemNode } */(req[iReq]))
+        await queryNode(res, jwks, iReq, options, /** @type { td.AceQueryRequestItemNode } */(req[iReq]))
         break
 
 
       case 'RelationshipQuery':
-        await queryRelationship(res, jwks, iReq, /** @type { td.AceQueryRequestItemRelationship } */(req[iReq]))
+        await queryRelationship(res, jwks, iReq, options, /** @type { td.AceQueryRequestItemRelationship } */(req[iReq]))
         break
 
 
@@ -71,14 +71,14 @@ export async function deligate (options, req, res, jwks) {
       case 'NodeInsert':
       case 'NodeUpdate':
       case 'NodeUpsert':
-        await inupNode(jwks, /** @type { td.AceMutateRequestItemNodeInsert | td.AceMutateRequestItemNodeUpdate } */(req[iReq]))
+        await inupNode(jwks, options, /** @type { td.AceMutateRequestItemNodeInsert | td.AceMutateRequestItemNodeUpdate } */(req[iReq]))
         break
 
 
       case 'RelationshipInsert':
       case 'RelationshipUpdate':
       case 'RelationshipUpsert':
-        await inupRelationship(jwks, /** @type { td.AceMutateRequestItemRelationshipInsert | td.AceMutateRequestItemRelationshipUpdate } */(req[iReq]))
+        await inupRelationship(jwks, options, /** @type { td.AceMutateRequestItemRelationshipInsert | td.AceMutateRequestItemRelationshipUpdate } */(req[iReq]))
         break
 
 

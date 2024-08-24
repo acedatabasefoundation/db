@@ -1,9 +1,12 @@
 import { td } from '#ace'
+import { write } from '../../util/storage.js'
 import { approachReqGateway } from './approachReqGateway.js'
-import { revertAppendWal } from '../../wal/revertAppendWal.js'
 import { revertEmptyFile } from '../../empty/revertEmptyFile.js'
+import { revertAppendToAol } from '../../aol/revertAppendToAol.js'
 import { revertWriteSchema } from '../../schema/revertWriteSchema.js'
 import { Memory, doneReqGatewayReset } from '../../objects/Memory.js'
+import { lastIdKey, maxAolByteAmount } from '../../util/variables.js'
+import { binarySearchAdd, binarySearchSub } from '../../util/binarySearch.js'
 
 
 /**
@@ -12,23 +15,19 @@ import { Memory, doneReqGatewayReset } from '../../objects/Memory.js'
  */
 export async function doneReqGateway ({ res, error, resolve, reject, options }) {
   if (reject || res?.now?.$ace?.txnCancelled) {
-    await revertWriteSchema(options)
-    await revertAppendWal()
-    await revertEmptyFile(options)
+    await revertWriteSchema()
+    await revertAppendToAol()
+    await revertEmptyFile()
+    if (typeof Memory.txn.startGraphId === 'number') write({ $aA: 'upsert', $aK: lastIdKey, value: Memory.txn.startGraphId })
 
-    Memory.wal.byteAmount -= Memory.txn.revertWalDetails.byteAmount
-
-    for (const [ key, value ] of Memory.txn.revertWalDetails.map) {
-      if (typeof value === 'undefined') Memory.wal.map.delete(key)
-      else Memory.wal.map.set(key, value)
+    for (let i = 0; i < Memory.txn.writeArray.length; i++) {
+      if (Memory.txn.writeArray[i].$aA === 'delete') binarySearchAdd(Memory.aol.array, Memory.txn.writeArray[i]) // we deleted from aol, then the txn was cancelled, so now add back
+      else binarySearchSub(Memory.aol.array, Memory.txn.writeArray[i].$aK) // we added to aol, then the txn was cancelled, so now remove
     }
   }
 
   if (res && resolve) resolve(res.now)
-  else if (reject) {
-    console.log('error:', error)
-    reject(error) 
-  }
+  else if (reject) reject(error) 
 
   if (reject || Memory.txn.step === 'lastReq' || res?.now?.$ace?.txnCancelled) { // IF last request in txn
     if (Memory.txn.timeoutId) clearTimeout(Memory.txn.timeoutId)

@@ -28,18 +28,20 @@ import { schemaUpdatePropMustBeDefined } from './schemaUpdatePropMustBeDefined.j
  * @returns { Promise<void> }
  */
 export async function schemaPush (options, reqItem) {
-  if (!Memory.txn.env) throw AceError('schemaPush__missingEnv', 'Please ensure Memory.txn.env is a truthy when calling schemaPush()', {})
-  if (typeof reqItem.how !== 'number' || reqItem.how < 1) throw AceError('schemaPush__invalidVersion', 'Please ensure that when pushing a schema, a "version" is provided as a number greater then 0 to ace() @ options.req.how. Example options: { req: { how: 2 } } ', { how: reqItem.how })
+  if (!Memory.txn.env) throw new AceError('schemaPush__missingEnv', 'Please ensure Memory.txn.env is a truthy when calling schemaPush()', {})
+  if (!Memory.txn.paths) throw new AceError('schemaPush__missingPaths', 'Please ensure Memory.txn.paths is a truthy when calling schemaPush()', {})
+  if (typeof reqItem.how !== 'number' || reqItem.how < 1) throw new AceError('schemaPush__invalidVersion', 'Please ensure that when pushing a schema, a "version" is provided as a number greater then 0 to ace() @ options.req.how. Example options: { req: { how: 2 } } ', { how: reqItem.how })
 
   // when doing a schema push, ensure the schema is fresh
   Memory.txn.schemaNowDetails = undefined
   Memory.txn.schemaOriginalDetails = undefined
-  const paths = await setSchema(options)
+
+  await setSchema()
 
   let nowId = /** @type { td.AceSchemaDetail } */(/** @type { * } */(Memory.txn.schemaNowDetails?.[ Memory.txn.env ]))?.nowId || 0
 
-  if (nowId === 0) await pushFromZero(paths, reqItem) 
-  else if (nowId !== reqItem.how) await pushNotFromZero(paths, nowId, reqItem.how)
+  if (nowId === 0) await pushFromZero(Memory.txn.paths, reqItem) 
+  else if (nowId !== reqItem.how) await pushNotFromZero(Memory.txn.paths, nowId, reqItem.how)
 
   setSchemaFlag('schemaPushRequested')
   setSchemaNowDetails(Memory.txn.env, reqItem)
@@ -52,7 +54,7 @@ export async function schemaPush (options, reqItem) {
  * @returns { Promise<void> }
  */
 async function pushFromZero (paths, reqItem) {
-  if (Memory.txn.schema || Memory.txn.schemaUpdated) throw AceError('schemaPush__alsoUpdatingSchema', 'Please ensure the same transaction does not update a schema and then push a schema. Please first push the schema to the correct version and then update the schema.', {})
+  if (Memory.txn.schema || Memory.txn.schemaUpdated) throw new AceError('schemaPush__alsoUpdatingSchema', 'Please ensure the same transaction does not update a schema and then push a schema. Please first push the schema to the correct version and then update the schema.', {})
 
   const schema = await getSchema(paths, reqItem.how)
   Memory.txn.schema = schema
@@ -70,10 +72,10 @@ async function pushNotFromZero (paths, nowId, aimId) {
   const schemas = new Map()
   const range = getRange(nowId, aimId)
 
-  for (const toId of range) {
-    await addToSchemasMap(paths, toId, nowId, schemas)
+  for (let i = 0; i < range.length; i++) {
+    await addToSchemasMap(paths, range[i], nowId, schemas)
 
-    const { schema: toSchema, schemaDataStructures: toSchemaDataStructures } = schemas.get(toId)
+    const { schema: toSchema, schemaDataStructures: toSchemaDataStructures } = schemas.get(range[i])
     const { schema: fromSchema, schemaDataStructures: fromSchemaDataStructures } = schemas.get(nowId)
 
     if (toSchema && fromSchema && toSchemaDataStructures && fromSchemaDataStructures) {
@@ -99,11 +101,11 @@ async function pushNotFromZero (paths, nowId, aimId) {
 async function getSchema (paths, schemaId) {
   const schemaPath = paths.schemas + '/' + schemaId + '.json'
 
-  if (!await doesPathExist(schemaPath)) throw AceError('schemaPush__missingVersion', `Please ensure [ options.dir ]/schemas/${ schemaId }.json exists, so schema push can work`, { missingVersion: schemaId })
+  if (!await doesPathExist(schemaPath)) throw new AceError('schemaPush__missingVersion', `Please ensure [ options.dir ]/schemas/${ schemaId }.json exists, so schema push can work`, { missingVersion: schemaId })
 
   const str = await readFile(paths.schemas + '/' + schemaId + '.json', 'utf-8')
 
-  if (!str) throw AceError('schemaPush__emptyVersion', `Please ensure [ options.dir ]/schemas/${ schemaId }.json has a schema in it, so schema push can work`, { missingVersion: schemaId })
+  if (!str) throw new AceError('schemaPush__emptyVersion', `Please ensure [ options.dir ]/schemas/${ schemaId }.json has a schema in it, so schema push can work`, { missingVersion: schemaId })
 
   return JSON.parse(str)
 }
@@ -132,16 +134,16 @@ async function addToSchemasMap (paths, toId, fromId, schemas) {
 
     const [ toDoesExist, fromDoesExist ] = await Promise.all([ doesPathExist(toPath), doesPathExist(fromPath) ])
 
-    if (!toDoesExist) throw AceError('schemaPush__missingVersion', `Please ensure [ options.dir ]/schemas/${ toId }.json exists, so schema push can work`, { missingVersion: toId })
-    if (!fromDoesExist) throw AceError('schemaPush__missingVersion', `Please ensure [ options.dir ]/schemas/${ fromId }.json exists, so schema push can work`, { missingVersion: fromId })
+    if (!toDoesExist) throw new AceError('schemaPush__missingVersion', `Please ensure [ options.dir ]/schemas/${ toId }.json exists, so schema push can work`, { missingVersion: toId })
+    if (!fromDoesExist) throw new AceError('schemaPush__missingVersion', `Please ensure [ options.dir ]/schemas/${ fromId }.json exists, so schema push can work`, { missingVersion: fromId })
 
     const [ toStr, fromStr ] = await Promise.all([
       readFile(toPath, 'utf-8'),
       readFile(fromPath, 'utf-8')
     ])
   
-    if (!toStr) throw AceError('schemaPush__missingVersion', `Please ensure [ options.dir ]/schemas/${ toId }.json exists, so schema push can work`, { missingVersion: toId })
-    if (!fromStr) throw AceError('schemaPush__missingVersion', `Please ensure [ options.dir ]/schemas/${ fromId }.json exists, so schema push can work`, { missingVersion: fromId })
+    if (!toStr) throw new AceError('schemaPush__missingVersion', `Please ensure [ options.dir ]/schemas/${ toId }.json exists, so schema push can work`, { missingVersion: toId })
+    if (!fromStr) throw new AceError('schemaPush__missingVersion', `Please ensure [ options.dir ]/schemas/${ fromId }.json exists, so schema push can work`, { missingVersion: fromId })
 
     toSchema = /** @type { td.AceSchema } */(JSON.parse(toStr))
     fromSchema = /** @type { td.AceSchema } */(JSON.parse(fromStr))
@@ -164,10 +166,10 @@ async function addToSchemasMap (paths, toId, fromId, schemas) {
 
 
 /**
- * @param { number } aceId 
- * @param { td.AceTxnSchemaDataStructures } toSchemaDataStructures 
- * @param { td.AceSchema } fromSchema 
- * @param { td.AceSchema } toSchema 
+ * @param { number } aceId
+ * @param { td.AceTxnSchemaDataStructures } toSchemaDataStructures
+ * @param { td.AceSchema } fromSchema
+ * @param { td.AceSchema } toSchema
  * @param { string } [ fromRelationship ]
  * @param { string } [ fromProp ]
  */
@@ -184,7 +186,7 @@ async function updateRelationship (aceId, toSchemaDataStructures, fromSchema, to
       }
     } else if (toSchema.relationships?.[fromRelationship]) { // no need to update the prop if the relationship is deleted
       // delete relationship props
-      if (!toInfo) await schemaDeleteRelationshipProps({ do: 'SchemaDeleteRelationshipProps',  how: [ /** @type { td.AceMutateRequestItemSchemaDeleteRelationshipPropsItem } */({ relationship: fromRelationship, prop: fromProp }) ] }, true)
+      if (!toInfo) await schemaDeleteRelationshipProps({ do: 'SchemaDeleteRelationshipProps', how: [ /** @type { td.AceMutateRequestItemSchemaDeleteRelationshipPropsItem } */({ relationship: fromRelationship, prop: fromProp })] }, true)
       else if (toInfo.relationship && toInfo.prop) {
         // rename relationship prop
         if (toInfo.prop && toInfo.prop !== fromProp) await schemaRenameRelationshipProp({ do: 'SchemaRenameRelationshipProp', how: [ /** @type { td.AceMutateRequestItemSchemaRenameRelationshipPropItem } */({ relationship: fromRelationship, nowName: fromProp, newName: toInfo.prop }) ] }, true)
@@ -210,10 +212,10 @@ async function updateRelationship (aceId, toSchemaDataStructures, fromSchema, to
 
 
 /**
- * @param { number } aceId 
- * @param { td.AceTxnSchemaDataStructures } toSchemaDataStructures 
- * @param { td.AceSchema } fromSchema 
- * @param { td.AceSchema } toSchema 
+ * @param { number } aceId
+ * @param { td.AceTxnSchemaDataStructures } toSchemaDataStructures
+ * @param { td.AceSchema } fromSchema
+ * @param { td.AceSchema } toSchema
  * @param { string } [ fromNode ]
  * @param { string } [ fromProp ]
  */

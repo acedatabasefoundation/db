@@ -1,6 +1,6 @@
 import { td } from '#ace'
-import { AceError } from '../../objects/AceError.js'
 import { sign } from '../../security/hash.js'
+import { AceError } from '../../objects/AceError.js'
 
 
 /**
@@ -15,8 +15,8 @@ import { sign } from '../../security/hash.js'
  */
 export async function hashMutationProp (type, nodeOrRelationshipName, props, propName, propValue, schemaProp, jwks, jwkName) {
   if (schemaProp.options.dataType === 'hash') {
-    if (!jwkName) throw AceError('falsyOptionsPrivateJwk', `Please ensure the ${ type } name "${ nodeOrRelationshipName }" with the prop name "${ propName }" has a reqItem.how.$o.privateJWK. Example: reqItem.how.$o: { privateJWK: 'password' }`, { propName, propValue })
-    if (!jwks.private[jwkName]) throw AceError('falsyRequestItemPrivateJwk', `Please ensure the ${ type } name "${ nodeOrRelationshipName }" with the prop name "${ propName }" has reqItem.how.$o.privateJWK[ name ] aligned with any ace() options.jwks[ name ]`, { propName, propValue })
+    if (!jwkName) throw new AceError('falsyOptionsPrivateJwk', `Please ensure the ${ type } name "${ nodeOrRelationshipName }" with the prop name "${ propName }" has a reqItem.how.$o.privateJWK. Example: reqItem.how.$o: { privateJWK: 'password' }`, { propName, propValue })
+    if (!jwks.private[jwkName]) throw new AceError('falsyRequestItemPrivateJwk', `Please ensure the ${ type } name "${ nodeOrRelationshipName }" with the prop name "${ propName }" has reqItem.how.$o.privateJWK[ name ] aligned with any ace() options.jwks[ name ]`, { propName, propValue })
 
     props[propName] = await sign(propValue, jwks.private[jwkName])
   }

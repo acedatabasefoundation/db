@@ -16,12 +16,14 @@
     "src/ace/mutate/deleteNodes.js",
     "src/ace/mutate/deleteRelationshipProps.js",
     "src/ace/mutate/deleteRelationships.js",
+    "src/ace/mutate/encryptMutationProp.js",
     "src/ace/mutate/hashMutationProp.js",
     "src/ace/mutate/inupNode.js",
     "src/ace/mutate/inupRelationship.js",
     "src/ace/mutate/overwriteIds.js",
     "src/ace/mutate/validateMustBeDefined.js",
 
+    "src/ace/query/doLimit.js",
     "src/ace/query/doQueryOptions.js",
     "src/ace/query/getDetailedResValue.js",
     "src/ace/query/getNewProps.js",
@@ -32,16 +34,20 @@
     "src/ace/txn/cancelTxn.js",
     "src/ace/txn/setTxnEnv.js",
     "src/ace/txn/setTxnId.js",
+    "src/ace/txn/setTxnPaths.js",
     "src/ace/txn/setTxnStep.js",
     "src/ace/txn/setTxnTimer.js",
 
     "src/ace/ace.js",
     "src/ace/deligate.js",
     "src/ace/graphSort.js",
-    "src/ace/log.js",
     "src/ace/set$ace.js",
     "src/ace/setHasUpdates.js",
     "src/ace/setJWKs.js",
+
+    "src/aol/appendToAol.js",
+    "src/aol/initMemoryAol.js",
+    "src/aol/revertAppendToAol.js",
 
     "src/cli/cli.js",
     "src/cli/cliTypes.js",
@@ -73,7 +79,7 @@
     "src/enums/sortHow.js",
     "src/enums/txnDo.js",
     "src/enums/txnSteps.js",
-    "src/enums/writeDo.js",
+    "src/enums/writeAction.js",
 
     "src/objects/AceError.js",
     "src/objects/Collator.js",
@@ -112,15 +118,13 @@
     "src/security/secureAce.js",
     "src/security/transmute.js",
 
+    "src/util/binarySearch.js",
     "src/util/file.js",
     "src/util/isObjectPopulated.js",
+    "src/util/lessThan.js",
     "src/util/storage.js",
     "src/util/validatePropValue.js",
     "src/util/variables.js",
-
-    "src/wal/appendWal.js",
-    "src/wal/walMapInitialize.js",
-    "src/wal/revertAppendWal.js",
 
     "src/index.js",
   ],

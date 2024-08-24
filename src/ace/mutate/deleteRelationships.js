@@ -1,7 +1,6 @@
 import { td } from '#ace'
 import { AceError } from '../../objects/AceError.js'
 import { write, getMany } from '../../util/storage.js'
-import { getRelationshipProp } from '../../util/variables.js'
 import { delete_IdFromRelationshipProp } from './delete_IdFromRelationshipProp.js'
 import { delete_IdsFromRelationshipIndex } from './delete_IdsFromRelationshipIndex.js'
 
@@ -11,24 +10,22 @@ import { delete_IdsFromRelationshipIndex } from './delete_IdsFromRelationshipInd
  * @returns { Promise<void> }
  */
 export async function deleteRelationships (_ids) {
-  if (!Array.isArray(_ids) || !_ids.length) throw AceError('deleteRelationships__invalidIds', 'Please ensure _ids to deleteRelationships() is a populated array, this is not happening yet for the _ids:', { _ids })
+  if (!Array.isArray(_ids) || !_ids.length) throw new AceError('deleteRelationships__invalidIds', 'Please ensure _ids to deleteRelationships() is a populated array, this is not happening yet for the _ids:', { _ids })
 
-  /** @type { td.AceGraphRelationship[] } */
-  const graphRelationships = await getMany(_ids)
+  const graphRelationships = /** @type { td.AceGraphRelationship[] } */ (await getMany(_ids))
 
   /** @type { Map<string, Set<string | number>>} Map<relationshipName, _ids> Group _ids by relationship*/
   const byRelationship = new Map()
 
-  for (const graphRelationship of graphRelationships) {
-    const set = byRelationship.get(graphRelationship.relationship) || new Set()
-    set.add(graphRelationship.props._id)
-    byRelationship.set(graphRelationship.relationship, set)
+  for (let i = 0; i < graphRelationships.length; i++) {
+    const set = byRelationship.get(graphRelationships[i].relationship) || new Set()
+    set.add(graphRelationships[i].$aK)
+    byRelationship.set(graphRelationships[i].relationship, set)
 
-    /** @type { td.AceGraphNode[] } */
-    const relationshipNodes = await getMany([ graphRelationship.props.a, graphRelationship.props.b ])
+    const relationshipNodes = /** @type { td.AceGraphNode[] } */ (await getMany([ graphRelationships[i].a, graphRelationships[i].b ]))
 
-    for (const relationshipNode of relationshipNodes) {
-      delete_IdFromRelationshipProp(getRelationshipProp(graphRelationship.relationship), graphRelationship.props._id, relationshipNode)
+    for (let j = 0; j < relationshipNodes.length; j++) {
+      delete_IdFromRelationshipProp(graphRelationships[i].relationship, graphRelationships[i].$aK, relationshipNodes[j])
     }
   }
 
@@ -36,7 +33,7 @@ export async function deleteRelationships (_ids) {
     await delete_IdsFromRelationshipIndex(entry[0], entry[1])
   }
 
-  for (const _id of _ids) {
-    write('delete', _id) // add @ end b/c above we need info from this relationship
+  for (let i = 0; i < _ids.length; i++) {
+    write({ $aA: 'delete', $aK: _ids[i] }) // add @ end b/c above we need info from this relationship
   }
 }

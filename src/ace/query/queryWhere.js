@@ -1,6 +1,7 @@
 import { td, enums } from '#ace'
 import { verify } from '../../security/hash.js'
 import { Memory } from '../../objects/Memory.js'
+import { decrypt } from '../../security/crypt.js'
 import { AceError } from '../../objects/AceError.js'
 import { getRelationshipNode } from './getRelationshipNode.js'
 
@@ -10,8 +11,9 @@ import { getRelationshipNode } from './getRelationshipNode.js'
  * @param { td.AceFnFullResponse } res 
  * @param { enums.queryOptions } option 
  * @param { td.AceFnCryptoJWKs } jwks 
+ * @param { td.AceFnOptions } options
  */
-export async function queryWhere (detailedResValueSection, res, option, jwks) {
+export async function queryWhere (detailedResValueSection, res, option, jwks, options) {
   if (Array.isArray(res.original[detailedResValueSection.resKey])) {
     /** @type { any[] } To avoid splicing the orignal till we have validated what we have done, copy original */
     const ogCopy = JSON.parse(JSON.stringify(res.original[detailedResValueSection.resKey]))
@@ -44,8 +46,8 @@ export async function queryWhere (detailedResValueSection, res, option, jwks) {
     for (let iCopy = 0; iCopy < ogCopy.length; iCopy++) {
       let spliced = false
 
-      if (groupOptions.has(/** @type {*} */ (option))) spliced = await loopGroupQueries(/** @type { td.AceQueryFindGroup | td.AceQueryFilterGroup } */($where), option, iOriginal, true, detailedResValueSection, res, jwks)
-      else spliced = await verifySplice($where, option, iOriginal, ogCopy[iCopy], true, detailedResValueSection, res, jwks)
+      if (groupOptions.has(/** @type {*} */(option))) spliced = await loopGroupQueries(/** @type { td.AceQueryFindGroup | td.AceQueryFilterGroup } */($where), option, iOriginal, true, detailedResValueSection, res, jwks, options)
+      else spliced = await verifySplice($where, option, iOriginal, ogCopy[iCopy], true, detailedResValueSection, res, jwks, options)
 
       if (!spliced && findOptions.has(option)) { // If we did not splice that means we found a match. If we found a match for any findOptions we can break the loop
         res.now[detailedResValueSection.resKey] = [ res.now[detailedResValueSection.resKey][iOriginal] ]
@@ -72,9 +74,10 @@ export async function queryWhere (detailedResValueSection, res, option, jwks) {
  * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
  * @param { td.AceFnFullResponse } res 
  * @param { td.AceFnCryptoJWKs } jwks
+ * @param { td.AceFnOptions } options
  * @returns { Promise<boolean> }
  */
-async function loopGroupQueries ($where, option, iOriginal, doSplice, detailedResValueSection, res, jwks) {
+async function loopGroupQueries ($where, option, iOriginal, doSplice, detailedResValueSection, res, jwks, options) {
   let spliced = false
 
   switch (option) {
@@ -82,8 +85,8 @@ async function loopGroupQueries ($where, option, iOriginal, doSplice, detailedRe
     case 'filterByOr':
       let keepArrayItem = false
 
-      for (const $whereItem of $where) {
-        if ((await innerLoopGroupQueries(/** @type { td.AceQueryWherePropValue | td.AceQueryWherePropProp | td.AceQueryWherePropRes | td.AceQueryWhereDefined | td.AceQueryWhereUndefined | td.AceQueryFindGroup | td.AceQueryFilterGroup } */($whereItem), getGroupItemOption(option, $where, $whereItem), iOriginal, detailedResValueSection, res, jwks)) === false) { // on first splice false => keepArrayItem <- true
+      for (let i = 0; i < $where.length; i++) {
+        if ((await innerLoopGroupQueries(/** @type { td.AceQueryWherePropValue | td.AceQueryWherePropProp | td.AceQueryWherePropRes | td.AceQueryWhereDefined | td.AceQueryWhereUndefined | td.AceQueryFindGroup | td.AceQueryFilterGroup } */($where[i]), getGroupItemOption(option, $where, $where[i]), iOriginal, detailedResValueSection, res, jwks, options)) === false) { // on first splice false => keepArrayItem <- true
           keepArrayItem = true
           break
         }
@@ -100,8 +103,8 @@ async function loopGroupQueries ($where, option, iOriginal, doSplice, detailedRe
     case 'filterByAnd':
       let removeArrayItem = false
 
-      for (const $whereItem of $where) {
-        if ((await innerLoopGroupQueries(/** @type { td.AceQueryWherePropValue | td.AceQueryWherePropProp | td.AceQueryWherePropRes | td.AceQueryWhereDefined | td.AceQueryWhereUndefined | td.AceQueryFindGroup | td.AceQueryFilterGroup } */($whereItem), getGroupItemOption(option, $where, $whereItem), iOriginal, detailedResValueSection, res, jwks)) === true) { // on first splice true => removeArrayItem <- true
+      for (let i = 0; i < $where.length; i++) {
+        if ((await innerLoopGroupQueries(/** @type { td.AceQueryWherePropValue | td.AceQueryWherePropProp | td.AceQueryWherePropRes | td.AceQueryWhereDefined | td.AceQueryWhereUndefined | td.AceQueryFindGroup | td.AceQueryFilterGroup } */($where[i]), getGroupItemOption(option, $where, $where[i]), iOriginal, detailedResValueSection, res, jwks, options)) === true) { // on first splice true => removeArrayItem <- true
           removeArrayItem = true
           break
         }
@@ -125,9 +128,10 @@ async function loopGroupQueries ($where, option, iOriginal, doSplice, detailedRe
  * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
  * @param { td.AceFnFullResponse } res 
  * @param { td.AceFnCryptoJWKs } jwks
+ * @param { td.AceFnOptions } options
  * @returns { Promise<boolean | undefined> }
  */
-async function innerLoopGroupQueries ($where, option, iOriginal, detailedResValueSection, res, jwks) {
+async function innerLoopGroupQueries($where, option, iOriginal, detailedResValueSection, res, jwks, options) {
   let r
 
   switch (option) {
@@ -141,13 +145,13 @@ async function innerLoopGroupQueries ($where, option, iOriginal, detailedResValu
     case 'filterByPropValue':
     case 'filterByPropProp':
     case 'filterByPropRes':
-      r = await verifySplice($where, option, iOriginal, res.original[detailedResValueSection.resKey][iOriginal], false, detailedResValueSection, res, jwks)
+      r = await verifySplice($where, option, iOriginal, res.original[detailedResValueSection.resKey][iOriginal], false, detailedResValueSection, res, jwks, options)
       break
     case 'findByOr':
     case 'findByAnd':
     case 'filterByOr':
     case 'filterByAnd':
-      r = loopGroupQueries(/** @type { td.AceQueryFindGroup | td.AceQueryFilterGroup } */($where), /** @type { enums.queryOptions } */(option), iOriginal, false, detailedResValueSection, res, jwks)
+      r = loopGroupQueries(/** @type { td.AceQueryFindGroup | td.AceQueryFilterGroup } */($where), /** @type { enums.queryOptions } */(option), iOriginal, false, detailedResValueSection, res, jwks, options)
       break
   }
 
@@ -167,17 +171,18 @@ function splice (detailedResValueSection, res, iOriginal) {
 
 
 /**
- * @param { any } $where 
- * @param { enums.queryOptions} option 
- * @param { number } iOriginal 
- * @param { any } graphNode 
- * @param { boolean } doSplice 
- * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
- * @param { td.AceFnFullResponse } res 
+ * @param { any } $where
+ * @param { enums.queryOptions} option
+ * @param { number } iOriginal
+ * @param { any } graphNode
+ * @param { boolean } doSplice
+ * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection
+ * @param { td.AceFnFullResponse } res
  * @param { td.AceFnCryptoJWKs } jwks
+ * @param { td.AceFnOptions } options
  * @returns { Promise<boolean> }
  */
-async function verifySplice ($where, option, iOriginal, graphNode, doSplice, detailedResValueSection, res, jwks) {
+async function verifySplice ($where, option, iOriginal, graphNode, doSplice, detailedResValueSection, res, jwks, options) {
   let spliced = false
 
   const bye = () => {
@@ -186,12 +191,12 @@ async function verifySplice ($where, option, iOriginal, graphNode, doSplice, det
   }
 
   if (option === 'findByDefined' || option === 'filterByDefined') {
-    if (typeof getValue($where?.isPropDefined ? { prop: $where.isPropDefined } : { prop: $where }, 'prop', graphNode, detailedResValueSection, res).value === 'undefined') bye()
+    if (typeof (await getValue($where?.isPropDefined ? { prop: $where.isPropDefined } : { prop: $where }, 'prop', graphNode, detailedResValueSection, res, jwks, options)).value === 'undefined') bye()
   } else if (option === 'findByUndefined' || option === 'filterByUndefined') {
-    if (typeof getValue($where?.isPropUndefined ? { prop: $where.isPropUndefined } : { prop: $where }, 'prop', graphNode, detailedResValueSection, res).value !== 'undefined') bye()
+    if (typeof (await getValue($where?.isPropUndefined ? { prop: $where.isPropUndefined } : { prop: $where }, 'prop', graphNode, detailedResValueSection, res, jwks, options)).value !== 'undefined') bye()
   } else {
-    const qw = /** @type { td.AceQueryWherePropProp | td.AceQueryWherePropRes | td.AceQueryWherePropValue } */ ($where)
-    const left = getValue(qw[0], 'prop', graphNode, detailedResValueSection, res)
+    const qw = /** @type { td.AceQueryWherePropProp | td.AceQueryWherePropRes | td.AceQueryWherePropValue } */ ($where);
+    const left = await getValue(qw[0], 'prop', graphNode, detailedResValueSection, res, jwks, options);
 
     /** @type { 'prop' | 'res' | 'value' } */
     let rightIs
@@ -200,7 +205,7 @@ async function verifySplice ($where, option, iOriginal, graphNode, doSplice, det
     else if (option === 'findByPropRes' || option === 'filterByPropRes') rightIs = 'res'
     else rightIs = 'value'
 
-    const right = getValue(qw[2], rightIs, graphNode, detailedResValueSection, res)
+    const right = await getValue(qw[2], rightIs, graphNode, detailedResValueSection, res, jwks, options)
     const isUndefined = typeof left.value === 'undefined' || typeof right.value === 'undefined'
 
     switch (qw[1]) {
@@ -255,11 +260,13 @@ async function verifySplice ($where, option, iOriginal, graphNode, doSplice, det
  * @param { 'prop' | 'value' | 'res' } is
  * @param { any } graphNode
  * @param { td.AceQueryRequestItemDetailedResValueSection } detailedResValueSection 
- * @param { td.AceFnFullResponse } res 
- * @returns { td.AceQueyWhereGetValueResponse }
+ * @param { td.AceFnFullResponse } res
+ * @param { td.AceFnCryptoJWKs } jwks
+ * @param { td.AceFnOptions } options
+ * @returns { Promise<td.AceQueyWhereGetValueResponse> }
  */
-function getValue (item, is, graphNode, detailedResValueSection, res) {
-  let getValueResponse = /** @type { td.AceQueyWhereGetValueResponse } */ ({ is, value: null, detailedResValueSection: null })
+async function getValue (item, is, graphNode, detailedResValueSection, res, jwks, options) {
+  let getValueResponse = /** @type { td.AceQueyWhereGetValueResponse } */ ({ is, value: null, detailedResValueSection: null });
 
   switch (is) {
     case 'value':
@@ -267,8 +274,8 @@ function getValue (item, is, graphNode, detailedResValueSection, res) {
       getValueResponse.detailedResValueSection = detailedResValueSection
       break
     case 'res':
-      let resValue
-      const itemRes = /** @type { td.AceQueryWhereItemRes } */ (item)
+      let resValue;
+      const itemRes = /** @type { td.AceQueryWhereItemRes } */ (item);
 
       for (let i = 0; i < itemRes.res.length; i++) {
         if (i === 0 && res.now[itemRes.res[i]]) resValue = res.now[itemRes.res[i]]
@@ -279,10 +286,12 @@ function getValue (item, is, graphNode, detailedResValueSection, res) {
       getValueResponse.detailedResValueSection = detailedResValueSection
       break
     case 'prop':
-      const itemProp = /** @type { td.AceQueryWhereItemProp } */ (item)
+      const itemProp = /** @type { td.AceQueryWhereItemProp } */ (item);
 
       if (!itemProp.relationships?.length) {
-        getValueResponse.value = graphNode[itemProp.prop]
+        if (item.iv && item.jwk && options.ivs?.[item.iv] && jwks?.crypt?.[item.jwk]) getValueResponse.value = await decrypt(graphNode[itemProp.prop], options.ivs[item.iv], jwks.crypt[item.jwk])
+        else getValueResponse.value = graphNode[itemProp.prop]
+
         getValueResponse.detailedResValueSection = detailedResValueSection
       } else {
         const rRelationshipNode = getRelationshipNode(detailedResValueSection, graphNode, itemProp.relationships)
@@ -323,11 +332,11 @@ function isLeftOrRightHash (qw, left, right, sideIndex) {
  * @returns { Promise<boolean> }
  */
 async function isHashValid (qw, left, right, sideIndex, detailedResValueSection, option, jwks) {
-  const jwkProp = detailedResValueSection.resValue?.$o?.publicJWKs?.[/** @type {'findByOr'} */ (option)]
-  const publicJWK = jwkProp ? jwks.public[jwkProp] : null
+  const jwkProp = detailedResValueSection.resValue?.$o?.publicJWKs?.[/** @type {'findByOr'} */ (option)];
+  const publicJWK = jwkProp ? jwks.public[jwkProp] : null;
 
-  if (!jwkProp) throw AceError('isHashValid__falsyHashPublicKey', `Please ensure $o.publicJWKs[${ option }] is truthy`, { $o: detailedResValueSection.resValue?.$o })
-  if (!publicJWK) throw AceError('isHashValid__invalidHashPublicKey', `Please ensure $o.publicJWKs[${ option }] is also in ace() options.jwks.public[${ option }]`, { qw })
+  if (!jwkProp) throw new AceError('isHashValid__falsyHashPublicKey', `Please ensure $o.publicJWKs[${ option }] is truthy`, { $o: detailedResValueSection.resValue?.$o })
+  if (!publicJWK) throw new AceError('isHashValid__invalidHashPublicKey', `Please ensure $o.publicJWKs[${ option }] is also in ace() options.jwks.public[${ option }]`, { qw })
 
   return sideIndex ?
     await verify(left.value, right.value, publicJWK) :
@@ -354,7 +363,7 @@ function getGroupItemOption (option, group, groupItem) {
     else groupItemOption = startsWith + 'PropValue'
   } else if (/** @type { td.AceQueryWhereDefined } */(groupItem)?.isPropDefined) groupItemOption = startsWith + 'Defined'
   else if (/** @type { td.AceQueryWhereUndefined } */(groupItem)?.isPropUndefined) groupItemOption = startsWith + 'Undefined'
-  else throw AceError('getGroupItemOption__invalidQuerySearch', `Please ensure ${ type } is fomatted correctly`, { [type]: group })
+  else throw new AceError('getGroupItemOption__invalidQuerySearch', `Please ensure ${ type } is fomatted correctly`, { [type]: group })
   
-  return /** @type { enums.queryOptions } */ (groupItemOption)
+  return /** @type { enums.queryOptions } */ (groupItemOption);
 }

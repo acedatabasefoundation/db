@@ -177,8 +177,8 @@ export const txnSteps = {
 }
 
 
-/** @typedef { 'insert' | 'update' | 'upsert' | 'delete' } writeDo */
-export const writeDo = {
+/** @typedef { 'insert' | 'update' | 'upsert' | 'delete' } writeAction */
+export const writeAction = {
   insert: /** @type { 'insert' } */ ('insert'),
   update: /** @type { 'update' } */ ('update'),
   upsert: /** @type { 'upsert' } */ ('upsert'),

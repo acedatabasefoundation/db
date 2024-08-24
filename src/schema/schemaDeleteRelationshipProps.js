@@ -12,34 +12,32 @@ import { getRelationship_IdsKey } from '../util/variables.js'
  * @returns { Promise<void> }
  */
 export async function schemaDeleteRelationshipProps (reqItem, isSourceSchemaPush) {
-  for (const item of reqItem.how) {
-    const relationship = item.relationship
-    const prop = /** @type { string } */(item.prop)
-    const schemaProps = Memory.txn.schema?.relationships?.[relationship]?.props
+  for (let i = 0; i < reqItem.how.length; i++) {
+    // const relationship = reqItem.how[i].relationship
+    // const prop = /** @type { string } */(reqItem.how[i].prop)
+    const schemaProps = Memory.txn.schema?.relationships?.[reqItem.how[i].relationship]?.props
 
-    if (!schemaProps?.[prop]) throw AceError('schemaDeleteRelationshipProps__notInSchema', `Pleae ensure that when you'd love to delete a prop, the relationship and prop are defined in your schema, this is not happening yet with relationship: "${ relationship }" and prop: "${ prop }" for the reqItem:`, { reqItem, relationship, prop })
-    if (prop === '_id') throw AceError('schemaDeleteRelationshipProps__noDelete_Id', `Pleae ensure that when you'd love to delete a prop, the prop is not "_id", this is not happening yet for the reqItem:`, { reqItem, relationship, prop })
-    if (prop === 'a') throw AceError('schemaDeleteRelationshipProps__noDeleteA', `Pleae ensure that when you'd love to delete a prop, the prop is not "a", this is not happening yet for the reqItem:`, { reqItem, relationship, prop })
-    if (prop === 'b') throw AceError('schemaDeleteRelationshipProps__noDeleteB', `Pleae ensure that when you'd love to delete a prop, the prop is not "b", this is not happening yet for the reqItem:`, { reqItem, relationship, prop })
+    if (!schemaProps?.[reqItem.how[i].prop]) throw new AceError('schemaDeleteRelationshipProps__notInSchema', `Pleae ensure that when you'd love to delete a prop, the relationship and prop are defined in your schema, this is not happening yet with relationship: "${ reqItem.how[i].relationship }" and prop: "${ reqItem.how[i].prop }" for the reqItem:`, { reqItem, relationship: reqItem.how[i].relationship, prop: reqItem.how[i].prop })
+    if (reqItem.how[i].prop === '_id') throw new AceError('schemaDeleteRelationshipProps__noDelete_Id', `Pleae ensure that when you'd love to delete a prop, the prop is not "_id", this is not happening yet for the reqItem:`, { reqItem, relationship: reqItem.how[i].relationship, prop: reqItem.how[i].prop })
+    if (reqItem.how[i].prop === 'a') throw new AceError('schemaDeleteRelationshipProps__noDeleteA', `Pleae ensure that when you'd love to delete a prop, the prop is not "a", this is not happening yet for the reqItem:`, { reqItem, relationship: reqItem.how[i].relationship, prop: reqItem.how[i].prop })
+    if (reqItem.how[i].prop === 'b') throw new AceError('schemaDeleteRelationshipProps__noDeleteB', `Pleae ensure that when you'd love to delete a prop, the prop is not "b", this is not happening yet for the reqItem:`, { reqItem, relationship: reqItem.how[i].relationship, prop: reqItem.how[i].prop })
 
-    const relationship_IdsKey = getRelationship_IdsKey(relationship)
+    const relationship_IdsKey = getRelationship_IdsKey(reqItem.how[i].relationship)
+    const relationship_Ids =/** @type { td.AceGraphIndex | undefined } */ ( await getOne(relationship_IdsKey))
 
-    /** @type { (string | number)[] } */
-    const relationship_Ids = await getOne(relationship_IdsKey)
+    if (Array.isArray(relationship_Ids?.index)) {
+      const graphRelationships = /** @type { td.AceGraphRelationship[] } */ (await getMany(relationship_Ids.index));
 
-    if (relationship_Ids?.length) {
-      /** @type {td.AceGraphRelationship[] } */
-      const graphRelationships = await getMany(relationship_Ids)
-
-      for (const graphRelationship of graphRelationships) {
-        if (typeof graphRelationship.props[prop] !== 'undefined') {
-          delete graphRelationship.props[prop]
-          write('update', graphRelationship.props._id, graphRelationship)
+      for (let i = 0; i < graphRelationships.length; i++) {
+        if (typeof graphRelationships[i][reqItem.how[i].prop] !== 'undefined') {
+          delete graphRelationships[i][reqItem.how[i].prop]
+          graphRelationships[i].$aA = 'update'
+          write(graphRelationships[i])
         }
       }
     }
 
-    delete schemaProps[prop]
+    delete schemaProps[reqItem.how[i].prop]
     doneSchemaUpdate(isSourceSchemaPush)
   }
 }

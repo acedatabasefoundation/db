@@ -1,25 +1,21 @@
 import { td } from '#ace'
 import { readFile } from 'node:fs/promises'
+import { initPaths } from '../util/file.js'
 import { Memory } from '../objects/Memory.js'
 import { AceError } from '../objects/AceError.js'
-import { getPaths, initPaths } from '../util/file.js'
 import { SchemaDetail } from '../objects/SchemaDetail.js'
 import { SchemaDataStructures } from '../objects/SchemaDataStructures.js'
 
 
-/**
- * @param { td.AceFnOptions } options 
- * @returns { Promise<td.AceFilePaths> }
- */
-export async function setSchema (options) {
-  if (!Memory.txn.env) throw AceError('missingEnv', 'Please ensure Memory.txn.env is a truthy when calling setSchema()', {})
+/** @returns { Promise<void> } */
+export async function setSchema () {
+  if (!Memory.txn.env) throw new AceError('setSchema__missingEnv', 'Please ensure Memory.txn.env is a truthy when calling setSchema()', {})
+  if (!Memory.txn.paths) throw new AceError('setSchema__missingPaths', 'Please ensure Memory.txn.paths is a truthy when calling setSchema()', {})
 
-  const paths = getPaths(options.dir, ['dir', 'schemas', 'schemaDetails' ])
-  await initPaths(paths, [ 'dir', 'schemas' ])
-
+  await initPaths([ 'dir', 'schemas' ])
 
   if (!Memory.txn.schemaOriginalDetails || !Memory.txn.schemaNowDetails) { // if no details => bind details from file
-    const str = await readFile(paths.schemaDetails, { encoding: 'utf-8', flag: 'a+' })
+    const str = await readFile(Memory.txn.paths.schemaDetails, { encoding: 'utf-8', flag: 'a+' })
 
     if (str) {
       Memory.txn.schemaNowDetails = JSON.parse(str)
@@ -35,13 +31,11 @@ export async function setSchema (options) {
     Memory.txn.schemaNowDetails[ Memory.txn.env ] = SchemaDetail()
     Memory.txn.schemaOriginalDetails[ Memory.txn.env ] = SchemaDetail()
   } else { // if details => bind schema
-    const str = await readFile(`${ paths.schemas }/${ Memory.txn.schemaOriginalDetails[ Memory.txn.env ].nowId }.json`, 'utf8')
+    const str = await readFile(`${ Memory.txn.paths.schemas }/${ Memory.txn.schemaOriginalDetails[ Memory.txn.env ].nowId }.json`, 'utf8')
 
     if (str) {
-      Memory.txn.schema = /** @type { td.AceSchema } */ (JSON.parse(str))
-      Memory.txn.schemaDataStructures = SchemaDataStructures(Memory.txn.schema)
+      Memory.txn.schema = /** @type { td.AceSchema } */ (JSON.parse(str));
+      Memory.txn.schemaDataStructures = SchemaDataStructures(Memory.txn.schema);
     }
   }
-
-  return paths
 }

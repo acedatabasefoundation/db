@@ -14,9 +14,9 @@
     "ace": "dist/cli/cli.js"
   },
   "devDependencies": {
-    "@types/node": "^20.14.2",
+    "@types/node": "^20.14.11",
     "esbuild": "^0.21.5",
-    "typescript": "5.5.1-rc"
+    "typescript": "5.5.3"
   },
   "keywords": [
     "ace",

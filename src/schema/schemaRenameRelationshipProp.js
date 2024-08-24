@@ -12,32 +12,31 @@ import { getRelationship_IdsKey } from '../util/variables.js'
  * @returns { Promise<void> }
  */
 export async function schemaRenameRelationshipProp (reqItem, isSourceSchemaPush) {
-  for (const { relationship, nowName, newName } of reqItem.how) {
-    if (!Memory.txn.schema?.relationships?.[relationship]) throw AceError('schemaRenameRelationshipProp__invalidRelationship', `Please ensure that when updating a relationship prop name the relationship is defined in the schema, this is not happening yet for the relationship: ${ relationship }`, { relationship, nowName, newName })
-    if (!Memory.txn.schema?.relationships[relationship]?.props?.[nowName]) throw AceError('schemaRenameRelationshipProp__invalidProp', `Please ensure that when updating a relationship prop name the prop is defined in the schema, this is not happening yet for the relationship: ${ relationship } and the prop: ${ nowName }`, { relationship, nowName, newName })
+  for (let i = 0; i < reqItem.how.length; i++) {
+    if (!Memory.txn.schema?.relationships?.[reqItem.how[i].relationship]) throw new AceError('schemaRenameRelationshipProp__invalidRelationship', `Please ensure that when updating a relationship prop name the relationship is defined in the schema, this is not happening yet for the relationship: ${ reqItem.how[i].relationship }`, { relationship: reqItem.how[i].relationship, nowName: reqItem.how[i].nowName, newName: reqItem.how[i].newName })
+    if (!Memory.txn.schema?.relationships[reqItem.how[i].relationship]?.props?.[reqItem.how[i].nowName]) throw new AceError('schemaRenameRelationshipProp__invalidProp', `Please ensure that when updating a relationship prop name the prop is defined in the schema, this is not happening yet for the relationship: ${ reqItem.how[i].relationship } and the prop: ${ reqItem.how[i].nowName }`, { relationship: reqItem.how[i].relationship, nowName: reqItem.how[i].nowName, newName: reqItem.how[i].newName })
 
-    /** @type { (string | number)[] } Update prop on each graphRelationship */
-    const relationship_Ids = await getOne(getRelationship_IdsKey(relationship))
+    const relationship_Ids = /** @type { td.AceGraphIndex | undefined } Update prop on each graphRelationship */ (await getOne(getRelationship_IdsKey(reqItem.how[i].relationship)))
 
-    if (relationship_Ids?.length) {
-      /** @type { td.AceGraphRelationship[] } */
-      const graphRelationships = await getMany(relationship_Ids)
+    if (Array.isArray(relationship_Ids?.index)) {
+      const graphRelationships = /** @type { td.AceGraphRelationship[] } */ (await getMany(relationship_Ids.index));
 
-      for (const graphRelationship of graphRelationships) {
-        if (typeof graphRelationship.props[nowName] !== 'undefined') {
-          graphRelationship.props[newName] = graphRelationship.props[nowName]
-          delete graphRelationship.props[nowName]
-          write('update', graphRelationship.props._id, graphRelationship)
+      for (let j = 0; j < graphRelationships.length; j++) {
+        if (typeof graphRelationships[j]?.props[reqItem.how[i].nowName] !== 'undefined') {
+          graphRelationships[j][reqItem.how[i].newName] = graphRelationships[j][reqItem.how[i].nowName]
+          graphRelationships[j].$aA = 'update'
+          delete graphRelationships[j][reqItem.how[i].nowName]
+          write(graphRelationships[j])
         }
       }
     }
 
     // update schema
-    const props = Memory.txn.schema.relationships[relationship].props
+    const props = Memory.txn.schema.relationships[reqItem.how[i].relationship].props
 
     if (props) {
-      props[newName] = props[nowName]
-      delete props[nowName]
+      props[reqItem.how[i].newName] = props[reqItem.how[i].nowName]
+      delete props[reqItem.how[i].nowName]
       doneSchemaUpdate(isSourceSchemaPush)
     }
   }

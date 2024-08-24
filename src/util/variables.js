@@ -1,65 +1,64 @@
 // INTERNAL OR EXTERNAL (So exported @ index.js)
 
-export const ADD_NOW_DATE = 'now'
-export const ENUM_ID_PREFIX = '_:'
-export const REQUEST_TOKEN_HEADER = 'ace_api_token'
+export const vars = {
+  enumIdPrefix: '_:',
+  nowIsoPlaceholder: 'now',
+  preQueryOptionsFlow: [
+    'flow',
+    'alias',
+    'fill',
+    'publicJWKs',
+    'limit', // limit done b4 props defined IF no $o below this in preQueryOptionsFlow or defaultQueryOptionsFlow
+    'sort', // IF sort schema index is defined for the sort prop, then we get sorted ids from index
+    'findById',
+    'findBy_Id',
+    'findByUnique',
+    'filterByIds',
+    'filterBy_Ids',
+    'filterByUniques',
+  ],
+  defaultQueryOptionsFlow: [ // configurable
+    'countAsProp',
+    'sumAsProp',
+    'avgAsProp',
+    'minAmtAsProp',
+    'maxAmtAsProp',
 
-export const PRE_QUERY_OPTIONS_FLOW = [
-  'flow',
-  'alias',
-  'fill',
-  'sort', // IF sort schema index is defined for the sort prop, then we get sorted ids from index
-  'findById',
-  'findBy_Id',
-  'findByUnique',
-  'filterByIds',
-  'filterBy_Ids',
-  'filterByUniques',
-  'publicJWKs',
-]
+    'newProps',
+    'propAdjToRes',
 
-export const DEFAULT_QUERY_OPTIONS_FLOW = [ // configurable
-  'countAsProp',
-  'sumAsProp',
-  'avgAsProp',
-  'minAmtAsProp',
-  'maxAmtAsProp',
+    'findByOr',
+    'findByAnd',
+    'findByDefined',
+    'findByUndefined',
+    'findByPropValue',
+    'findByPropProp',
+    'findByPropRes',
 
-  'newProps',
-  'propAdjToRes',
+    'filterByOr',
+    'filterByAnd',
+    'filterByDefined',
+    'filterByUndefined',
+    'filterByPropValue',
+    'filterByPropProp',
+    'filterByPropRes',
 
-  'findByOr',
-  'findByAnd',
-  'findByDefined',
-  'findByUndefined',
-  'findByPropValue',
-  'findByPropProp',
-  'findByPropRes',
-
-  'filterByOr',
-  'filterByAnd',
-  'filterByDefined',
-  'filterByUndefined',
-  'filterByPropValue',
-  'filterByPropProp',
-  'filterByPropRes',
-
-  'sort', // IF sort schema index is not defined for the sort prop then we manually sort
-  'countAdjToRes',
-  'limit',
-]
-
-export const POST_QUERY_OPTIONS_FLOW = [
-  'resHide',
-  'propAsRes',
-  'countAsRes',
-  'sumAsRes',
-  'avgAsRes',
-  'minAmtAsRes',
-  'maxAmtAsRes',
-  'minNodeAsRes',
-  'maxNodeAsRes',
-]
+    'sort', // IF sort schema index is not defined for the sort prop then we manually sort
+    'countAdjToRes',
+    'limit',
+  ],
+  postQueryOptions: [
+    'resHide',
+    'propAsRes',
+    'countAsRes',
+    'sumAsRes',
+    'avgAsRes',
+    'minAmtAsRes',
+    'maxAmtAsRes',
+    'minNodeAsRes',
+    'maxNodeAsRes',
+  ]
+}
 
 
 /** @returns { string } */
@@ -74,44 +73,22 @@ export function getNow () {
 
 // INTERNAL ONLY (So not exported @ index.js)
 
-export const SCHEMA_ID = '$aceId'
+export const schemaId = '$aceId'
 
-export const DELIMITER = '___'
+export const delimiter = '___'
 
-export const KEY_START = '$ace' + DELIMITER
-export const LAST_ID_KEY = KEY_START + 'last' + DELIMITER + 'id'
-export const INDEX_NODE_IDS_PREFIX = KEY_START + 'index' + DELIMITER + 'nodes' + DELIMITER
-export const INDEX_SORT = KEY_START + 'index' + DELIMITER + 'sort' + DELIMITER
-export const INDEX_UNIQUE = KEY_START + 'index' + DELIMITER + 'unique' + DELIMITER
-export const INDEX_RELATIONSHIP_IDS_PREFIX = KEY_START + 'index' + DELIMITER + 'relationships' + DELIMITER
+const keyStart = '$ace' + delimiter
+const relationship_IdsKeyStart = keyStart + 'index' + delimiter + 'relationships' + delimiter
+const nodeIdsKeyStart = keyStart + 'index' + delimiter + 'nodes' + delimiter
 
-export const RELATIONSHIP_PREFIX = '$r' + DELIMITER
+export const lastIdKey = '$ace___last___id' // helps with typedefs to be specific and not use +
 
 export const cryptAlgorithm = { name: 'AES-GCM', length: 256 }
 export const importGenerateAlgorithm = { name: 'ECDSA', namedCurve: 'P-521' }
 export const signVerifyAlgorithm = { name: 'ECDSA', hash: { name: 'SHA-512' } }
 
-export const headerByteAmount = 9
-export const indexItemByteAmount = 45
-
-
-
-/**
- * @param { string } relationshipName
- * @returns { string }
- */
-export function getRelationshipProp (relationshipName) {
-  return RELATIONSHIP_PREFIX + relationshipName
-}
-
-
-/**
- * @param { string } prop
- * @returns { string }
- */
-export function getRelationshipNameFromProp (prop) {
-  return prop.split(RELATIONSHIP_PREFIX)?.[1]
-}
+// export const maxAolByteAmount = 81000000 // 81 MB
+export const maxAolByteAmount = 900
 
 
 /**
@@ -121,7 +98,7 @@ export function getRelationshipNameFromProp (prop) {
  * @returns { string }
  */
 export function getUniqueIndexKey (nodeOrRelationshipName, propKey, propValue) {
-  return INDEX_UNIQUE + nodeOrRelationshipName + DELIMITER + propKey + DELIMITER + encodeURIComponent(String(propValue))
+  return keyStart + 'index' + delimiter + 'unique' + delimiter + nodeOrRelationshipName + delimiter + propKey + delimiter + encodeURIComponent(String(propValue))
 }
 
 
@@ -131,7 +108,7 @@ export function getUniqueIndexKey (nodeOrRelationshipName, propKey, propValue) {
  * @returns { string }
  */
 export function getSortIndexKey (nodeOrRelationshipName, propKey) {
-  return INDEX_SORT + nodeOrRelationshipName + DELIMITER + propKey
+  return keyStart + 'index' + delimiter + 'sort' + delimiter + nodeOrRelationshipName + delimiter + propKey
 }
 
 
@@ -140,7 +117,7 @@ export function getSortIndexKey (nodeOrRelationshipName, propKey) {
  * @returns { string }
  */
 export function getNodeIdsKey (nodeName) {
-  return INDEX_NODE_IDS_PREFIX + nodeName
+  return nodeIdsKeyStart + nodeName
 }
 
 
@@ -149,15 +126,26 @@ export function getNodeIdsKey (nodeName) {
  * @returns { string }
  */
 export function getRelationship_IdsKey (relationshipName) {
-  return INDEX_RELATIONSHIP_IDS_PREFIX + relationshipName
+  return relationship_IdsKeyStart + relationshipName
 }
 
 
 /**
- * @param { string } nodeName 
- * @param { string } relationshipName 
+ * @param { string } graphName
+ * @param { number } position
  * @returns { string }
  */
-export function getNodeNamePlusRelationshipNameToNodePropNameMapKey (nodeName, relationshipName) {
-  return nodeName + DELIMITER + relationshipName
+export function getGraphPositionKey (graphName, position) {
+  return graphName + delimiter + position
+}
+
+
+/**
+ * Env is the env that created this graph
+ * @param { string } env
+ * @param { number } lastId
+ * @returns { string }
+ */
+export function getGraphName (env, lastId) {
+  return lastId + delimiter + env
 }

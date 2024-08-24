@@ -1,4 +1,4 @@
-export const writeDo = new Set([
+export const writeAction = new Set([
   'insert',
   'update',
   'upsert',

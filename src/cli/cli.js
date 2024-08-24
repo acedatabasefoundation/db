@@ -11,6 +11,7 @@ import { writeToken } from './writeToken.js'
 import { getVersion } from './getVersion.js'
 import { dirname, resolve } from 'node:path'
 import { schemaPush } from './schemaPush.js'
+import { getRandomBase64 } from '../security/getRandomBase64.js'
 
 
 (async function cli () {
@@ -34,6 +35,11 @@ import { schemaPush } from './schemaPush.js'
 
       case 'jwks':
         await writeJWKs()
+        break
+
+
+      case 'base64':
+        stdout.write(getRandomBase64() + '\n')
         break
 
 

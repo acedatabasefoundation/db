@@ -3,7 +3,7 @@ import { Memory } from '../objects/Memory.js'
 import { AceError } from '../objects/AceError.js'
 import { doneSchemaUpdate } from './doneSchemaUpdate.js'
 import { write, getOne, getMany } from '../util/storage.js'
-import { getRelationship_IdsKey, getRelationshipProp } from '../util/variables.js'
+import { getRelationship_IdsKey } from '../util/variables.js'
 
 
 /** 
@@ -12,59 +12,53 @@ import { getRelationship_IdsKey, getRelationshipProp } from '../util/variables.j
  * @returns { Promise<void> }
  */
 export async function schemaRenameRelationship (reqItem, isSourceSchemaPush) {
-  for (const { nowName, newName } of reqItem.how) {
-    if (!Memory.txn.schema?.relationships?.[nowName]) throw AceError('schemaRenameRelationship__invalidNowName', `Please ensure that when updating a relationship name, the nowName is defined as a relationship in your schea, this is not happening yet for the nowName: ${ nowName }`, { nowName, newName })
+  for (let i = 0; i < reqItem.how.length; i++) {
+    if (!Memory.txn.schema?.relationships?.[reqItem.how[i].nowName]) throw new AceError('schemaRenameRelationship__invalidNowName', `Please ensure that when updating a relationship name, the nowName is defined as a relationship in your schea, this is not happening yet for the nowName: ${ reqItem.how[i].nowName }`, { nowName: reqItem.how[i].nowName, newName: reqItem.how[i].newName })
+    
+    const relationship_IdsKey = getRelationship_IdsKey(reqItem.how[i].nowName); // update relationship on each graphRelationship
+    const relationship_Ids = /** @type { td.AceGraphIndex | undefined } */ (await getOne(relationship_IdsKey));
 
-    // update relationship on each graphRelationship
-    const relationship_IdsKey = getRelationship_IdsKey(nowName)
-
-    /** @type { (string | number)[] } */
-    const relationship_Ids = await getOne(relationship_IdsKey) || []
-
-    if (relationship_Ids.length) {
+    if (Array.isArray(relationship_Ids?.index)) {
       const graphNodeIds = [] // put a and b node ids here
+      const graphRelationships = /** @type { td.AceGraphRelationship[] } */ (await getMany(relationship_Ids.index));
 
-      /** @type { td.AceGraphRelationship[] } */
-      const graphRelationships = await getMany(relationship_Ids)
-
-      // update graphRelationship.relationship
-      for (const graphRelationship of graphRelationships) {
-        graphRelationship.relationship = newName
-        write('update', graphRelationship.props._id, graphRelationship)
-        graphNodeIds.push(graphRelationship.props.a)
-        graphNodeIds.push(graphRelationship.props.b)
+      for (let j = 0; j < graphRelationships.length; j++) { // update graphRelationship.relationship
+        if (graphRelationships[j]) {
+          graphRelationships[j].$aA = 'update'
+          graphRelationships[j].relationship = reqItem.how[i].newName
+          write(graphRelationships[j])
+          graphNodeIds.push(graphRelationships[j].a)
+          graphNodeIds.push(graphRelationships[j].b)
+        }
       }
 
-      /** @type { td.AceGraphNode[] } */
-      const graphNodes = await getMany(graphNodeIds)
-      const nowRelationshipProp = getRelationshipProp(nowName)
-      const newRelationshipProp = getRelationshipProp(newName)
+      const graphNodes = /** @type { td.AceGraphNode[] } */ (await getMany(graphNodeIds))
 
-      // update graphNode.$r__[ nowName ]
-      for (const graphNode of graphNodes) {
-        if (graphNode[nowRelationshipProp]) {
-          graphNode[newRelationshipProp] = graphNode[nowRelationshipProp]
-          delete graphNode[nowRelationshipProp]
-          write('update', graphNode.props.id, graphNode)
+      for (let j = 0; j < graphNodes.length; j++) { // update graphNode[ newRelationshipProp ]
+        if (graphNodes[j][reqItem.how[i].nowName]) {
+          graphNodes[j][reqItem.how[i].newName] = graphNodes[j][reqItem.how[i].nowName]
+          delete graphNodes[j][reqItem.how[i].nowName]
+          graphNodes[j].$aA = 'update'
+          write(graphNodes[j])
         }
       }
     }
 
-    // update relationship_IdsKey
-    const newRelationship_IdsKey = getRelationship_IdsKey(newName)
-    write('update', newRelationship_IdsKey, relationship_Ids)
-    write('delete', relationship_IdsKey)
+    const newRelationship_IdsKey = getRelationship_IdsKey(reqItem.how[i].newName) // update relationship_IdsKey
+
+    if (relationship_Ids) write({ $aA: 'update', $aK: newRelationship_IdsKey, index: relationship_Ids.index })
+    
+    write({ $aA: 'delete', $aK: relationship_IdsKey })
 
     // update schema relationship
-    Memory.txn.schema.relationships[newName] = Memory.txn.schema.relationships[nowName]
-    delete Memory.txn.schema.relationships[nowName]
-
-    // update schema node props
-    const relationshipNodeProps = Memory.txn.schemaDataStructures.relationshipPropsMap?.get(nowName)
+    Memory.txn.schema.relationships[reqItem.how[i].newName] = Memory.txn.schema.relationships[reqItem.how[i].nowName]
+    delete Memory.txn.schema.relationships[reqItem.how[i].nowName]
+    
+    const relationshipNodeProps = Memory.txn.schemaDataStructures.relationshipPropsMap?.get(reqItem.how[i].nowName) // update schema node props
 
     if (relationshipNodeProps) {
       for (const entry of relationshipNodeProps) {
-        entry[1].propValue.options.relationship = newName
+        entry[1].propValue.options.relationship = reqItem.how[i].newName
         Memory.txn.schema.nodes[entry[1].propNode][entry[0]] = entry[1].propValue
       }
     }

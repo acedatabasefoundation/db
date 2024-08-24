@@ -10,7 +10,7 @@ import { AceError } from '../../objects/AceError.js'
  * @returns { void }
  */
 export function delete_IdFromRelationshipProp (prop, _id, relationshipNode) {
-  if (!Array.isArray(relationshipNode?.[prop])) throw AceError('delete_IdFromRelationshipProp__notArray', 'Please ensure relationshipNode[prop] is an array', { relationshipNode, prop })
+  if (!Array.isArray(relationshipNode?.[prop])) throw new AceError('delete_IdFromRelationshipProp__notArray', 'Please ensure relationshipNode[prop] is an array', { relationshipNode, prop })
 
   if (relationshipNode[prop].length === 1 && relationshipNode[prop][0] === _id) delete relationshipNode[prop]
   else {
@@ -22,5 +22,6 @@ export function delete_IdFromRelationshipProp (prop, _id, relationshipNode) {
     }
   }
 
-  write('update', relationshipNode.props.id, relationshipNode)
+  relationshipNode.$aA = 'update'
+  write(relationshipNode)
 }

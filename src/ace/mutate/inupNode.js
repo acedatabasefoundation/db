@@ -1,4 +1,4 @@
-import { td } from '#ace'
+import { enums, td } from '#ace'
 import { Memory } from '../../objects/Memory.js'
 import { overwriteIds } from './overwriteIds.js'
 import { getGraphId } from '../id/getGraphId.js'
@@ -8,20 +8,21 @@ import { write, getOne } from '../../util/storage.js'
 import { hashMutationProp } from './hashMutationProp.js'
 import { enumIdToGraphId } from '../id/enumIdToGraphId.js'
 import { addToSortIndexMap } from './addToSortIndexMap.js'
+import { encryptMutationProp } from './encryptMutationProp.js'
 import { validatePropValue } from '../../util/validatePropValue.js'
-import { ENUM_ID_PREFIX, ADD_NOW_DATE, RELATIONSHIP_PREFIX, getUniqueIndexKey, getNow, getNodeIdsKey } from '../../util/variables.js'
-
+import { vars, getUniqueIndexKey, getNow, getNodeIdsKey } from '../../util/variables.js'
 
 
 /**
  * Insert, Update or Upsert Nodes
  * @param { td.AceFnCryptoJWKs } jwks 
+ * @param { td.AceFnOptions } options
  * @param { td.AceMutateRequestItemNodeInsert | td.AceMutateRequestItemNodeUpdate | td.AceMutateRequestItemNodeUpsert } reqItem 
  * @returns { Promise<void> }
  */
-export async function inupNode (jwks, reqItem) {
-  const inupNodesArray = /** @type { [ td.AceMutateRequestItemNodeInsert | td.AceMutateRequestItemNodeUpdate, string ][] } */ ([]) // In this array we keep track of meta data for all the items we want to add to the graph. We need to go though all the ids once first to fully populate newIdsMap
-  await populateInupNodesArray(jwks, reqItem, inupNodesArray)
+export async function inupNode (jwks, options, reqItem) {
+  const inupNodesArray = /** @type { [ td.AceMutateRequestItemNodeInsert | td.AceMutateRequestItemNodeUpdate, string ][] } */ ([]); // In this array we keep track of meta data for all the items we want to add to the graph. We need to go though all the ids once first to fully populate newIdsMap
+  await populateInupNodesArray(jwks, reqItem, inupNodesArray, options)
   await implementInupNodesArray(inupNodesArray)
 }
 
@@ -30,25 +31,26 @@ export async function inupNode (jwks, reqItem) {
  * @param { td.AceFnCryptoJWKs } jwks 
  * @param { td.AceMutateRequestItemNodeInsert | td.AceMutateRequestItemNodeUpdate | td.AceMutateRequestItemNodeUpsert } reqItem 
  * @param { [ td.AceMutateRequestItemNodeInsert | td.AceMutateRequestItemNodeUpdate, (string | number) ][] } inupNodesArray 
+ * @param { td.AceFnOptions } options
  * @returns { Promise<void> }
  */
-async function populateInupNodesArray (jwks, reqItem, inupNodesArray) {
+async function populateInupNodesArray (jwks, reqItem, inupNodesArray, options) {
   if (Memory.txn.schema?.nodes[reqItem?.how.node]) {
-    const startsWithIdPrefix = typeof reqItem.how.props.id === 'string' && reqItem.how.props.id.startsWith(ENUM_ID_PREFIX)
+    const startsWithIdPrefix = typeof reqItem.how.props.id === 'string' && reqItem.how.props.id.startsWith(vars.enumIdPrefix)
 
     /** @type { td.AceGraphNode | undefined } */
     let graphNode
 
     switch (reqItem.do) {
       case 'NodeInsert':
-        reqItem = /** @type { td.AceMutateRequestItemNodeInsert } */ (reqItem)
+        reqItem = /** @type { td.AceMutateRequestItemNodeInsert } */ (reqItem);
         break
       case 'NodeUpdate':
-        reqItem = /** @type { td.AceMutateRequestItemNodeUpdate } */(reqItem)
+        reqItem = /** @type { td.AceMutateRequestItemNodeUpdate } */(reqItem);
         break
       case 'NodeUpsert':
         reqItem.how.props.id = enumIdToGraphId({ id: reqItem.how.props.id })
-        graphNode = await getOne(reqItem.how.props.id)
+        graphNode = /** @type { td.AceGraphNode | undefined } */ (await getOne(reqItem.how.props.id))
         reqItem = /** @type { * } */(reqItem)
 
         if (graphNode) {
@@ -66,18 +68,24 @@ async function populateInupNodesArray (jwks, reqItem, inupNodesArray) {
     if (reqItem.do === 'NodeUpdate') {
       if (!graphNode) {
         reqItem.how.props.id = enumIdToGraphId({ id: reqItem.how.props.id })
-        graphNode = await getOne(reqItem.how.props.id)
+        graphNode = /** @type { td.AceGraphNode | undefined } */ (await getOne(reqItem.how.props.id))
       }
 
-      if (!graphNode) throw AceError('inupNode__invalidUpdateId', `Please ensure each reqItem.how.props.id is defined in your graph, this is not happening yet for the reqItem.how.props.id: ${ reqItem.how.props.id }`, { reqItem })
+      if (!graphNode) throw new AceError('inupNode__invalidUpdateId', `Please ensure each reqItem.how.props.id is defined in your graph, this is not happening yet for the reqItem.how.props.id: ${ reqItem.how.props.id }`, { reqItem })
 
-      for (const propName in graphNode) {
-        if (propName.startsWith(RELATIONSHIP_PREFIX)) { // transfer all $r from graphNode into reqItem
-          /** @type { td.AceMutateRequestItemNodeWithRelationships } */(reqItem)[propName] = graphNode[propName]
+      const nodeRelationshipPropsMap = Memory.txn.schemaDataStructures.nodeRelationshipPropsMap.get(graphNode.$aN)
+
+      if (nodeRelationshipPropsMap) {
+        for (const entry of nodeRelationshipPropsMap) {
+          /** @type { td.AceMutateRequestItemNodeWithRelationships } */(reqItem)[entry[1].prop] = graphNode[entry[1].prop]
         }
       }
 
-      reqItem.how.props = { ...graphNode.props, ...reqItem.how.props } // transfer additional graphNode.props into reqItem.how.props
+      for (let key in graphNode) { // transfer additional graphNode.props into reqItem.how.props: { ...graphNode.props, ...reqItem.how.props }
+        if (key !== '$aA' && key !== '$aN' && key !== '$aK' && typeof reqItem.how.props[key] === 'undefined') {
+          reqItem.how.props[key] = graphNode[key]
+        }
+      }
     }
 
     let graphId
@@ -89,25 +97,29 @@ async function populateInupNodesArray (jwks, reqItem, inupNodesArray) {
       else graphId = reqItem.how.props.id
 
       /** @type { (string | number)[] } */
-      const nodeIds = await getOne(getNodeIdsKey(reqItem.how.node)) || []
-      nodeIds.push(graphId)
-      write('upsert', getNodeIdsKey(reqItem.how.node), nodeIds)
+      let index = []
+      const $aK = getNodeIdsKey(reqItem.how.node)
+      const nodeIds = /** @type { td.AceGraphIndex | undefined } */ (await getOne($aK));
+
+      if (Array.isArray(nodeIds?.index)) index = nodeIds.index
+
+      index.push(graphId)
+
+      write({ $aA: 'upsert', $aK, index })
     }
 
     for (const propName in reqItem.how.props) { // loop each request property => validate each property => IF invalid throw errors => IF valid do index things
-      const props = reqItem.how.props
-      const schemaProp = /** @type { td.AceSchemaProp } */ (Memory.txn.schema?.nodes?.[reqItem.how.node][propName])
+      const schemaProp = /** @type { td.AceSchemaProp } */ (Memory.txn.schema?.nodes?.[reqItem.how.node][propName]);
 
       if (propName !== 'id') {
-        if (schemaProp?.is !== 'Prop') throw AceError('inupNode__invalidNodeProp', `The node name: "${ reqItem.how.node }" and the prop name: "${ propName }" do not exist in the schema. Please ensure when mutating nodes the node name and prop name exist in the schema.`, { reqItem, nodePropName: propName })
+        if (schemaProp?.is !== 'Prop') throw new AceError('inupNode__invalidNodeProp', `The node name: "${ reqItem.how.node }" and the prop name: "${ propName }" do not exist in the schema. Please ensure when mutating nodes the node name and prop name exist in the schema.`, { reqItem, nodePropName: propName })
 
-        const _errorData = { schemaProp, reqItem, propName, propValue: props[propName] }
+        validatePropValue(propName, reqItem.how.props[propName], schemaProp.options.dataType, reqItem.how.node, 'node', 'invalidPropValue', { schemaProp, reqItem, propName, propValue: reqItem.how.props[propName] })
 
-        validatePropValue(propName, props[propName], schemaProp.options.dataType, reqItem.how.node, 'node', 'invalidPropValue', _errorData)
-
-        if (schemaProp.options.dataType === 'hash') await hashMutationProp('node', reqItem.how.node, props, propName, props[propName], schemaProp, jwks, reqItem.how.$o?.privateJWK)
-        if (schemaProp.options.dataType === 'iso' && props[propName] === ADD_NOW_DATE) props[propName] = getNow()
-        if (schemaProp.options.uniqueIndex && typeof props[propName] !== 'undefined') write('upsert', getUniqueIndexKey(reqItem.how.node, propName, props[propName]), graphId)
+        if (schemaProp.options.dataType === 'encrypt') await encryptMutationProp('node', reqItem.how.node, reqItem.how.props, propName, reqItem.how.props[propName], schemaProp, jwks, options.ivs, reqItem.how.$o?.cryptJWK, reqItem.how.$o?.iv)
+        if (schemaProp.options.dataType === 'hash') await hashMutationProp('node', reqItem.how.node, reqItem.how.props, propName, reqItem.how.props[propName], schemaProp, jwks, reqItem.how.$o?.privateJWK)
+        if (schemaProp.options.dataType === 'iso' && reqItem.how.props[propName] === vars.nowIsoPlaceholder) reqItem.how.props[propName] = getNow()
+        if (schemaProp.options.uniqueIndex && typeof reqItem.how.props[propName] !== 'undefined') write({ $aA: 'upsert', $aK: getUniqueIndexKey(reqItem.how.node, propName, reqItem.how.props[propName]), index: graphId })
         if (schemaProp.options.sortIndex) addToSortIndexMap(schemaProp, reqItem.how.node, propName, graphId)
       }
     }
@@ -122,17 +134,18 @@ async function populateInupNodesArray (jwks, reqItem, inupNodesArray) {
  * @returns { Promise<void> }
  */
 async function implementInupNodesArray (inupNodesArray) {
-  for (const entry of inupNodesArray) { // loop the ids that we'll add to the graph
-    for (const reqItemKey in entry[0].how.props) {
-      overwriteIds(entry[0].how.props, reqItemKey)
+  for (let i = 0; i < inupNodesArray.length; i++) { // loop the ids that we'll add to the graph
+    const { id, ...propsWithoutId } = inupNodesArray[i][0].how.props
+
+    const graphItem = {
+      $aK: id,
+      $aN: inupNodesArray[i][0].how.node,
+      $aA: inupNodesArray[i][0].do === 'NodeInsert' ? 'insert' : 'update',
+      ...propsWithoutId,
     }
 
-    if (entry[0].how.props.$o) delete entry[0].how.props.$o
-
-    if (entry[0].how.props.id) {
-      if (entry[0].do === 'NodeInsert') write('insert', entry[0].how.props.id, entry[0].how)
-      else write('update', entry[0].how.props.id, entry[0].how)
-    }
+    if (typeof graphItem.$aK === 'string') overwriteIds(graphItem, '$aK')
+    write(/** @type {td.AceGraphNode} */ (graphItem))
   }
 }
 
@@ -146,14 +159,14 @@ async function getGraphIdAndAddToMapIds (reqId, startsWithIdPrefix) {
   /** This will be the id that is added to the graph */
   let graphId
 
-  if (typeof reqId !== 'string' && typeof reqId !== 'number') throw AceError('inupNode__idInvalidType', `Please ensure the reqId is of type number or string, this is not happening yet for the reqId: ${ reqId }`, { reqId })
+  if (typeof reqId !== 'string' && typeof reqId !== 'number') throw new AceError('inupNode__idInvalidType', `Please ensure the reqId is of type number or string, this is not happening yet for the reqId: ${ reqId }`, { reqId })
 
   if (!startsWithIdPrefix) graphId = reqId
   else {
-    if (Memory.txn.enumGraphIdsMap.get(reqId)) throw AceError('inupNode__duplicateId', `Please ensure enumId's are not the same for multiple nodes. The enumId: ${ reqId } is being used as the id for multiple nodes`, { enumId: reqId })
+    if (Memory.txn.enumGraphIds.has(/** @type { string } */ (reqId))) throw new AceError('inupNode__duplicateId', `Please ensure enumId's are not the same for multiple nodes. The enumId: ${ reqId } is being used as the id for multiple nodes`, { enumId: reqId })
 
     graphId = await getGraphId()
-    Memory.txn.enumGraphIdsMap.set(reqId, graphId)
+    Memory.txn.enumGraphIds.set(/** @type { string } */ (reqId), graphId)
   }
 
   return graphId

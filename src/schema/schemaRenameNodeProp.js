@@ -12,29 +12,28 @@ import { write, getOne, getMany } from '../util/storage.js'
  * @returns { Promise<void> }
  */
 export async function schemaRenameNodeProp (reqItem, isSourceSchemaPush) {
-  for (const { node, nowName, newName } of reqItem.how) {
-    if (!Memory.txn.schema?.nodes[node]) throw AceError('schemaRenameNodeProp__invalidNode', `Please ensure that when updating a node prop name, the node is defined in the schema, this is not happening yet for the node: ${ node }, nowName: ${ nowName }, and newName: ${ newName }`, { node, nowName, newName })
-    if (!Memory.txn.schema?.nodes[node]?.[nowName]) throw AceError('schemaRenameNodeProp__invalidProp', `Please ensure that when updating a node prop name, the prop is defined in the schema, this is not happening yet for the node: ${ node }, nowName: ${ nowName }, and newName: ${ newName }`, { node, nowName, newName })
+  for (let i = 0; i < reqItem.how.length; i++) {
+    if (!Memory.txn.schema?.nodes[reqItem.how[i].node]) throw new AceError('schemaRenameNodeProp__invalidNode', `Please ensure that when updating a node prop name, the node is defined in the schema, this is not happening yet for the node: ${ reqItem.how[i].node }, nowName: ${ reqItem.how[i].nowName }, and newName: ${ reqItem.how[i].newName }`, { node: reqItem.how[i].node, nowName: reqItem.how[i].nowName, newName: reqItem.how[i].newName })
+    if (!Memory.txn.schema?.nodes[reqItem.how[i].node]?.[reqItem.how[i].nowName]) throw new AceError('schemaRenameNodeProp__invalidProp', `Please ensure that when updating a node prop name, the prop is defined in the schema, this is not happening yet for the node: ${ reqItem.how[i].node }, nowName: ${ reqItem.how[i].nowName }, and newName: ${ reqItem.how[i].newName }`, { node: reqItem.how[i].node, nowName: reqItem.how[i].nowName, newName: reqItem.how[i].newName })
 
-    /** @type { string[] } */
-    const nodeIds = await getOne(getNodeIdsKey(node))
+    const nodeIds = /** @type { td.AceGraphIndex | undefined } */ (await getOne(getNodeIdsKey(reqItem.how[i].node)))
 
-    if (nodeIds?.length) {
-      /** @type {td.AceGraphNode[] } */
-      const graphNodes = await getMany(nodeIds)
+    if (Array.isArray(nodeIds?.index)) {
+      const graphNodes = /** @type { td.AceGraphNode[] } */ (await getMany(nodeIds.index))
 
-      for (const graphNode of graphNodes) {
-        if (typeof graphNode.props[nowName] !== 'undefined') {
-          graphNode.props[newName] = graphNode.props[nowName]
-          delete graphNode.props[nowName]
-          write('update', graphNode.props.id, graphNode)
+      for (let j = 0; j < graphNodes.length; j++) {
+        if (typeof graphNodes[j][reqItem.how[i].nowName] !== 'undefined') {
+          graphNodes[j][reqItem.how[i].newName] = graphNodes[j][reqItem.how[i].nowName]
+          delete graphNodes[j][reqItem.how[i].nowName]
+          graphNodes[j].$aA = 'update'
+          write(graphNodes[j])
         }
       }
     }
 
     // update schema
-    Memory.txn.schema.nodes[node][newName] = Memory.txn.schema.nodes[node][nowName]
-    delete Memory.txn.schema.nodes[node][nowName]
+    Memory.txn.schema.nodes[reqItem.how[i].node][reqItem.how[i].newName] = Memory.txn.schema.nodes[reqItem.how[i].node][reqItem.how[i].nowName]
+    delete Memory.txn.schema.nodes[reqItem.how[i].node][reqItem.how[i].nowName]
     doneSchemaUpdate(isSourceSchemaPush)
   }
 }

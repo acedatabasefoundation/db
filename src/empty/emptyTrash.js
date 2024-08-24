@@ -1,16 +1,15 @@
-import { td } from '#ace'
 import { rm, mkdir } from 'node:fs/promises'
-import { doesPathExist, getPaths } from '../util/file.js'
+import { Memory } from '../objects/Memory.js'
+import { doesPathExist } from '../util/file.js'
+import { AceError } from '../objects/AceError.js'
 
 
 /**
- * @param { td.AceFnOptions } options
  * @returns { Promise<void> }
  */
-export async function emptyTrash (options) {
-  const paths = getPaths(options.dir, [ 'trash' ])
+export async function emptyTrash () {
+  if (!Memory.txn.paths) throw new AceError('emptyTrash__missingPaths', 'Please ensure Memory.txn.paths is a truthy when calling emptyTrash()', {})
+  if (await doesPathExist(Memory.txn.paths.trash)) await rm(Memory.txn.paths.trash, { recursive: true, force: true })
 
-  if (await doesPathExist(paths.trash)) await rm(paths.trash, { recursive: true, force: true })
-
-  await mkdir(paths.trash)
+  await mkdir(Memory.txn.paths.trash)
 }

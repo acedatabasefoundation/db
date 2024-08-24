@@ -1,9 +1,9 @@
 import { td } from '#ace'
 import { Memory } from '../objects/Memory.js'
 import { AceError } from '../objects/AceError.js'
+import { getNodeIdsKey } from '../util/variables.js'
 import { doneSchemaUpdate } from './doneSchemaUpdate.js'
 import { write, getOne, getMany } from '../util/storage.js'
-import { DELIMITER, getNodeIdsKey } from '../util/variables.js'
 
 
 /** 
@@ -12,49 +12,45 @@ import { DELIMITER, getNodeIdsKey } from '../util/variables.js'
  * @returns { Promise<void> }
  */
 export async function schemaRenameNode (reqItem, isSourceSchemaPush) {
-  for (const { nowName, newName } of reqItem.how) {
-    if (!Memory.txn.schema?.nodes[nowName]) throw AceError('schemaRenameNode__invalidNowName', `Please ensure each nowName is defined in the schema, this is not happening yet for the nowName: ${ nowName } @ the reqItem:`, { reqItem, nowName, newName })
-
+  for (let i = 0; i < reqItem.how.length; i++) {
+    if (!Memory.txn.schema?.nodes[reqItem.how[i].nowName]) throw new AceError('schemaRenameNode__invalidNowName', `Please ensure each nowName is defined in the schema, this is not happening yet for the nowName: ${ reqItem.how[i].nowName } @ the reqItem:`, { reqItem, nowName: reqItem.how[i].nowName, newName: reqItem.how[i].newName })
 
     // update node on each graphNode
-    const nodeIdsKey = getNodeIdsKey(nowName)
+    const nodeIdsKey = getNodeIdsKey(reqItem.how[i].nowName)
+    const nodeIds = /** @type { td.AceGraphIndex | undefined } */ (await getOne(nodeIdsKey))
 
-    /** @type { string[] } */
-    const nodeIds = await getOne(nodeIdsKey)
+    if (Array.isArray(nodeIds?.index)) {
+      const graphNodes = /** @type { (td.AceGraphNode)[] } */ (await getMany(nodeIds.index))
 
-    if (nodeIds?.length) {
-      /** @type { td.AceGraphNode[] } */
-      const graphNodes = await getMany(nodeIds)
-
-      for (const graphNode of graphNodes) {
-        graphNode.node = newName
-        write('update', graphNode.props.id, graphNode)
+      for (let j = 0; j < graphNodes.length; i++) {
+        graphNodes[j].$aN = reqItem.how[i].newName
+        graphNodes[j].$aA = 'update'
+        write(graphNodes[j])
       }
+
+      // update nodeIdsKey
+      const newNodeIdsKey = getNodeIdsKey(reqItem.how[i].newName)
+      write({ $aA: 'insert', $aK: newNodeIdsKey, index: nodeIds.index })
+      write({ $aA: 'delete', $aK: nodeIdsKey })
     }
 
 
-    // update nodeIdsKey
-    const newNodeIdsKey = getNodeIdsKey(newName)
-    write('update', newNodeIdsKey, nodeIds)
-    write('delete', nodeIdsKey)
-
 
     // update node name in the schema props options
-    const nodeRelationshipPropsSet = Memory.txn.schemaDataStructures.nodeRelationshipPropsMap.get(nowName)
+    const nodeRelationshipPropsMap = Memory.txn.schemaDataStructures.nodeRelationshipPropsMap.get(reqItem.how[i].nowName)
 
-    if (nodeRelationshipPropsSet) {
-      for (const pointer of nodeRelationshipPropsSet) {
-        const split = pointer.split(DELIMITER)
-        const options = /** @type { td.AceSchemaNodeRelationshipOptions } */(Memory.txn.schema.nodes[split[0]][split[1]].options)
+    if (nodeRelationshipPropsMap) {
+      for (const entry of nodeRelationshipPropsMap) {
+        const options = /** @type { td.AceSchemaNodeRelationshipOptions } */(Memory.txn.schema.nodes[entry[1].node][entry[1].prop].options)
 
-        options.node = newName 
+        options.node = reqItem.how[i].newName 
       }
     }
 
 
     // update node name @ schem.nodes
-    Memory.txn.schema.nodes[newName] = Memory.txn.schema.nodes[nowName]
-    delete Memory.txn.schema.nodes[nowName]
+    Memory.txn.schema.nodes[reqItem.how[i].newName] = Memory.txn.schema.nodes[reqItem.how[i].nowName]
+    delete Memory.txn.schema.nodes[reqItem.how[i].nowName]
 
     doneSchemaUpdate(isSourceSchemaPush)
   }

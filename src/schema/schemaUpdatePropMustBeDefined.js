@@ -12,7 +12,7 @@ import { validateBidirectionalProp, validateDirectionProp } from '../ace/mutate/
  * @param { boolean } [ isSourceSchemaPush ]
  * @returns { Promise<void> }
  */
-export async function schemaUpdatePropMustBeDefined (reqItem, isSourceSchemaPush) {
+export async function schemaUpdatePropMustBeDefined(reqItem, isSourceSchemaPush) {
   let schemaUpdated = false
 
   /** @type { Map<string, { reqProp: td.AceMutateRequestItemSchemaUpdatePropMustBeDefinedItem, schemaProp: td.AceSchemaProp | td.AceSchemaForwardRelationshipProp | td.AceSchemaReverseRelationshipProp | td.AceSchemaBidirectionalRelationshipProp }[]> } Map<nodeName, { reqProp, schemaProp }[]>  */
@@ -21,28 +21,28 @@ export async function schemaUpdatePropMustBeDefined (reqItem, isSourceSchemaPush
   /** @type { Map<string, td.AceMutateRequestItemSchemaUpdatePropMustBeDefinedItem[]> } Map<relationshipName, reqProp[]>  */
   const propsByRelationship = new Map()
 
-  for (const prop of reqItem.how) {
-    const schemaProp = Memory.txn.schema?.nodes[prop.nodeOrRelationship]?.[prop.prop] || Memory.txn.schema?.relationships?.[prop.nodeOrRelationship]?.props?.[prop.prop]
+  for (let i = 0; i < reqItem.how.length; i++) {
+    const schemaProp = Memory.txn.schema?.nodes[reqItem.how[i].nodeOrRelationship]?.[reqItem.how[i].prop] || Memory.txn.schema?.relationships?.[reqItem.how[i].nodeOrRelationship]?.props?.[reqItem.how[i].prop]
 
 
     // validate reqItem
-    if (!schemaProp) throw AceError('schemaUpdatePropMustBeDefined__invalidReq', `Please ensure when attempting to update node or relationship "mustBeDefined", the node or relationship and prop are defined in your schema. This is not happening yet for the node or relationship: "${ prop.nodeOrRelationship }" and prop: "${ prop.prop }"`, { reqItemProp: prop })
-    if (typeof prop.mustBeDefined !== 'boolean') throw AceError('schemaUpdatePropMustBeDefined__invalidType', `Please ensure when attempting to update node or relationship "mustBeDefined", the typeof reqItemProp.mustBeDefined is "boolean". This is not happening yet for the node or relationship: "${ prop.nodeOrRelationship }" and prop: "${ prop.prop }"`, { reqItemProp: prop })
+    if (!schemaProp) throw new AceError('schemaUpdatePropMustBeDefined__invalidReq', `Please ensure when attempting to update node or relationship "mustBeDefined", the node or relationship and prop are defined in your schema. This is not happening yet for the node or relationship: "${ reqItem.how[i].nodeOrRelationship }" and prop: "${ reqItem.how[i].prop }"`, { reqItemProp: reqItem.how[i] })
+    if (typeof reqItem.how[i].mustBeDefined !== 'boolean') throw new AceError('schemaUpdatePropMustBeDefined__invalidType', `Please ensure when attempting to update node or relationship "mustBeDefined", the typeof reqItemProp.mustBeDefined is "boolean". This is not happening yet for the node or relationship: "${ reqItem.how[i].nodeOrRelationship }" and prop: "${ reqItem.how[i].prop }"`, { reqItemProp: reqItem.how[i] })
 
   
-    if (schemaProp.options.mustBeDefined && !prop.mustBeDefined) { // removing mustBeDefined from schema
+    if (schemaProp.options.mustBeDefined && !reqItem.how[i].mustBeDefined) { // removing mustBeDefined from schema
       schemaUpdated = true
       delete schemaProp.options.mustBeDefined
-    } else if (!schemaProp.options.mustBeDefined && prop.mustBeDefined) {
+    } else if (!schemaProp.options.mustBeDefined && reqItem.how[i].mustBeDefined) {
       switch (schemaProp.is) {
         case 'Prop':
         case 'BidirectionalRelationshipProp':
         case 'ForwardRelationshipProp':
         case 'ReverseRelationshipProp':
           // add to propsByNode
-          const nodeProps = propsByNode.get(prop.nodeOrRelationship) || []
-          nodeProps.push({ reqProp: prop, schemaProp })
-          propsByNode.set(prop.nodeOrRelationship, nodeProps)
+          const nodeProps = propsByNode.get(reqItem.how[i].nodeOrRelationship) || []
+          nodeProps.push({ reqProp: reqItem.how[i], schemaProp })
+          propsByNode.set(reqItem.how[i].nodeOrRelationship, nodeProps)
 
           // update schema
           schemaUpdated = true
@@ -50,9 +50,9 @@ export async function schemaUpdatePropMustBeDefined (reqItem, isSourceSchemaPush
           break
         case 'RelationshipProp':
           // add to propsByRelationship
-          const relationshipProps = propsByRelationship.get(prop.nodeOrRelationship) || []
-          relationshipProps.push(prop)
-          propsByRelationship.set(prop.nodeOrRelationship, relationshipProps)
+          const relationshipProps = propsByRelationship.get(reqItem.how[i].nodeOrRelationship) || []
+          relationshipProps.push(reqItem.how[i])
+          propsByRelationship.set(reqItem.how[i].nodeOrRelationship, relationshipProps)
 
           // update schema
           schemaUpdated = true
@@ -64,29 +64,28 @@ export async function schemaUpdatePropMustBeDefined (reqItem, isSourceSchemaPush
 
   // update schema nodes
   for (const [ nodeName, props ] of propsByNode) {
-    const nodeIdsKey = getNodeIdsKey(nodeName)
+    const nodeIdsKey = getNodeIdsKey(nodeName);
+    const allNodeIds = /** @type { td.AceGraphIndex | undefined } */ (await getOne(nodeIdsKey));
 
-    /** @type { (string | number)[] } */
-    const allNodeIds = await getOne(nodeIdsKey)
+    if (Array.isArray(allNodeIds?.index)) {
+      const graphNodes = /** @type { td.AceGraphNode[] } */ (await getMany(allNodeIds.index))
 
-    if (Array.isArray(allNodeIds)) {
-      /** @type { td.AceGraphNode[] } */
-      const graphNodes = await getMany(allNodeIds)
-
-      for (const graphNode of graphNodes) {
-        for (const { reqProp, schemaProp } of props) {
-          switch (schemaProp.is) {
+      for (let i = 0; i < graphNodes.length; i++) {
+        for (let j = 0; j < props.length; j++) {
+          switch (props[j].schemaProp.is) {
             case 'Prop':
-              if (typeof graphNode.props[reqProp.prop] === 'undefined') throw AceError('schemaUpdatePropMustBeDefined', `Please ensure each request item has all must be defined props. This is not happening yet at node: "${ nodeName }", prop: "${ reqProp.prop }", id: "${ graphNode.props.id }"`, { graphNode })
+              if (typeof graphNodes[i][props[j].reqProp.prop] === 'undefined') {
+                throw new AceError('schemaUpdatePropMustBeDefined', `Please ensure each request item has all must be defined props. This is not happening yet at node: "${ nodeName }", prop: "${ props[j].reqProp.prop }", id: "${ graphNodes[i].props.id }"`, { graphNode: graphNodes[i] })
+              }
               break
             case 'BidirectionalRelationshipProp':
-              validateBidirectionalProp(nodeName, schemaProp.options.relationship, reqProp.prop, graphNode, graphNode.props)
+              validateBidirectionalProp(graphNodes[i], /** @type { td.AceSchemaBidirectionalRelationshipProp } */ (props[j].schemaProp).options.relationship, props[j].reqProp.prop)
               break
             case 'ForwardRelationshipProp':
-              await validateDirectionProp('a', nodeName, schemaProp.options.relationship, reqProp.prop, graphNode, graphNode.props)
+              await validateDirectionProp('a', graphNodes[i], /** @type { td.AceSchemaForwardRelationshipProp } */ (props[j].schemaProp).options.relationship, props[j].reqProp.prop)
               break
             case 'ReverseRelationshipProp':
-              await validateDirectionProp('b', nodeName, schemaProp.options.relationship, reqProp.prop, graphNode, graphNode.props)
+              await validateDirectionProp('b', graphNodes[i], /** @type { td.AceSchemaReverseRelationshipProp } */ (props[j].schemaProp).options.relationship, props[j].reqProp.prop)
               break
           }
         }
@@ -96,18 +95,19 @@ export async function schemaUpdatePropMustBeDefined (reqItem, isSourceSchemaPush
 
   // validate schema relationships
   for (const [ relationshipName, props ] of propsByRelationship) {
-    const relationship_IdsKey = getRelationship_IdsKey(relationshipName)
+    const relationship_IdsKey = getRelationship_IdsKey(relationshipName);
+    const allRelationship_Ids = /** @type { td.AceGraphIndex | undefined } */ (await getOne(relationship_IdsKey));
 
-    /** @type { (string | number)[] } */
-    const allRelationship_Ids = await getOne(relationship_IdsKey)
+    if (Array.isArray(allRelationship_Ids?.index)) {
+      const graphRelationships = /** @type { td.AceGraphRelationship[] } */ (await getMany(allRelationship_Ids.index));
 
-    if (Array.isArray(allRelationship_Ids)) {
-      /** @type { td.AceGraphRelationship[] } */
-      const graphRelationships = await getMany(allRelationship_Ids)
-
-      for (const graphRelationship of graphRelationships) {
-        for (const reqProp of props) {
-          if (typeof graphRelationship.props[reqProp.prop] === 'undefined') throw AceError('schemaUpdatePropMustBeDefined', `Please ensure each request item has all must be defined props. This is not happening yet at relationship: "${ relationshipName }", prop: "${ reqProp.prop }", _id: "${ graphRelationship.props._id }"`, { graphRelationship })
+      for (let i = 0; i < graphRelationships.length; i++) {
+        if (graphRelationships[i]) {
+          for (let j = 0; j < props.length; j++) {
+            if (typeof graphRelationships[i][props[j].prop] === 'undefined') {
+              throw new AceError('schemaUpdatePropMustBeDefined', `Please ensure each request item has all must be defined props. This is not happening yet at relationship: "${ relationshipName }", prop: "${ props[j].prop }", _id: "${ graphRelationships[i].$aK }"`, { graphRelationship: graphRelationships[i] })
+            }
+          }
         }
       }
     }

@@ -1,7 +1,6 @@
 import { td } from '#ace'
 import { Memory } from '../../objects/Memory.js'
 import { AceError } from '../../objects/AceError.js'
-import { ENUM_ID_PREFIX } from '../../util/variables.js'
 
 
 /**
@@ -11,11 +10,8 @@ import { ENUM_ID_PREFIX } from '../../util/variables.js'
  */
 export function overwriteIds (props, reqItemKey) {
   const reqItemValue = props[reqItemKey]
+  const graphId = Memory.txn.enumGraphIds.get(reqItemValue)
 
-  if (typeof reqItemValue === 'string' && reqItemValue.startsWith(ENUM_ID_PREFIX)) {
-    const graphId = Memory.txn.enumGraphIdsMap.get(reqItemValue)
-
-    if (graphId) props[reqItemKey] = graphId
-    else throw AceError('mutate__invalidId', `Please ensure each enumId that is used is defined on a node, this is not happening yet for the enumId: ${ reqItemValue }`, { enumId: reqItemValue })
-  }
+  if (graphId) props[reqItemKey] = graphId
+  else throw new AceError('mutate__invalidId', `Please ensure each enumId that is used is defined on a node, this is not happening yet for the enumId: ${ reqItemValue }`, { enumId: reqItemValue })
 }

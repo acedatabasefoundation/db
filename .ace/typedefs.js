@@ -1,20 +1,37 @@
 import * as enums from './enums.js'
 
 
+/** AceGraph
+ *
+ * @typedef { string | number | boolean | (string | number)[] | number[] } AceGraphValue
+ * 
+ * @typedef { { $aK: string, $aA: enums.writeAction, index: string | number | (string | number)[] | number[] } } AceGraphIndex
+ * @typedef { { $aK: '$ace___last___id', $aA: enums.writeAction, value: number } } AceGraphLastKey
+ * @typedef { { $aK: number, $aA: enums.writeAction, $aN: string, [propName: string]: any } } AceGraphNode
+ * @typedef { { $aK: number, $aA: enums.writeAction, $aR: string, a: (string | number), b: (string | number), [propName: string]: any } } AceGraphRelationship
+ * @typedef { { $aK: string | number, $aA: typeof enums.writeAction.delete } } AceGraphDelete
+ * @typedef { AceGraphNode | AceGraphRelationship | AceGraphIndex | AceGraphLastKey | AceGraphDelete } AceGraphItem
+ *
+ * @typedef { null | { match: number, start?: never } | { start: number, match?: never } } AceGraphIndexSearchRes
+ *
+ * @typedef { { lastId: number, graphs: string[] } } AceGraphDetail
+ * @typedef { { [env: string]: AceGraphDetail } } AceGraphDetails
+ */
+
+
 /** AceMemory
  *
  * @typedef { object } AceMemory
  * @prop { AceQueueItem[] } queue
  * @prop { AceTxn } txn
- * @prop { AceMemoryWal } wal
+ * @prop { AceMemoryAol } aol
+ * @prop { Intl.Collator } collator
  *
- * @typedef { object } AceMemoryWal
- * @prop { number } byteAmount - number of bytes in the map
- * @prop { number } [ fileSize ] - filehandle.stat() on the wal file
- * @prop { Map<string | number, { do: enums.writeDo, value: any }> } map
- * @prop { import('node:fs/promises').FileHandle } [ filehandle ]
- *
- * @typedef { [ string | number, number, number, number ] } AceMemoryMiniIndexItem
+ * @typedef { object } AceMemoryAol
+ * @prop { number | null } ogFileSize - filehandle.stat() on the aol file
+ * @prop { number | null } nowFileSize - the new file size after an append
+ * @prop { AceGraphItem[] } array
+ * @prop { AceFileHandle } [ filehandle ]
  */
 
 
@@ -32,20 +49,20 @@ import * as enums from './enums.js'
  * @property { boolean } [ schemaPushRequestedThenSchemaUpdated ]
  * @property { AceSchemaDetails } [ schemaNowDetails ]
  * @property { AceSchemaDetails } [ schemaOriginalDetails ]
- * @property { number } [ lastGraphId ]
+ * @property { number | null } startGraphId
+ * @property { number | null } lastGraphId
  * @property { boolean } [ hasUpdates ]
  * @property { string } [ emptyTimestamp ]
- * @property { Map<string | number, number> } enumGraphIdsMap
- * @property { Map<string | number, { do: enums.writeDo, value: * }> } writeMap
- * @property { string } writeStr
- * @property { { byteAmount: number, map: Map<string | number, any> } } revertWalDetails
+ * @property { Map<string, number> } enumGraphIds
+ * @property { AceGraphItem[] } writeArray
  * @property { Map<string, { schemaProp: AceSchemaProp | AceSchemaRelationshipProp, nodeOrRelationshipName: string, propName: string, newIds: (string | number)[] }> } sortIndexMap - If we add a node and prop and that node+prop has a sort index, put the newly created nodes in here
+ * @property { AceGraphDetails } [ graphNowDetails ]
+ * @property { AceGraphDetails } [ graphOriginalDetails ]
+ * @property { AceFilePaths } [ paths ]
  *
  * @typedef { object } AceTxnSchemaDataStructures
  * @property { Map<string, AceTxnSchemaDataStructuresDefaultItem[]> } defaults
- * @property { Map<string, Set<string>> } cascade
- * @property { Map<string, Set<string>> } nodeRelationshipPropsMap
- * @property { Map<string, string> } nodeNamePlusRelationshipNameToNodePropNameMap
+ * @property { Map<string, Map<string, { node: string, prop: string, relationship: string }>> } nodeRelationshipPropsMap
  * @property { Map<number, { node?: string, relationship?: string, prop?: string }> } byAceId
  * @property { Map<string, Map<string, { propNode: string, propValue: AceSchemaForwardRelationshipProp | AceSchemaReverseRelationshipProp | AceSchemaBidirectionalRelationshipProp }>> } relationshipPropsMap
  * @property { Map<string, Map<string, (AceSchemaProp | AceSchemaRelationshipProp | AceSchemaForwardRelationshipProp | AceSchemaReverseRelationshipProp | AceSchemaBidirectionalRelationshipProp)>> } mustPropsMap
@@ -68,34 +85,11 @@ import * as enums from './enums.js'
 
 /** AceFile
  *
- * @typedef { ('dir' | 'trash' | 'graphs' | 'schemas' | 'wal' | 'trashNow')[] } AceFileInitPathsTypes
- * @typedef { ('dir' | 'wal' | 'trash' | 'graphs' | 'schemas' | 'schemaDetails' | 'trashNow' | 'trashNowWal'  | 'trashNowGraphs' | 'trashNowSchemas')[] } AceFileGetPathsTypes
- * @typedef { { dir: string, wal: string, trash: string, graphs: string, schemas: string, schemaDetails: string, trashNow: string, trashNowWal: string, trashNowGraphs: string, trashNowSchemas: string } } AceFilePaths
- */
-
-
-/** AceGraph
+ * @typedef { import('node:fs/promises').FileHandle } AceFileHandle - Just a typical node file handle: `import('node:fs/promises').FileHandle` just does the import once
  *
- * @typedef { { node: string, props: AceGraphNodeProps, [ relationship: string ]: any | string[] } } AceGraphNode
- * @typedef { { id: (string | number), [propName: string]: any } } AceGraphNodeProps
- *
- * @typedef { object } AceGraphRelationship
- * @property { string } relationship
- * @property { AceGraphRelationshipProps } props
- * @typedef { { a: string, b: string, _id: string, [propName: string]: any } } AceGraphRelationshipProps
- */
-
-
-/** AceError
- *
- * @typedef { { id: string, detail: string, [errorItemKey: string]: any} } AceError
- * @typedef { { node?: string, relationship?: string, prop?: string, schema?: boolean } } AceAuthErrorOptions
- */
-
-
-/** AceFn Return Type
- * @template { AceFnOptions } T
- * @typedef { T['txn'] extends AceFnOptionsTxnStart ? AceFnTxnStartResponse : T['txn'] extends AceFnOptionsTxnCancel ? AceFnTxnCancelResponse : T['txn'] extends AceFnOptionsTxnComplete ? AceFnTxnCompleteResponse : T['txn'] extends AceFnOptionsTxnContinue ? AceFnTxnContinueResponse : AceFnNoTxnResponse } AceResponse
+ * @typedef { ('dir' | 'trash' | 'graphs' | 'graphDetails' | 'schemas' | 'aol' | 'trashNow')[] } AceFileInitPathsTypes
+ * @typedef { ('dir' | 'aol' | 'trash' | 'graphs' | 'graphDetails' | 'schemas' | 'schemaDetails' | 'trashNow' | 'trashNowAol'  | 'trashNowGraphs' | 'trashNowSchemas')[] } AceFileGetPathsTypes
+ * @typedef { { dir: string, aol: string, trash: string, graphs: string, graphDetails: string, schemas: string, schemaDetails: string, trashNow?: string, trashNowAol?: string, trashNowGraphs?: string, trashNowSchemas?: string } } AceFilePaths
  */
 
 
@@ -107,6 +101,7 @@ import * as enums from './enums.js'
  * @property { AceFnRequest } [ req ]
  * @property { AceFnOptionsTxn } [ txn ]
  * @property { AceFnStringJWKs } [ jwks ]
+ * @property { AceFnIVs } [ ivs ]
  *
  * @typedef { AceFnOptionsTxnStart | AceFnOptionsTxnComplete | AceFnOptionsTxnCancel | AceFnOptionsTxnContinue } AceFnOptionsTxn
  * 
@@ -145,6 +140,8 @@ import * as enums from './enums.js'
  * @typedef { { [name: string]: { type: 'private' | 'public' | 'crypt', jwk: string } } } AceFnStringJWKs
  * @typedef { { [name: string]: CryptoKey } } AceFnCryptoJWK
  * @typedef { { private: AceFnCryptoJWK, public: AceFnCryptoJWK, crypt: AceFnCryptoJWK } } AceFnCryptoJWKs
+ *
+ * @typedef { { [name: string]: string } } AceFnIVs
  *
  * @typedef { { txnId?: string, txnStarted?: boolean, txnCompleted?: boolean, txnCancelled?: boolean, enumIds?: { [id: string]: number }, deletedKeys?: (string | number)[] } } AceFn$
  *
@@ -451,15 +448,17 @@ import * as enums from './enums.js'
  * @property { number } how - Aim version number
  *
  * @typedef { object } AceMutateRequestOptions
+ * @property { string } [ cryptJWK ]
  * @property { string } [ privateJWK ]
+ * @property { string } [ iv ]
  *
  * @typedef { { id?: string | number, [propName: string]: any } } AceMutateRequestItemNodeInsertProps
  * @typedef { { id: string | number, [propName: string]: any } } AceMutateRequestItemNodeUpdateProps
  * @typedef { { id: string | number, [propName: string]: any } } AceMutateRequestItemNodeUpsertProps
  *
  * @typedef { { a: string | number, b: string | number, [propName: string]: any } } AceMutateRequestItemRelationshipInsertProps
- * @typedef { { id: string | number, a: string, b: string, [propName: string]: any } } AceMutateRequestItemRelationshipUpdateProps
- * @typedef { { id: string | number, a: string, b: string, [propName: string]: any } } AceMutateRequestItemRelationshipUpsertProps
+ * @typedef { { id: string | number, a: string | number, b: string | number, [propName: string]: any } } AceMutateRequestItemRelationshipUpdateProps
+ * @typedef { { id: string | number, a: string | number, b: string | number, [propName: string]: any } } AceMutateRequestItemRelationshipUpsertProps
  *
  * @typedef { AceMutateRequestItemRelationshipInsertProps | AceMutateRequestItemRelationshipUpdateProps | AceMutateRequestItemRelationshipUpsertProps } AceMutateRequestItemRelationshipInUpProps
  */
@@ -485,7 +484,7 @@ import * as enums from './enums.js'
  *
  * @typedef { AceQueryRequestItemNode | AceQueryRequestItemRelationship | AceQueryRequestItemBackupGet | AceQueryRequestItemSchemaGet } AceQueryRequestItem
  *
- * @typedef { boolean | { alias: string } } AceQueryResValuePropValue
+ * @typedef { boolean | { alias: string, iv?: never, jwk?: never } | { iv: string, jwk: string, alias?: never } } AceQueryResValuePropValue
  * 
  * @typedef { '*' | '**' | '***' } AceQueryStars
  * @typedef { 'count' } AceQueryCount
@@ -614,6 +613,8 @@ import * as enums from './enums.js'
  * @typedef { object } AceQueryWhereItemProp
  * @property { string } prop
  * @property { string[] } [ relationships ]
+ * @property { string } [ iv ]
+ * @property { string } [ jwk ]
  *
  * @typedef { * } AceQueryWhereItemValue
  * @typedef { object } AceQueryWhereItemRes - An array from response, so if you'd love to point to response.abc.xyz[10].yay this value would be [ 'abc', 'xyz', 10, 'yay' ]
@@ -633,11 +634,11 @@ import * as enums from './enums.js'
  * @property { AceQueryFilterByUniquesItem[] } uniques - With this array of unique values, returns an array of valid nodes (valid meaning: found in graph via unique index & $o qualifiying)
  * @typedef { object } AceQueryFilterByUniquesItem
  * @property { string } value - The value Ace will query to find a unique match for
- * @property { string } prop - Find node by this prop that has a unique index
+ * @property { string } prop - Filter nodes/relationships by this prop that has a unique index
  *
  * @typedef { object } AceQueryFindByUnique
  * @property { string } value - The value Ace will query to find a unique match for
- * @property { string } prop - Find node by this prop that has a unique index
+ * @property { string } prop - Find node/relationship by this prop that has a unique index
  *
  * @typedef { object } AceQueryRequestItemSchemaGet
  * @property { typeof enums.aceDo.SchemaGet } do
@@ -702,6 +703,12 @@ import * as enums from './enums.js'
 /** AcePromise
  * 
  * @typedef { (reason?: any) => void  } AcePromiseReject
+ */
+
+
+/** AceStorage
+ * 
+ * @typedef { { key: string | number, index: number, value?: AceGraphItem }[]  } AceStorageSearchGraphEntries
  */
 
 

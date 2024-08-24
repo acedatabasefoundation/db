@@ -1,83 +1,39 @@
 import { td } from '#ace'
 import nodePath from 'node:path'
 import { Memory } from '../objects/Memory.js'
-import { mkdir, stat, writeFile } from 'node:fs/promises'
+import { AceError } from '../objects/AceError.js'
+import { stat, open, mkdir, writeFile } from 'node:fs/promises'
 
 
 /**
- * @param { string } dir
- * @param { td.AceFileGetPathsTypes } types
- * @returns { td.AceFilePaths }
- */
-export function getPaths (dir, types) {
-  const res = {}
-  const start = (dir.endsWith('/')) ? dir.slice(0, -1) : dir
-  const dirAbsolute = relativeToAbsolutePath(start)
-
-  for (const type of types) {
-    switch (type) {
-      case 'dir':
-        res.dir = dirAbsolute
-        break
-      case 'wal':
-        res.wal = dirAbsolute + '/wal.txt'
-        break
-      case 'trash':
-        res.trash = dirAbsolute + '/trash'
-        break
-      case 'graphs':
-        res.graphs = dirAbsolute + '/graphs'
-        break
-      case 'schemas':
-        res.schemas = dirAbsolute + '/schemas'
-        break
-      case 'schemaDetails':
-        res.schemaDetails = dirAbsolute + '/schemas/details.json'
-        break
-      case 'trashNow':
-        res.trashNow = dirAbsolute + '/trash/' + Memory.txn.emptyTimestamp
-        break
-      case 'trashNowWal':
-        res.trashNowWal = dirAbsolute + '/trash/' + Memory.txn.emptyTimestamp + '/wal.txt'
-        break
-      case 'trashNowGraphs':
-        res.trashNowGraphs = dirAbsolute + '/trash/' + Memory.txn.emptyTimestamp + '/graphs'
-        break
-      case 'trashNowSchemas':
-        res.trashNowSchemas = dirAbsolute + '/trash/' + Memory.txn.emptyTimestamp + '/schemas'
-        break
-    }
-  }
-
-  return res
-}
-
-
-/**
- * @param { td.AceFilePaths } paths
  * @param { td.AceFileInitPathsTypes } types
  * @returns { Promise<void> }
  */
-export async function initPaths (paths, types) {
-  for (const type of types) {
-    switch (type) {
+export async function initPaths (types) {
+  if (!Memory.txn.paths) throw new AceError('initPaths__missingPaths', 'Please ensure Memory.txn.paths is a truthy when calling setSchema()', {})
+
+  for (let i = 0; i < types.length; i++) {
+    switch (types[i]) {
       case 'dir':
-        if (!await doesPathExist(paths.dir)) await mkdir(paths.dir)
+        if (!await doesPathExist(Memory.txn.paths.dir)) await mkdir(Memory.txn.paths.dir)
         break
       case 'trash':
-        if (!await doesPathExist(paths.trash)) await mkdir(paths.trash)
+        if (!await doesPathExist(Memory.txn.paths.trash)) await mkdir(Memory.txn.paths.trash)
         break
       case 'graphs':
-        if (!await doesPathExist(paths.graphs)) await mkdir(paths.graphs)
+        if (!await doesPathExist(Memory.txn.paths.graphs)) await mkdir(Memory.txn.paths.graphs)
+        break
+      case 'graphDetails':
+        if (!await doesPathExist(Memory.txn.paths.graphDetails)) await writeFile(Memory.txn.paths.graphDetails, '')
         break
       case 'schemas':
-        if (!await doesPathExist(paths.schemas)) await mkdir(paths.schemas)
+        if (!await doesPathExist(Memory.txn.paths.schemas)) await mkdir(Memory.txn.paths.schemas)
         break
-      case 'wal':
-        if (!await doesPathExist(paths.wal)) await writeFile(paths.wal, '')
+      case 'aol':
+        if (!Memory.aol.filehandle || !await doesPathExist(Memory.txn.paths.aol)) Memory.aol.filehandle = await open(Memory.txn.paths.aol, 'a+') // this also sets Memory so the condition has more
         break
       case 'trashNow':
-        if (!await doesPathExist(paths.trashNow)) await mkdir(paths.trashNow)
+        if (Memory.txn.paths.trashNow && !await doesPathExist(Memory.txn.paths.trashNow)) await mkdir(Memory.txn.paths.trashNow)
         break
     }
   }
@@ -115,6 +71,6 @@ export function getByteAmount (item) {
  * @param { string } relativePath 
  * @returns { string }
  */
-function relativeToAbsolutePath (relativePath) {
+export function relativeToAbsolutePath (relativePath) {
   return nodePath.resolve('.', relativePath)
 }

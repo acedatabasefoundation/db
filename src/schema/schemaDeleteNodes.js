@@ -3,7 +3,7 @@ import { Memory } from '../objects/Memory.js'
 import { getOne, write } from '../util/storage.js'
 import { doneSchemaUpdate } from './doneSchemaUpdate.js'
 import { deleteNodes } from '../ace/mutate/deleteNodes.js'
-import { DELIMITER, getNodeIdsKey } from '../util/variables.js'
+import { delimiter, getNodeIdsKey } from '../util/variables.js'
 
 
 /** 
@@ -12,9 +12,9 @@ import { DELIMITER, getNodeIdsKey } from '../util/variables.js'
  * @returns { Promise<void> }
  */
 export async function schemaDeleteNodes (reqItem, isSourceSchemaPush) {
-  for (const node of reqItem.how) {
-    await deleteData(node)
-    deleteFromSchema(node)
+  for (let i = 0; i < reqItem.how.length; i++) {
+    await deleteData(reqItem.how[i])
+    deleteFromSchema(reqItem.how[i])
   }
 
   doneSchemaUpdate(isSourceSchemaPush)
@@ -27,13 +27,11 @@ export async function schemaDeleteNodes (reqItem, isSourceSchemaPush) {
  */
 async function deleteData (node) {
   const nodeIdsKey = getNodeIdsKey(node)
+  const nodeIds = /** @type { td.AceGraphIndex | undefined } */ (await getOne(nodeIdsKey))
 
-  /** @type { (string | number)[] } */
-  const nodeIds = await getOne(nodeIdsKey)
-
-  if (nodeIds?.length) {
-    await deleteNodes(nodeIds)
-    write('delete', nodeIdsKey)
+  if (Array.isArray(nodeIds?.index)) {
+    await deleteNodes(nodeIds.index)
+    write({ $aA: 'delete', $aK: nodeIdsKey })
   }
 }
 
@@ -43,14 +41,12 @@ async function deleteData (node) {
  * @returns { void }
  */
 function deleteFromSchema (node) {
-  const nodeRelationshipPropsSet = Memory.txn.schemaDataStructures.nodeRelationshipPropsMap.get(node)
+  const nodeRelationshipPropsMap = Memory.txn.schemaDataStructures.nodeRelationshipPropsMap.get(node)
 
-  if (nodeRelationshipPropsSet) {
-    for (const pointer of nodeRelationshipPropsSet) {
-      const split = pointer.split(DELIMITER)
-
-      delete Memory.txn.schema?.relationships?.[split[2]]
-      delete Memory.txn.schema?.nodes[split[0]][split[1]]
+  if (nodeRelationshipPropsMap) {
+    for (const entry of nodeRelationshipPropsMap) {
+      delete Memory.txn.schema?.relationships?.[entry[1].relationship]
+      delete Memory.txn.schema?.nodes[entry[1].node][entry[1].prop]
     }
   }
 
