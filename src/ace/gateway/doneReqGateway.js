@@ -36,7 +36,7 @@ export async function doneReqGateway ({ res, error, resolve, reject }) {
 
     if (Memory.queue.length) { // if more txn's are in the queue => start the next one
       const next = Memory.queue.shift()
-      if (next) await approachReqGateway(next.resolve, next.reject, next.options)
+      if (next) await approachReqGateway(next.resolve, next.reject, next.options, doneReqGateway)
     }
   } else {
     Memory.txn.step = 'respondedAndWaiting'

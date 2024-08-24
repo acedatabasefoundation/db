@@ -11,7 +11,7 @@ export async function ace (options) {
   return new Promise(async (resolve, reject) => {
     try {
       console.time('✨ ace')
-      await approachReqGateway(resolve, reject, options)
+      await approachReqGateway(resolve, reject, options, doneReqGateway)
     } catch (error) {
       console.log('error', error)
       try {
