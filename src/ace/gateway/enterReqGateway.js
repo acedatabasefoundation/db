@@ -30,6 +30,8 @@ import { validateMustBeDefined } from '../mutate/validateMustBeDefined.js'
  * @returns { Promise<void> }
  */
 export async function enterReqGateway (resolve, reject, options, doneReqGateway) {
+  if (typeof options !== 'object') throw new AceError('enterReqGateway__falsyOptions', 'Please ensure options is an object', { options })
+
   /** @type { td.AceFnFullResponse } - Nodes with all properties will be in original, nodes with requested properties from `query.x` will be in now. */
   const res = { now: { $ace: {} }, original: { $ace: {} } }
 
