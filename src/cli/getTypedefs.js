@@ -93,9 +93,9 @@ ${ typedefs.Nodes }${ typedefs.Relationships }/** AceGraph
  *
  * @typedef { import('node:fs/promises').FileHandle } AceFileHandle - Just a typical node file handle: \`import('node:fs/promises').FileHandle\` just does the import once
  *
- * @typedef { ('dir' | 'trash' | 'graphs' | 'graphDetails' | 'schemas' | 'aol' | 'trashNow')[] } AceFileInitPathsTypes
- * @typedef { ('dir' | 'aol' | 'trash' | 'graphs' | 'graphDetails' | 'schemas' | 'schemaDetails' | 'trashNow' | 'trashNowAol'  | 'trashNowGraphs' | 'trashNowSchemas')[] } AceFileGetPathsTypes
- * @typedef { { dir: string, aol: string, trash: string, graphs: string, graphDetails: string, schemas: string, schemaDetails: string, trashNow?: string, trashNowAol?: string, trashNowGraphs?: string, trashNowSchemas?: string } } AceFilePaths
+ * @typedef { ('dir' | 'trash' | 'schemas' | 'aol' | 'trashNow')[] } AceFileInitPathsTypes
+ * @typedef { ('dir' | 'aol' | 'trash' | 'schemas' | 'schemaDetails' | 'trashNow' | 'trashNowAol'  | 'trashNowSchemas')[] } AceFileGetPathsTypes
+ * @typedef { { dir: string, aol: string, trash: string, schemas: string, schemaDetails: string, trashNow?: string, trashNowAol?: string, trashNowSchemas?: string } } AceFilePaths
  */
 
 

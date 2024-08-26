@@ -159,11 +159,11 @@ export type AceFileHandle = import("node:fs/promises").FileHandle;
 /**
  * AceFile
  */
-export type AceFileInitPathsTypes = ("dir" | "trash" | "graphs" | "graphDetails" | "schemas" | "aol" | "trashNow")[];
+export type AceFileInitPathsTypes = ("dir" | "trash" | "schemas" | "aol" | "trashNow")[];
 /**
  * AceFile
  */
-export type AceFileGetPathsTypes = ("dir" | "aol" | "trash" | "graphs" | "graphDetails" | "schemas" | "schemaDetails" | "trashNow" | "trashNowAol" | "trashNowGraphs" | "trashNowSchemas")[];
+export type AceFileGetPathsTypes = ("dir" | "aol" | "trash" | "schemas" | "schemaDetails" | "trashNow" | "trashNowAol" | "trashNowSchemas")[];
 /**
  * AceFile
  */
@@ -171,13 +171,10 @@ export type AceFilePaths = {
     dir: string;
     aol: string;
     trash: string;
-    graphs: string;
-    graphDetails: string;
     schemas: string;
     schemaDetails: string;
     trashNow?: string;
     trashNowAol?: string;
-    trashNowGraphs?: string;
     trashNowSchemas?: string;
 };
 /**

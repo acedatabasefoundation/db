@@ -20,12 +20,6 @@ export async function initPaths (types) {
       case 'trash':
         if (!await doesPathExist(Memory.txn.paths.trash)) await mkdir(Memory.txn.paths.trash)
         break
-      case 'graphs':
-        if (!await doesPathExist(Memory.txn.paths.graphs)) await mkdir(Memory.txn.paths.graphs)
-        break
-      case 'graphDetails':
-        if (!await doesPathExist(Memory.txn.paths.graphDetails)) await writeFile(Memory.txn.paths.graphDetails, '')
-        break
       case 'schemas':
         if (!await doesPathExist(Memory.txn.paths.schemas)) await mkdir(Memory.txn.paths.schemas)
         break

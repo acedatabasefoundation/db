@@ -15,8 +15,6 @@ export function setTxnPaths (options) {
     dir: dirAbsolute,
     aol: dirAbsolute + '/aol.txt',
     trash: dirAbsolute + '/trash',
-    graphs: dirAbsolute + '/graphs',
-    graphDetails: dirAbsolute + '/graphs/details.json',
     schemas: dirAbsolute + '/schemas',
     schemaDetails: dirAbsolute + '/schemas/details.json',
   }
@@ -28,7 +26,6 @@ export function setTxnTrashPaths () {
   if (Memory.txn.paths && Memory.txn.emptyTimestamp) {
     Memory.txn.paths.trashNow = Memory.txn.paths.dir + '/trash/' + Memory.txn.emptyTimestamp
     Memory.txn.paths.trashNowAol = Memory.txn.paths.dir + '/trash/' + Memory.txn.emptyTimestamp + '/aol.txt'
-    Memory.txn.paths.trashNowGraphs = Memory.txn.paths.dir + '/trash/' + Memory.txn.emptyTimestamp + '/graphs'
     Memory.txn.paths.trashNowSchemas = Memory.txn.paths.dir + '/trash/' + Memory.txn.emptyTimestamp + '/schemas'
   }
 }
