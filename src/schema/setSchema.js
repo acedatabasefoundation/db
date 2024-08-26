@@ -23,19 +23,18 @@ export async function setSchema () {
     }
   }
 
-
   if (!Memory.txn.schemaOriginalDetails || !Memory.txn.schemaNowDetails) { // if still no details => init details
     Memory.txn.schemaNowDetails = { [ Memory.txn.env ]: SchemaDetail() }
     Memory.txn.schemaOriginalDetails = { [ Memory.txn.env ]: SchemaDetail() }
   } else if (!Memory.txn.schemaOriginalDetails[ Memory.txn.env ]) { // if no details for this env => init details for this env
     Memory.txn.schemaNowDetails[ Memory.txn.env ] = SchemaDetail()
     Memory.txn.schemaOriginalDetails[ Memory.txn.env ] = SchemaDetail()
-  } else { // if details => bind schema
+  } else if (Memory.txn.schemaOriginalDetails[ Memory.txn.env ].nowId) { // if details (is not 0) => bind schema
     const str = await readFile(`${ Memory.txn.paths.schemas }/${ Memory.txn.schemaOriginalDetails[ Memory.txn.env ].nowId }.json`, 'utf8')
 
     if (str) {
-      Memory.txn.schema = /** @type { td.AceSchema } */ (JSON.parse(str));
-      Memory.txn.schemaDataStructures = SchemaDataStructures(Memory.txn.schema);
+      Memory.txn.schema = /** @type { td.AceSchema } */ (JSON.parse(str))
+      Memory.txn.schemaDataStructures = SchemaDataStructures(Memory.txn.schema)
     }
   }
 }
