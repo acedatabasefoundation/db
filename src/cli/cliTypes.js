@@ -11,13 +11,11 @@ import { getJsIndex, getTsIndex } from './getIndex.js'
 import { dirname, resolve as pathResolve } from 'node:path'
 
 
-/**
- * @returns { Promise<void> }
- */
+/** @returns { Promise<void> } */
 export async function cliTypes () {
   const root = '../../'
-  const __dirname = dirname(fileURLToPath(import.meta.url))
   const { schema } = await getSchema()
+  const __dirname = dirname(fileURLToPath(import.meta.url))
 
   const files = {
     enums: pathResolve(__dirname, root + '.ace/enums.js'),
@@ -40,6 +38,7 @@ export async function cliTypes () {
     writeFile(files.jsIndex, getJsIndex()), // write index.js
     writeFile(files.tsIndex, getTsIndex()), // write index.ts
   ])
+
   stdout.write('✨ types ready!\n')
 }
 

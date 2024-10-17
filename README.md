@@ -7,7 +7,7 @@ Create maintain and enhance, the Best database, for JavaScript Developers!
 
 ## 🧐 Why Ace?
 * A graph is a **natural** data storage technique, that connects nodes **(neurons)** with relationships **(synapses)** 🧠
-* Ace unites the following lovely features, in an optionally [sponsored](#sponsor-ace) or optionally free, open source graph db:
+* Ace unites the following lovely features, in a free, open source, graph db:
     * **[Embeded](#embeded)** (no network latency between the application server and the database)
     * **[Memory Storage](#storage)** (query millions of nodes in less then 9ms 😳)
     * **[File Storage](#storage)** (append memory storage to files)
@@ -25,48 +25,59 @@ Create maintain and enhance, the Best database, for JavaScript Developers!
 ## ☁️ Getting Stated
 1. Download Ace
     * Have an existing NodeJS application, or in bash start a new one with `npm init` or `npm create vite@latest`
-    * In bash navigate to the folder where the `package.json` is and `npm i @ace/db`
-    * This will download `v0.0.1`
-    * Ace will be production recommended when we release `v1.0.0`
-    * No migrations scripts are planned for any version between now and `v1.0.0`
-1. Create a Graph
-    * [Create a WhatsApp Graph](#create-a-whatsapp-graph)
-    * [Create a YouTube Graph](#create-a-youtube-graph)
-    * [Create a Stack Overflow Graph](#create-a-sessions-graph)
-    * [Create a Sessions Graph](#create-a-sessions-graph)
-    * [Create an eCommerce Graph](#create-an-ecommerce-graph)
-    * [Create a Blog Graph](#create-a-blog-graph)
+    * As a dependency in you `package.json` add `"@ace/db": "git+https://github.com/acedatabasefoundation/db.git",`
+        * There are more features I'd love to add before putting this on NPM
+    * Bash: `npm i`
+1. [Create a WhatsApp Graph](#create-a-whatsapp-graph)
 
 
-## Examples
+## Current Features
 1. Query
-    * [Alias](#alias)
-    * [Relationship](#relationship)
-    * [Select Star](#select-star)
-    * [Find](#find)
-    * [Filter](#filter)
-    * [Limit](#limit)
-    * [Sort](#sort)
-    * [Flow](#flow)
-    * [Math](#math) - Count / Sum / Average / Min / Max
-    * [Adjacent to Response](#adjacent-to-response)
-    * [As Response](#as-response)
-    * [New Props](#new-props)
-    * [Response Hide](#response-hide)
+    * Alias
+    * Relationship
+    * Select Star
+    * Find
+    * Filter
+    * Limit
+    * Sort
+    * Flow
+        * Use default flow or set in query the flow of options
+        * Example sort then limit (default) or limit then sort (optional)
+    * Math
+        * Count / Sum / Average / Min / Max
+        * Example, let's say we are calculating the count of users, any math value like `count` can be added:
+            * As an object property: `{ users: [ { name: 'AUM', count: 1 } ] }` 
+            * Adjacent to the response: `{ count: 1, users: [ { name: 'AUM' } ] }` 
+            * As the response: `1` 
+    * Adjacent to Response
+        * In ace multiple responses can be in one query
+        * Example { totalUserCount: 9, paginatedUsers: [] }
+        * In the above response we can say place `totalUserCount` adjacent in the response to `paginatedUsers`
+    * As Response
+        * You can say take a value and place it as the response
+        * Example, there are 9 users, so `As Response` allows the response to be 9, not an object { userCount: 9 }, or {users: [] } and we get the length of the array, nope the response is just 9
+    * New Props
+        * Calculate values using the standard math operators to create new props in the response
+        * Example: Revenue and Expenses are in the response already, `New Props` allows us to add Profit to the response
+    * Response Hide
+        * There might be values in the response that we wanted for a calucation but when the calucation is done we don't actually want the item in the response
+        * Example: Revenue and Expenses are in the response already, `New Props` allows us to add Profit to the response, and then `Response Hide` allows us to remove Revenue and Expenses from the response and just show the Profit
 1. Mutations
-    * [Insert](#inset)
-    * [Update](#update)
-    * [Upsert](#upsert)
-    * [Delete](#delete)
+    * Insert
+    * Update
+    * Upsert
+    * Delete
 1. Schema
-    * [Unique Index](#unique-index)
-    * [Sort Index](#sort-index)
-    * [Must Be Defined](#must-be-defined)
-    * [Must Be Unique](#must-be-unique)
-    * [Default Value](#default-value)
-1. [Relationship Props](#relationship-props)
-1. [Encrypt PII](#encrypt-pii)
-1. [Multi Graph Support](#multi-graph-support)
+    * Must Be Defined
+    * Default Value
+    * Must Be Unique
+    * Unique Index
+    * Sort Index
+1. Relationship Props
+    * Example: Imagine a graph with an Actor node, a Movie node and a actedIn relationship. An example of a relationship prop would be salary. The prop does not really fit on either node, but perfectly with the relationship
+1. Encrypt PII
+    * Can still be searched and filtered on
+    * Data on file is encrypted
 
 
 ## Create a WhatsApp Graph
@@ -108,7 +119,7 @@ await ace({
 2. View updates in `schemas` folder
     * Navigate to `./ace/schemas/` and view `details.json` and `1.json`
     * Each schema alteration will create a new file in this directory with the updated schema and update the `details.json`
-2. In bash do: `ace types ./ace local`
+2. In bash do: `ace types`
     * This will update your types to include your updated schema
 2. Mutate and Query Graph
     * Press `Control+Space` to get intellisense
@@ -189,20 +200,14 @@ await ace({ dir: './ace', req: [ ... ] }) // dir = the directory, starting from 
 
 ## Storage
 * Memory
-    * The max size v8 allows for a `new Map()` is 1 gigabyte
-    * Ace puts the most recent 45 megabytes of writes (estimated 3+ million graph items) into an in memory map
-    * Querying the in memory map allows 1ms queries at its max size
-    * If the application server restarts, the map is rebuilt thanks to the write ahead log
+    * Ace puts writes into a sorted array to allow binary searching later, and an append only file
+    * If the application server restarts, the array is rebuilt thanks to the append only file
 * File
     * To the specified directory:
         * When a request or a transaction is succesful, data updates are:
-            * Appended to the write ahead log (file)
+            * Appended to the append only file
                 * Writes are fast b/c file append is fast
-            * Added to the write ahead log map (memory)
-        * When the write ahead log map reaches 45 megabytes
-            * Keys are sorted (to allow binary searching) and written to an immutable file
-            * Write ahead log map is cleared
-            * Write ahead log file is cleared
+            * Added to the append only file map (memory)
 
 
 ## Transactions
@@ -276,7 +281,7 @@ ace token
 
 ace types
   - Creates enums, types (TS) and typedefs (JSDoc)
-  - To access in your application
+  - To access types or enums in your application just add to any file:
     - import { td, enums } from "@ace/db"
 
 
@@ -306,3 +311,28 @@ ace version
     * Get jwks via `ace jwks`
     * When doing an inserrt, update, or upsert to `ace()` for a hash data type send a private jwk
     * When doing a match query to `ace()` on a hashed value send the public jwk
+
+
+## ORM
+* The shape of the data in the query is the shape of the object in the response
+* In the example below:
+    * The `resKey` or Response Key is `products` so they're stored at `const { products }`
+    * Each product will have `id`, `name` and `amount` in the response
+```ts
+const { products } = await ace({
+  env: process.env.NODE_ENV,
+  dir: process.env.ACE_DIRECTORY,
+  req: {
+    do: 'NodeQuery',
+    how: {
+      node: 'Product',
+      resKey: 'products',
+      resValue: {
+        id: true,
+        name: true,
+        price: { alias: 'amount' },
+      }
+    }
+  }
+})
+```
