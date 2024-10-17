@@ -34,7 +34,9 @@ Create maintain and enhance, the Best database, for JavaScript Developers!
 ## Current Features
 1. Query
     * Alias
+        * According to the schema the node prop might be User > name but thanks to alias, the response can be User > fullName
     * Relationship
+        * Create and query relationships that are called the same thing from either direction, like a `friend`, or have different names from either direction like `follower` and `folowee`
     * Select Star
     * Find
     * Filter
