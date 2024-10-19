@@ -40,22 +40,44 @@ await ace({
   req:  {
     do: 'SchemaAdd',
     how: {
-      nodes: {
+      nodes: { // Nodes we'd love to add to the schema
         User: {
-          name: { is: 'Prop', options: { dataType: 'encrypt', mustBeDefined: true } }, // The name on file will be encrypted but we can still do things like find all users with a name of Chris
-          email: { is: 'Prop', options: { dataType: 'encrypt', uniqueIndex: true } }, // We can even place an index on encrypted data to help if we want to get users by email frequently
-          password: { is: 'Prop', options: { dataType: 'hash', uniqueIndex: true } }, // Hash is a great data type to allow us to check if a password matches but never be able to decrypt the password
-          isAwesome: { is: 'Prop', options: { dataType: 'boolean', uniqueIndex: true } }, // Booleans are inserted and queried as true & false
-          createdAt: { is: 'Prop', options: { dataType: 'iso', mustBeDefined: true, default: 'now' } }, // The iso dataType is an isoString (date time string format that includes timezone)
-          age: { is: 'Prop', options: { dataType: 'number', sortIndex: true } }, // sortIndex will ensure reads are fast wheb we ask Ace for users sorted by age
-          friends: { is: 'BidirectionalRelationshipProp', options: { has: 'many', node: 'User', relationship: 'isFriendsWith' } }, // BidirectionalRelationshipProp means from any perspective of the relationship is it called the same. So if we are friends, from your and my perspective, we are friends
-          following: { is: 'ForwardRelationshipProp', options: { has: 'many', node: 'User', relationship: 'isFollowing' } }, // ForwardRelationshipProp means from this perspective of the relationship we align with the relationship name. So if I follow you, from my perspective I am following and from your perspective you are the followee
-          followers: { is: 'ReverseRelationshipProp', options: { has: 'many', node: 'User', relationship: 'isFollowing' } }, // ReverseRelationshipProp means from this perspective of the relationship we are backwards with the relationship name.
+          // B/c the dataTyps is encrypt, the name witten to file (the graph) will be encrypted and we can still do things like find all users with a name of Chris
+          name: { is: 'Prop', options: { dataType: 'encrypt', mustBeDefined: true } },
+
+          // Even though the dataType is encrypt, we can still place unique index to ensure get users by email is fast          
+          email: { is: 'Prop', options: { dataType: 'encrypt', uniqueIndex: true } },
+
+          // B/c the dataType is hash, to file (the graph) the password will be encrypted, it cannot be decrypted but we can check if a provided password is correct
+          password: { is: 'Prop', options: { dataType: 'hash', uniqueIndex: true } },
+
+          // B/c the default is true, if we do an insert without an isAwesome prop it will default to true
+          isAwesome: { is: 'Prop', options: { dataType: 'boolean', default: true } },
+
+          // The iso dataType is an isoString (date time string format that includes timezone) & the default now means that when a User is added to the graph, if a createdAt is not provided it will be the now timestamp
+          createdAt: { is: 'Prop', options: { dataType: 'iso', mustBeDefined: true, default: 'now' } },
+
+          // sortIndex will ensure reads are fast wheb we ask Ace for users sorted by age
+          age: { is: 'Prop', options: { dataType: 'number', sortIndex: true } },
+
+          // BidirectionalRelationshipProp means from both perspectives of the relationship, we use the same. Example: We are friends and from your and my perspective, we are friends
+          friends: { is: 'BidirectionalRelationshipProp', options: { has: 'many', node: 'User', relationship: 'isFriendsWith' } },
+
+          // ForwardRelationshipProp means from this properties (following) perspective of the relationship (isFollowing) we are in the direction of the relationship name. Example: I follow you, from my perspective I am following and from your perspective I am a follower
+          following: { is: 'ForwardRelationshipProp', options: { has: 'many', node: 'User', relationship: 'isFollowing' } },
+
+          // ReverseRelationshipProp means from this properties (followers) perspective of the relationship (isFollowing) this property is backwards with the relationship name
+          followers: { is: 'ReverseRelationshipProp', options: { has: 'many', node: 'User', relationship: 'isFollowing' } },
         },
       },
-      relationships: {
+      relationships: { // Relationships we'd love to add to the schema
         isFriendsWith: { is: 'ManyToMany' },
-        isFollowing: { is: 'ManyToMany' },
+        isFollowing: { // relationships can also have props
+          is: 'ManyToMany',
+          props: { // relationship props must start with an underscore, this is super helpful when it comes to queries so that it's easy to identify if the prop is a node prop (does not start with an underscor) or a relationship prop
+            _createdAt: { is: 'RelationshipProp', options: { dataType: 'iso', default: 'now' } }
+          }
+        },
       }
     }
   }
