@@ -7,7 +7,7 @@ Create maintain and enhance, the Best database, for JavaScript Developers!
 
 ## 🧐 Why Ace?
 * A graph is a **natural** data storage technique, that connects nodes **(neurons)** with relationships **(synapses)** 🧠
-* Ace unites the following lovely features, in a free, open source, graph db:
+* Ace unites the following lovely features, in a free, graph db:
     * **[Embeded](#embeded)** (no network latency between the application server and the database)
     * **[Memory Storage](#storage)** (query millions of nodes in less then 9ms 😳)
     * **[File Storage](#storage)** (append memory storage to files)
@@ -15,7 +15,6 @@ Create maintain and enhance, the Best database, for JavaScript Developers!
     * **[Queue](#queue)** (provides read and write concurrency)
     * **[Schema](#schema)** (define data shape w/ JSON)
     * **[Migrations](#migrations)** (simple and powerful schema migrations within and between environments)
-    * **[Backups](#backups)** (multiple locations and frequencies available)
     * **[TypeScript and JSDoc](#typescript-and-jsdoc)** (provides helpful editor intellisense & is based on your schema)
     * **[CLI](#cli)** (geneate types, perform migrations and much more)
     * **[Data Types](#data-types)** (string, number, boolean, iso, hash, encrypt)
@@ -24,7 +23,7 @@ Create maintain and enhance, the Best database, for JavaScript Developers!
 
 ## ☁️ Getting Stated
 1. Download Ace
-    * To get started you'll need an existing NodeJS application, or in bash start a new one with `npm init` or `npm create vite@latest`
+    * To get started you'll need an existing NodeJS application, or in bash start a new application with `npm init` or `npm create vite@latest`
     * As a dependency in you `package.json` add `"@ace/db": "git+https://github.com/acedatabasefoundation/db.git",`
         * There are more features I'd love to add before putting this on NPM
     * Bash: `npm i`
