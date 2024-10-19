@@ -24,7 +24,7 @@ Create maintain and enhance, the Best database, for JavaScript Developers!
 
 ## ☁️ Getting Stated
 1. Download Ace
-    * Have an existing NodeJS application, or in bash start a new one with `npm init` or `npm create vite@latest`
+    * To get started you'll need an existing NodeJS application, or in bash start a new one with `npm init` or `npm create vite@latest`
     * As a dependency in you `package.json` add `"@ace/db": "git+https://github.com/acedatabasefoundation/db.git",`
         * There are more features I'd love to add before putting this on NPM
     * Bash: `npm i`
@@ -32,43 +32,578 @@ Create maintain and enhance, the Best database, for JavaScript Developers!
 
 
 ## Current Features
-1. Query
-    * Alias
-        * According to the schema the node prop might be User > name but thanks to alias, the response can be User > fullName
-    * Relationship
-        * Create and query relationships that are called the same thing from either direction, like a `friend`, or have different names from either direction like `follower` and `folowee`
-    * Select Star
-    * Find
-    * Filter
-    * Limit
-    * Sort
-    * Flow
-        * Use default flow or set in query the flow of options
-        * Example sort then limit (default) or limit then sort (optional)
-    * Math
-        * Count / Sum / Average / Min / Max
-        * Example, let's say we are calculating the count of users, any math value like `count` can be added:
-            * As an object property: `{ users: [ { name: 'AUM', count: 1 } ] }` 
-            * Adjacent to the response: `{ count: 1, users: [ { name: 'AUM' } ] }` 
-            * As the response: `1` 
-    * Adjacent to Response
-        * In ace multiple responses can be in one query
-        * Example { totalUserCount: 9, paginatedUsers: [] }
-        * In the above response we can say place `totalUserCount` adjacent in the response to `paginatedUsers`
-    * As Response
-        * You can say take a value and place it as the response
-        * Example, there are 9 users, so `As Response` allows the response to be 9, not an object { userCount: 9 }, or {users: [] } and we get the length of the array, nope the response is just 9
-    * New Props
-        * Calculate values using the standard math operators to create new props in the response
-        * Example: Revenue and Expenses are in the response already, `New Props` allows us to add Profit to the response
-    * Response Hide
-        * There might be values in the response that we wanted for a calucation but when the calucation is done we don't actually want the item in the response
-        * Example: Revenue and Expenses are in the response already, `New Props` allows us to add Profit to the response, and then `Response Hide` allows us to remove Revenue and Expenses from the response and just show the Profit
-1. Mutations
-    * Insert
-    * Update
-    * Upsert
-    * Delete
+
+### Create a schema
+```js
+await ace({
+  dir,
+  env,
+  req:  {
+    do: 'SchemaAdd',
+    how: {
+      nodes: {
+        User: {
+          name: { is: 'Prop', options: { dataType: 'encrypt', mustBeDefined: true } }, // The name on file will be encrypted but we can still do things like find all users with a name of Chris
+          email: { is: 'Prop', options: { dataType: 'encrypt', uniqueIndex: true } }, // We can even place an index on encrypted data to help if we want to get users by email frequently
+          password: { is: 'Prop', options: { dataType: 'hash', uniqueIndex: true } }, // Hash is a great data type to allow us to check if a password matches but never be able to decrypt the password
+          isAwesome: { is: 'Prop', options: { dataType: 'boolean', uniqueIndex: true } }, // Booleans are inserted and queried as true & false
+          createdAt: { is: 'Prop', options: { dataType: 'iso', mustBeDefined: true, default: 'now' } }, // The iso dataType is an isoString (date time string format that includes timezone)
+          age: { is: 'Prop', options: { dataType: 'number', sortIndex: true } }, // sortIndex will ensure reads are fast wheb we ask Ace for users sorted by age
+          friends: { is: 'BidirectionalRelationshipProp', options: { has: 'many', node: 'User', relationship: 'isFriendsWith' } }, // BidirectionalRelationshipProp means from any perspective of the relationship is it called the same. So if we are friends, from your and my perspective, we are friends
+          following: { is: 'ForwardRelationshipProp', options: { has: 'many', node: 'User', relationship: 'isFollowing' } }, // ForwardRelationshipProp means from this perspective of the relationship we align with the relationship name. So if I follow you, from my perspective I am following and from your perspective you are the followee
+          followers: { is: 'ReverseRelationshipProp', options: { has: 'many', node: 'User', relationship: 'isFollowing' } }, // ReverseRelationshipProp means from this perspective of the relationship we are backwards with the relationship name.
+        },
+      },
+      relationships: {
+        isFriendsWith: { is: 'ManyToMany' },
+        isFollowing: { is: 'ManyToMany' },
+      }
+    }
+  }
+})
+```
+
+### Mutation: Insert
+1. Add 2 User nodes to graph
+1. Add a relationship between the 2 nodes
+1. Details about the example below:
+    * When an id starts with `_:` this is an enum identifying id which can be used in relaitonships
+    * For a relationship insert we need to know the direction, who is following who, in this case `Chris` isInLoveWith `Mercy` b/c `a` is following `b`
+    * `req` is shown as an array in the example below, if you'd love Ace to do 1 thing use an object & if you'd love Ace to do multiple things use an array and the items will be done in the provided order
+```ts
+await ace({
+  dir,
+  env,
+  req: [
+    { do: 'NodeInsert', how: { node: 'User', props: { id: '_:chris', name: 'Chis' } } },
+    { do: 'NodeInsert', how: { node: 'User', props: { id: '_:mercy', name: 'Mercy' } } },
+    { do: 'RelationshipInsert', how: { relationship: 'isFollowing', props: { a: '_:chris', b: '_:mercy' } } }
+  ]
+})
+```
+
+
+### Mutation: Update / Upsert
+* All the options below are with `Update`, so if the `id` does not exist an error will throw, to avoid the throw, switch `Update` for `Upsert` below
+1. At `id: 1` update the name of that node to `Christopher` 
+1. At `id: 2` update the name of that node to `Miss Lovely` 
+1. At `id: 3` update the direction of that relationship
+```ts
+await ace({
+  dir,
+  env,
+  req: [
+    { do: 'NodeUpdate', how: { node: 'User', props: { id: 1, name: 'Chistopher' } } },
+    { do: 'NodeUpdate', how: { node: 'User', props: { id: 2, name: 'Miss Lovely' } } },
+    { do: 'RelationshipUpdate', how: { relationship: 'isFollowing', props: { id: 3, a: '_:mercy', b: '_:chris' } } }
+  ]
+})
+```
+
+
+### Mutation: Delete
+* Here are the many different ways we may delete data:
+```ts
+await ace({
+  dir,
+  env,
+  req: [
+    { do: 'NodeDelete', how: [ 1, 2 ] }, // delete the nodes that have an id of 1 and 2
+    { do: 'NodePropDelete', how: { ids: [ 3, 4 ], props: [ 'name' ] } }, // delete the prop of name from nodes 3 and 4
+
+    { do: 'RelationshipDelete', how: { _ids: [ 5 ] } }, // delete the relationship with _id 5
+    { do: 'RelationshipPropDelete', how: { _ids: [ 6 ], props: [ '_createdAt' ] } }, // delete the _createdAt prop from _id 6
+
+    { do: 'SchemaDeleteNodes', how: [ 'Actor' ] }, // Delete the Actor node in the schema AND delete all Actor data from graph
+    { do: 'SchemaDeleteNodeProps', how: [ { node: 'Actor', prop: 'name' } ] }, // Delete the name prop from the Actor node in the schema AND delete all Actor > name props in the graph
+  ]
+})
+```
+
+
+### Query: Alias
+* Notice the `alias` below at `req > how > resValue > name`?!
+* In the schema the property is `name` but in the response it will be `fullName`
+* Note: `req` in the code example above is an array but below is an object, if you'd love Ace to do 1 thing use an object & if you'd love Ace to do multiple things use an array and the items will be done in the provided order
+```ts
+const { products } = await ace({
+  dir,
+  env,
+  req: {
+    do: 'NodeQuery',
+    how: {
+      node: 'Movie',
+      resKey: 'movies',
+      resValue: {
+        id: true,
+        name: { alias: 'fullName' },
+      }
+    }
+  }
+})
+```
+
+
+### Query: Select Star
+* Notice the `'*'` @ `resValue` below?!
+* A value of `'*'` as the `resValue` will ensure that all the none relationship properties for a movie are included
+* A value of `'**'` as the `resValue` will ensure that all the none relationship properties for a movie are included and one level deep of relationship props (and all their none relationship properties will be included)
+* A value of `'***'` as the `resValue` will ensure that all the none relationship properties for a movie are included and ***TWO*** levels deep of relationship props (and all their none relationship properties will be included)
+```ts
+const { products } = await ace({
+  dir,
+  env,
+  req: {
+    do: 'NodeQuery',
+    how: {
+      node: 'Movie',
+      resKey: 'movies',
+      resValue: '*'
+    }
+  }
+})
+```
+
+
+
+### Query: Relationships
+* Ace can query nodes (meaning we start from a node) like the example above where we start at the `movies` node or can start at a relationship like this:
+* Relationships sit between 2 nodes, so when we query by a relationship the first 2 props point to the 2 nodes this relationship sits between
+```ts
+const { hasStaredIn } = await ace({
+  dir,
+  env,
+  req: {
+    do: 'RelationshipQuery',
+    how: {
+      relationship: 'hasStaredIn',
+      resKey: 'hasStaredIn',
+      resValue: {
+        movie: '*',
+        actor: '**'
+      }
+    }
+  }
+})
+```
+
+
+
+### Query: Find
+* Find Node by `id`
+```ts
+const { users } = await ace({
+  dir,
+  env,
+  req: {
+    do: 'NodeQuery',
+    how: {
+      node: 'User',
+      resKey: 'users',
+      resValue: {
+        $o: { findById: 1 },
+        id: true,
+        name: true,
+      }
+    }
+  }
+})
+```
+
+* Find the first user that has a name of `Chris`
+```ts
+const { users } = await ace({
+  dir,
+  env,
+  req: {
+    do: 'NodeQuery',
+    how: {
+      node: 'User',
+      resKey: 'users',
+      resValue: {
+        $o: { findByPropValue: [ { prop: 'name' }, 'equals', 'Chris' ] },
+        id: true,
+        name: true,
+      }
+    }
+  }
+})
+```
+
+* Find the first user that has a name of `Chris` and an email that ends in `@gmail.com`
+* To do this as an `or` switch `findByAnd` to `findByOr`
+```ts
+const { users } = await ace({
+  dir,
+  env,
+  req: {
+    do: 'NodeQuery',
+    how: {
+      node: 'User',
+      resKey: 'users',
+      resValue: {
+        $o: { findByAnd: [ [ { prop: 'name' }, 'equals', 'Chris' ], [ { prop: 'email' }, 'endsWith', '@gmail.com' ] ] },
+        id: true,
+        name: true,
+        email: true,
+      }
+    }
+  }
+})
+```
+
+
+### Query: Filter
+* Filter users that have a name of `Chris`
+```ts
+const { users } = await ace({
+  dir,
+  env,
+  req: {
+    do: 'NodeQuery',
+    how: {
+      node: 'User',
+      resKey: 'users',
+      resValue: {
+        $o: { filterByPropValue: [ { prop: 'name' }, 'equals', 'Chris' ] },
+        id: true,
+        name: true,
+      }
+    }
+  }
+})
+```
+
+* Filter users that have a name of `Chris` and an email that ends in `@gmail.com`
+* To do this as an `or` switch `filterByAnd` to `filterByOr`
+```ts
+const { users } = await ace({
+  dir,
+  env,
+  req: {
+    do: 'NodeQuery',
+    how: {
+      node: 'User',
+      resKey: 'users',
+      resValue: {
+        $o: { filterByAnd: [ [ { prop: 'name' }, 'equals', 'Chris' ], [ { prop: 'email' }, 'endsWith', '@gmail.com' ] ] },
+        id: true,
+        name: true,
+        email: true,
+      }
+    }
+  }
+})
+```
+
+
+### Query: Limit
+* Skip the first 9 users and then show the next 9 users
+```ts
+const { users } = await ace({
+  dir,
+  env,
+  req: {
+    do: 'NodeQuery',
+    how: {
+      node: 'User',
+      resKey: 'users',
+      resValue: {
+        $o: { limit: { count: 9, skip: 9 } },
+        id: true,
+        name: true,
+      }
+    }
+  }
+})
+```
+
+
+### Query: Sort
+* Sort users `asc` by name
+* To sort descending switch `asc` for `dsc`
+```ts
+const { users } = await ace({
+  dir,
+  env,
+  req: {
+    do: 'NodeQuery',
+    how: {
+      node: 'User',
+      resKey: 'users',
+      resValue: {
+        $o: { sort: { how: 'asc', prop: 'name' } },
+        id: true,
+        name: true,
+      }
+    }
+  }
+})
+```
+
+
+### Query: Flow
+* There can be multiple options in `$o`
+* There is a default order that Ace does the options (default order be found [here](https://github.com/acedatabasefoundation/db/blob/main/src/util/variables.js) @ defaultQueryOptionsFlow)
+* For example the default flow is to do sort then limit, but if you'd love limit then sort:
+```ts
+const { users } = await ace({
+  dir,
+  env,
+  req: {
+    do: 'NodeQuery',
+    how: {
+      node: 'User',
+      resKey: 'users',
+      resValue: {
+        $o: {
+          flow: [ 'limit', 'sort' ],
+          limit: { count: 9 },
+          sort: { how: 'asc', prop: 'name' }
+        },
+        id: true,
+        name: true,
+      }
+    }
+  }
+})
+```
+
+
+### Query: Count
+* Add a `count` (of all users) property to each user object in the response:
+```ts
+const { users } = await ace({
+  dir,
+  env,
+  req: {
+    do: 'NodeQuery',
+    how: {
+      node: 'User',
+      resKey: 'users',
+      resValue: {
+        $o: { countAsProp: 'count' },
+        id: true,
+        name: true,
+      }
+    }
+  }
+})
+```
+* Add a `count` property ***ADJACENT*** to the `users` property
+* Notice the const is now `const { users, userCount }`?!
+```ts
+const { users, userCount } = await ace({
+  dir,
+  env,
+  req: {
+    do: 'NodeQuery',
+    how: {
+      node: 'User',
+      resKey: 'users',
+      resValue: {
+        $o: { countAdjToRes: 'userCount' },
+        id: true,
+        name: true,
+      }
+    }
+  }
+})
+```
+
+* At the provided `resKey` give the `count`:
+```ts
+const { userCount } = await ace({
+  dir,
+  env,
+  req: {
+    do: 'NodeQuery',
+    how: {
+      node: 'User',
+      resKey: 'userCount',
+      resValue: {
+        $o: { countAsRes: true },
+      }
+    }
+  }
+})
+```
+
+
+### Query: Sum
+* Add a `totalRevenue` (of all accounts) property to each account object in the response:
+```ts
+const { accounts } = await ace({
+  dir,
+  env,
+  req: {
+    do: 'NodeQuery',
+    how: {
+      node: 'BankAccount',
+      resKey: 'accounts',
+      resValue: {
+        $o: {
+          sumAsProp: { computeProp: 'revenue', newProp: 'totalRevenue' }
+        },
+        id: true,
+        revenue: true,
+      }
+    }
+  }
+})
+```
+
+* Get the sum revenue and then place it at the provided `resKey`:
+```ts
+const { totalRevenue } = await ace({
+  dir,
+  env,
+  req: {
+    do: 'NodeQuery',
+    how: {
+      node: 'BankAccount',
+      resKey: 'totalRevenue',
+      resValue: {
+        $o: { sumAsRes: 'revenue' }
+      }
+    }
+  }
+})
+```
+
+
+### Query: Average
+* Add an `avgRevenue` (of all accounts) property to each account object in the response:
+```ts
+const { accounts } = await ace({
+  dir,
+  env,
+  req: {
+    do: 'NodeQuery',
+    how: {
+      node: 'BankAccount',
+      resKey: 'accounts',
+      resValue: {
+        $o: {
+          avgAsProp: { computeProp: 'revenue', newProp: 'avgRevenue' }
+        },
+        id: true,
+        revenue: true,
+      }
+    }
+  }
+})
+```
+
+* Get the average revenue and then place it at the provided `resKey`:
+```ts
+const { avgRevenue } = await ace({
+  dir,
+  env,
+  req: {
+    do: 'NodeQuery',
+    how: {
+      node: 'BankAccount',
+      resKey: 'avgRevenue',
+      resValue: {
+        $o: { avgAsRes: 'revenue' }
+      }
+    }
+  }
+})
+```
+
+
+### Query: Min / Max
+* All examples below will use `min`
+* If you'd love `max` just switch `min` to `max` anywhere you see `min` in the code examples
+* Calculate lowest value for the `revenue` prop (of all accounts) and then add the `minRevenue` that will hold this lowest value to each account object in the response:
+```ts
+const { accounts } = await ace({
+  dir,
+  env,
+  req: {
+    do: 'NodeQuery',
+    how: {
+      node: 'BankAccount',
+      resKey: 'accounts',
+      resValue: {
+        $o: { minAmtAsProp: { computeProp: 'revenue', newProp: 'minRevenue' } },
+        revenue: true,
+      }
+    }
+  }
+})
+```
+
+* Calculate lowest value for the `revenue` prop (of all accounts) and then provide that node in the response
+* Notice how the const changed from `accounts` above to `account` below b/c now we are only returning one node (the least revenue node), so we removed the `s` from `accounts` in the `resKey`
+```ts
+const { account } = await ace({
+  dir,
+  env,
+  req: {
+    do: 'NodeQuery',
+    how: {
+      node: 'BankAccount',
+      resKey: 'account',
+      resValue: {
+        $o: { minNodeAsRes: 'revenue' },
+        id: true,
+        revenue: true,
+      }
+    }
+  }
+})
+```
+
+* Calculate lowest value for the `revenue` prop (of all accounts) and then provide that value as the response:
+```ts
+const { lowestRevenue } = await ace({
+  dir,
+  env,
+  req: {
+    do: 'NodeQuery',
+    how: {
+      node: 'BankAccount',
+      resKey: 'lowestRevenue',
+      resValue: {
+        $o: { minAmtAsRes: 'revenue' }
+      }
+    }
+  }
+})
+```
+
+
+### Query: New Props
+* Add a profit column to each account in the response
+* The first property in the newProps object is the name of the new props, below it is `profit`
+* In the `profit` value you see `subtract` below, the other options are `[ add, subtract, multiply, divide ]`
+```ts
+const { accounts } = await ace({
+  dir,
+  env,
+  req: {
+    do: 'NodeQuery',
+    how: {
+      node: 'BankAccount',
+      resKey: 'accounts',
+      resValue: {
+        $o: {
+          newProps: {
+            profit: { subtract: [ 'revenue', 'expenses' ] },
+          }
+        },
+        revenue: true,
+        expenses: true,
+      }
+    }
+  }
+})
+```
+
+
 1. Schema
     * Must Be Defined
     * Default Value

@@ -3,3 +3,4 @@
 /dist
 /tsc/src/*
 !/tsc/src/index.d.ts
+/src/test.js

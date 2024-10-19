@@ -127,6 +127,7 @@
     "src/util/variables.js",
 
     "src/index.js",
+    "src/test.js",
   ],
   "compilerOptions": {
     "noEmit": true,
